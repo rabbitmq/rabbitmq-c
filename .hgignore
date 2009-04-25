@@ -6,4 +6,11 @@
 ^install-sh$
 ^ltmain.sh$
 ^missing$
-(^|/)Makefile\.in$
+(^|/)\.libs$
+(^|/)\.deps$
+\.(o|lo)$
+^librabbitmq/amqp_framing\.[ch]$
+^Makefile(\.in)?$
+^librabbitmq/Makefile(\.in)?$
+^config\.h$
+^libtool$
