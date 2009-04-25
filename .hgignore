@@ -1,0 +1,9 @@
+^autom4te\.cache$
+^aclocal\.m4$
+^config\.(guess|log|status|sub|h\.in~?)$
+^configure$
+^depcomp$
+^install-sh$
+^ltmain.sh$
+^missing$
+(^|/)Makefile\.in$
