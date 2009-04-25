@@ -1,8 +1,9 @@
 lib_LTLIBRARIES = librabbitmq.la
 
-librabbitmq_la_SOURCES = f.c
+librabbitmq_la_SOURCES = amqp_mem.c amqp_table.c
 nodist_librabbitmq_la_SOURCES = amqp_framing.c
-librabbitmq_la_INCLUDES = amqp_framing.h
+librabbitmq_la_INCLUDES = amqp_framing.h amqp.h
+noinst_librabbitmq_la_INCLUDES = amqp_private.h
 BUILT_SOURCES = amqp_framing.h amqp_framing.c
 CLEANFILES = amqp_framing.h amqp_framing.c
 

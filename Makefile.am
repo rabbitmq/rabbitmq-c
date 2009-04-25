@@ -1,4 +1,4 @@
-SUBDIRS=librabbitmq
+SUBDIRS=librabbitmq examples
 
 squeakyclean: maintainer-clean
 	rm -f Makefile.in librabbitmq/Makefile.in

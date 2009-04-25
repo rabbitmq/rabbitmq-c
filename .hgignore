@@ -8,9 +8,10 @@
 ^missing$
 (^|/)\.libs$
 (^|/)\.deps$
-\.(o|lo)$
+\.(o|lo|la)$
 ^librabbitmq/amqp_framing\.[ch]$
-^Makefile(\.in)?$
-^librabbitmq/Makefile(\.in)?$
 ^config\.h$
+^stamp-h1$
 ^libtool$
+
+^(|librabbitmq/|examples/)Makefile(\.in)?$

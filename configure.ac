@@ -1,5 +1,5 @@
 AC_INIT([librabbitmq],[0.0.1],[tonyg@rabbitmq.com])
-AC_CONFIG_SRCDIR(librabbitmq/f.c)
+AC_CONFIG_SRCDIR(librabbitmq/codegen.py)
 AM_INIT_AUTOMAKE
 
 AC_CONFIG_HEADER([config.h])
@@ -30,4 +30,5 @@ AC_SUBST(AMQP_SPEC_JSON_PATH)
 AC_OUTPUT(
 Makefile
 librabbitmq/Makefile
+examples/Makefile
 )
