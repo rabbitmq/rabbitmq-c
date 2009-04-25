@@ -392,6 +392,26 @@ extern "C" {
         print "#define %s %s" % (cConstantName(c), v)
     print
 
+    print """/* Function prototypes. */
+extern char const *amqp_method_name(amqp_method_number_t methodNumber);
+extern amqp_boolean_t amqp_method_has_content(amqp_method_number_t methodNumber);
+extern int amqp_decode_method(amqp_method_number_t methodNumber,
+                              amqp_pool_t *pool,
+                              amqp_bytes_t encoded,
+                              void **decoded);
+extern int amqp_decode_properties(uint16_t class_id,
+                                  amqp_pool_t *pool,
+                                  amqp_bytes_t encoded,
+                                  void **decoded);
+extern int amqp_encode_method(amqp_method_number_t methodNumber,
+                              void *decoded,
+                              amqp_bytes_t encoded);
+extern int amqp_encode_properties(uint16_t class_id,
+                                  void *decoded,
+                                  amqp_bytes_t encoded);
+extern int amqp_exception_category(uint16_t code);
+"""
+
     print "/* Method field records. */"
     for m in methods:
         methodid = m.klass.index << 16 | m.index

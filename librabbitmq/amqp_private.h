@@ -6,6 +6,12 @@ extern "C" {
 #endif
 
 struct amqp_connection_state_t_ {
+  amqp_pool_t pool;
+  amqp_bytes_t inbound_buffer;
+  amqp_bytes_t outbound_buffer;
+  size_t frame_offset;
+  size_t frame_size_target; /* 0 for unknown, still waiting for header */
+  amqp_boolean_t reset_required;
 };
 
 #define CHECK_LIMIT(b, o, l, v) ({ if ((o + l) > (b).len) { return -EFAULT; } (v); })

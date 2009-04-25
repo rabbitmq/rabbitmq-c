@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+typedef int (*amqp_writer_fun_t)(int context, void const *buf, size_t len);
+
 typedef int amqp_boolean_t;
 typedef uint32_t amqp_method_number_t;
 typedef uint32_t amqp_flags_t;
@@ -73,6 +75,9 @@ typedef struct amqp_frame_t_ {
 #define AMQP_EXCEPTION_CATEGORY_CONNECTION 1
 #define AMQP_EXCEPTION_CATEGORY_CHANNEL 2
 
+#define AMQP_FRAME_COMPLETE 0
+#define AMQP_FRAME_INCOMPLETE 1
+
 /* Opaque struct. */
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
@@ -85,22 +90,28 @@ extern void empty_amqp_pool(amqp_pool_t *pool);
 extern void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount);
 
 extern amqp_connection_state_t amqp_new_connection(void);
-extern int amqp_tune_connection(amqp_connection_state_t state,
-				int frame_max);
-extern int amqp_destroy_connection(amqp_connection_state_t state);
+extern void amqp_tune_connection(amqp_connection_state_t state,
+				 int frame_max);
+extern void amqp_destroy_connection(amqp_connection_state_t state);
 
 extern int amqp_handle_input(amqp_connection_state_t state,
-			     amqp_pool_t *pool,
 			     amqp_bytes_t received_data,
 			     amqp_frame_t *decoded_frame);
 
 extern int amqp_send_frame(amqp_connection_state_t state,
-			   amqp_pool_t *pool,
-			   int (*writer)(int context, void const *buf, size_t len),
+			   amqp_writer_fun_t writer,
 			   int context,
 			   amqp_frame_t const *frame);
 
 extern int amqp_table_entry_cmp(void const *entry1, void const *entry2);
+
+extern int amqp_open_socket(char const *hostname, int portnumber);
+
+extern int amqp_send_header(amqp_writer_fun_t writer, int context);
+
+extern int amqp_simple_wait_frame(amqp_connection_state_t state,
+				  int sockfd,
+				  amqp_frame_t *decoded_frame);
 
 #ifdef __cplusplus
 }
