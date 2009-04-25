@@ -1,0 +1,8 @@
+If you're working from a mercurial checkout,
+
+    autoreconf -i
+
+before
+
+    ./configure
+    make
