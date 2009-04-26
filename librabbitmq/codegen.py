@@ -108,7 +108,7 @@ def genErl(spec):
         elif type == 'table':
             print prefix + "table_result = amqp_decode_table(encoded, pool, &(%s), &offset);" % \
                   (cLvalue,)
-            print prefix + "if (table_result != 0) return table_result;"
+            print prefix + "AMQP_CHECK_RESULT(table_result);"
         else:
             raise "Illegal domain in genSingleDecode", type
 
@@ -144,7 +144,7 @@ def genErl(spec):
         elif type == 'table':
             print prefix + "table_result = amqp_encode_table(encoded, &(%s), &offset);" % \
                   (cValue,)
-            print prefix + "if (table_result != 0) return table_result;"
+            print prefix + "if (table_result < 0) return table_result;"
         else:
             raise "Illegal domain in genSingleEncode", type
 
@@ -230,17 +230,6 @@ def genErl(spec):
                 print "      }"
         print "      return offset;"
         print "    }"
-
-    def genLookupException(c,v,cls):
-        # We do this because 0.8 uses "soft error" and 8.1 uses "soft-error".
-        mCls = c_ize(cls).upper()
-        if mCls == 'SOFT_ERROR': genLookupException1(c,'AMQP_EXCEPTION_CATEGORY_CHANNEL')
-        elif mCls == 'HARD_ERROR': genLookupException1(c, 'AMQP_EXCEPTION_CATEGORY_CONNECTION')
-        elif mCls == '': pass
-        else: raise 'Unknown constant class', cls
-
-    def genLookupException1(c, cCategory):
-        print '    case %s: return %s;' % (cConstantName(c), cCategory)
 
     methods = spec.allMethods()
 
@@ -340,26 +329,18 @@ int amqp_encode_properties(uint16_t class_id,
      similarity of structure between classes */
   amqp_flags_t flags = * (amqp_flags_t *) decoded; /* cheating! */
 
-  while (flags != 0) {
+  do {
     amqp_flags_t remainder = flags >> 16;
     uint16_t partial_flags = flags & 0xFFFE;
     if (remainder != 0) { partial_flags |= 1; }
     E_16(encoded, offset, partial_flags);
     offset += 2;
     flags = remainder;
-  }
+  } while (flags != 0);
 
   switch (class_id) {"""
     for c in spec.allClasses(): genEncodeProperties(c)
     print """    default: return -ENOENT;
-  }
-}"""
-
-    print """
-int amqp_exception_category(uint16_t code) {
-  switch (code) {"""
-    for (c,v,cls) in spec.constants: genLookupException(c,v,cls)
-    print """    default: return 0;
   }
 }"""
 
@@ -409,7 +390,6 @@ extern int amqp_encode_method(amqp_method_number_t methodNumber,
 extern int amqp_encode_properties(uint16_t class_id,
                                   void *decoded,
                                   amqp_bytes_t encoded);
-extern int amqp_exception_category(uint16_t code);
 """
 
     print "/* Method field records. */"
@@ -425,6 +405,8 @@ extern int amqp_exception_category(uint16_t code);
 
     print "/* Class property records. */"
     for c in spec.allClasses():
+        print "#define %s (0x%.04X) /* %d */" % \
+              (cConstantName(c.name + "_class"), c.index, c.index)
         index = 0
         for f in c.fields:
             if index % 16 == 15:
@@ -434,8 +416,10 @@ extern int amqp_exception_category(uint16_t code);
             bitindex = shortnum * 16 + partialindex
             print '#define %s (1 << %d)' % (cFlagName(c, f), bitindex)
             index = index + 1
-        print "typedef struct {\n  amqp_flags_t _flags;\n%s} %s;\n" % \
-              (fieldDeclList(c.fields), c.structName())
+        print "typedef struct %s_ {\n  amqp_flags_t _flags;\n%s} %s;\n" % \
+              (c.structName(),
+               fieldDeclList(c.fields),
+               c.structName())
 
     print """#ifdef __cplusplus
 }

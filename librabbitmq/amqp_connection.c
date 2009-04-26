@@ -4,40 +4,83 @@
 #include <stdint.h>
 #include <errno.h>
 
+#include <unistd.h>
+#include <sys/uio.h>
+
 #include "amqp.h"
 #include "amqp_framing.h"
 #include "amqp_private.h"
 
-#define INITIAL_FRAME_MAX 65536
+#include <assert.h>
+
+#define INITIAL_FRAME_POOL_PAGE_SIZE 65536
+#define INITIAL_DECODING_POOL_PAGE_SIZE 131072
+#define INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
+
+#define ENFORCE_STATE(statevec, statenum)				\
+  {									\
+    amqp_connection_state_t _check_state = (statevec);			\
+    int _wanted_state = (statenum);					\
+    amqp_assert(_check_state->state == _wanted_state,			\
+		"Programming error: invalid AMQP connection state: expected %d, got %d", \
+		_wanted_state,						\
+		_check_state->state);					\
+  }
 
 amqp_connection_state_t amqp_new_connection(void) {
   amqp_connection_state_t state =
     (amqp_connection_state_t) calloc(1, sizeof(struct amqp_connection_state_t_));
-  init_amqp_pool(&state->pool, INITIAL_FRAME_MAX);
-  state->inbound_buffer.len = INITIAL_FRAME_MAX;
-  state->inbound_buffer.bytes = malloc(INITIAL_FRAME_MAX);
-  state->outbound_buffer.len = INITIAL_FRAME_MAX;
-  state->outbound_buffer.bytes = malloc(INITIAL_FRAME_MAX);
-  state->frame_size_target = 0;
-  state->reset_required = 0;
+
+  init_amqp_pool(&state->frame_pool, INITIAL_FRAME_POOL_PAGE_SIZE);
+  init_amqp_pool(&state->decoding_pool, INITIAL_DECODING_POOL_PAGE_SIZE);
+
+  state->state = CONNECTION_STATE_IDLE;
+
+  state->inbound_buffer.bytes = NULL;
+  state->outbound_buffer.bytes = NULL;
+  amqp_tune_connection(state, INITIAL_FRAME_POOL_PAGE_SIZE);
+
+  state->inbound_offset = 0;
+  state->target_size = HEADER_SIZE;
+
+  state->sockfd = -1;
+  state->sock_inbound_buffer.len = INITIAL_INBOUND_SOCK_BUFFER_SIZE;
+  state->sock_inbound_buffer.bytes = malloc(INITIAL_INBOUND_SOCK_BUFFER_SIZE);
+  state->sock_inbound_offset = 0;
+  state->sock_inbound_limit = 0;
+
+  state->first_queued_frame = NULL;
+  state->last_queued_frame = NULL;
+
   return state;
+}
+
+void amqp_set_sockfd(amqp_connection_state_t state,
+		     int sockfd)
+{
+  state->sockfd = sockfd;
 }
 
 void amqp_tune_connection(amqp_connection_state_t state,
 			  int frame_max)
 {
-  empty_amqp_pool(&state->pool);
-  init_amqp_pool(&state->pool, frame_max);
+  ENFORCE_STATE(state, CONNECTION_STATE_IDLE);
+
+  state->frame_max = frame_max;
+
+  empty_amqp_pool(&state->frame_pool);
+  init_amqp_pool(&state->frame_pool, frame_max);
+
   state->inbound_buffer.len = frame_max;
-  realloc(state->inbound_buffer.bytes, frame_max);
   state->outbound_buffer.len = frame_max;
-  realloc(state->outbound_buffer.bytes, frame_max);
+  state->outbound_buffer.bytes = realloc(state->outbound_buffer.bytes, frame_max);
 }
 
 void amqp_destroy_connection(amqp_connection_state_t state) {
-  empty_amqp_pool(&state->pool);
-  free(state->inbound_buffer.bytes);
+  empty_amqp_pool(&state->frame_pool);
+  empty_amqp_pool(&state->decoding_pool);
   free(state->outbound_buffer.bytes);
+  free(state->sock_inbound_buffer.bytes);
   free(state);
 }
 
@@ -45,90 +88,140 @@ int amqp_handle_input(amqp_connection_state_t state,
 		      amqp_bytes_t received_data,
 		      amqp_frame_t *decoded_frame)
 {
-  if (state->reset_required) {
-    size_t unconsumed_byte_count = state->frame_offset - state->frame_size_target;
-    recycle_amqp_pool(&state->pool);
-    memmove(state->inbound_buffer.bytes,
-	    D_BYTES(state->inbound_buffer,
-		    state->frame_size_target,
-		    unconsumed_byte_count),
-	    unconsumed_byte_count);
-    state->frame_offset = unconsumed_byte_count;
-    state->frame_size_target = 0;
-    state->reset_required = 0;
+  int total_bytes_consumed = 0;
+  int bytes_consumed;
+
+ read_more:
+  if (received_data.len == 0) {
+    return total_bytes_consumed;
   }
 
-  E_BYTES(state->inbound_buffer, state->frame_offset, received_data.len, received_data.bytes);
-  state->frame_offset += received_data.len;
-
-  if (state->frame_size_target == 0) {
-    if (state->frame_offset < 7) {
-      return AMQP_FRAME_INCOMPLETE;
-    }
-
-    state->frame_size_target = D_32(state->inbound_buffer, 3) + 8; /* 7 for header, 1 for footer */
+  if (state->state == CONNECTION_STATE_IDLE) {
+    state->inbound_buffer.bytes = amqp_pool_alloc(&state->frame_pool, state->inbound_buffer.len);
+    state->state = CONNECTION_STATE_WAITING_FOR_HEADER;
   }
 
-  if (state->frame_offset < state->frame_size_target) {
-    return AMQP_FRAME_INCOMPLETE;
+  bytes_consumed = state->target_size - state->inbound_offset;
+  if (received_data.len < bytes_consumed) {
+    bytes_consumed = received_data.len;
   }
 
-  if (D_8(state->inbound_buffer, state->frame_size_target - 1) != AMQP_FRAME_END) {
-    return -EINVAL;
+  E_BYTES(state->inbound_buffer, state->inbound_offset, bytes_consumed, received_data.bytes);
+  state->inbound_offset += bytes_consumed;
+  total_bytes_consumed += bytes_consumed;
+
+  assert(state->inbound_offset <= state->target_size);
+
+  if (state->inbound_offset < state->target_size) {
+    return total_bytes_consumed;
   }
 
-  state->reset_required = 1;
+  switch (state->state) {
+    case CONNECTION_STATE_WAITING_FOR_HEADER:
+      state->target_size = D_32(state->inbound_buffer, 3) + HEADER_SIZE + FOOTER_SIZE;
+      state->state = CONNECTION_STATE_WAITING_FOR_BODY;
 
-  decoded_frame->frame_type = D_8(state->inbound_buffer, 0);
-  decoded_frame->channel = D_16(state->inbound_buffer, 1);
-  switch (decoded_frame->frame_type) {
-    case AMQP_FRAME_METHOD: {
-      amqp_bytes_t encoded;
-      int decode_result;
+      /* Wind buffer forward, and try to read some body out of it. */
+      received_data.len -= bytes_consumed;
+      received_data.bytes = ((char *) received_data.bytes) + bytes_consumed;
+      goto read_more;
 
-      encoded.len = state->frame_size_target - 12; /* 7 for header, 4 for method id, 1 for footer */
-      encoded.bytes = D_BYTES(state->inbound_buffer, 11, encoded.len);
+    case CONNECTION_STATE_WAITING_FOR_BODY: {
+      int frame_type = D_8(state->inbound_buffer, 0);
 
-      decoded_frame->payload.method.id = D_32(state->inbound_buffer, 7);
-      decode_result = amqp_decode_method(decoded_frame->payload.method.id,
-					 &state->pool,
-					 encoded,
-					 &decoded_frame->payload.method.decoded);
-      if (decode_result != 0) return decode_result;
+      printf("recving:\n");
+      amqp_dump(state->inbound_buffer.bytes, state->target_size);
 
-      return AMQP_FRAME_COMPLETE;
+      /* Check frame end marker (footer) */
+      if (D_8(state->inbound_buffer, state->target_size - 1) != AMQP_FRAME_END) {
+	return -EINVAL;
+      }
+
+      decoded_frame->channel = D_16(state->inbound_buffer, 1);
+
+      switch (frame_type) {
+	case AMQP_FRAME_METHOD: {
+	  amqp_bytes_t encoded;
+
+	  /* Four bytes of method ID before the method args. */
+	  encoded.len = state->target_size - (HEADER_SIZE + 4 + FOOTER_SIZE);
+	  encoded.bytes = D_BYTES(state->inbound_buffer, HEADER_SIZE + 4, encoded.len);
+
+	  decoded_frame->frame_type = AMQP_FRAME_METHOD;
+	  decoded_frame->payload.method.id = D_32(state->inbound_buffer, HEADER_SIZE);
+	  AMQP_CHECK_RESULT(amqp_decode_method(decoded_frame->payload.method.id,
+					       &state->decoding_pool,
+					       encoded,
+					       &decoded_frame->payload.method.decoded));
+	  break;
+	}
+
+	case AMQP_FRAME_HEADER: {
+	  amqp_bytes_t encoded;
+
+	  /* 12 bytes for properties header. */
+	  encoded.len = state->target_size - (HEADER_SIZE + 12 + FOOTER_SIZE);
+	  encoded.bytes = D_BYTES(state->inbound_buffer, HEADER_SIZE + 12, encoded.len);
+
+	  decoded_frame->frame_type = AMQP_FRAME_HEADER;
+	  decoded_frame->payload.properties.class_id = D_16(state->inbound_buffer, HEADER_SIZE);
+	  decoded_frame->payload.properties.body_size = D_64(state->inbound_buffer, HEADER_SIZE+4);
+	  AMQP_CHECK_RESULT(amqp_decode_properties(decoded_frame->payload.properties.class_id,
+						   &state->decoding_pool,
+						   encoded,
+						   &decoded_frame->payload.properties.decoded));
+	  break;
+	}
+
+	case AMQP_FRAME_BODY: {
+	  size_t fragment_len = state->target_size - (HEADER_SIZE + FOOTER_SIZE);
+
+	  decoded_frame->frame_type = AMQP_FRAME_BODY;
+	  decoded_frame->payload.body_fragment.len = fragment_len;
+	  decoded_frame->payload.body_fragment.bytes =
+	    D_BYTES(state->inbound_buffer, HEADER_SIZE, fragment_len);
+	  break;
+	}
+
+	default:
+	  /* Ignore the frame */
+	  decoded_frame->frame_type = 0;
+	  break;
+      }
+
+      state->inbound_buffer.bytes = NULL;
+      state->inbound_offset = 0;
+      state->target_size = HEADER_SIZE;
+      state->state = CONNECTION_STATE_IDLE;
+      return total_bytes_consumed;
     }
-    case AMQP_FRAME_HEADER: {
-      amqp_bytes_t encoded;
-      int decode_result;
 
-      encoded.len = state->frame_size_target - 20; /* 7 for header, 12 for prop hdr, 1 for footer */
-      encoded.bytes = D_BYTES(state->inbound_buffer, 19, encoded.len);
-
-      decoded_frame->payload.properties.class_id = D_16(state->inbound_buffer, 7);
-      decode_result = amqp_decode_properties(decoded_frame->payload.properties.class_id,
-					     &state->pool,
-					     encoded,
-					     &decoded_frame->payload.properties.decoded);
-      if (decode_result != 0) return decode_result;
-
-      return AMQP_FRAME_COMPLETE;
-    }
-    case AMQP_FRAME_BODY: {
-      size_t fragment_len = state->frame_size_target - 8; /* 7 for header, 1 for footer */
-      decoded_frame->payload.body_fragment.len = fragment_len;
-      decoded_frame->payload.body_fragment.bytes = D_BYTES(state->inbound_buffer, 7, fragment_len);
-      return AMQP_FRAME_COMPLETE;
-    }
     default:
-      /* Ignore the frame */
-      return AMQP_FRAME_INCOMPLETE;
+      amqp_assert(0, "Internal error: invalid amqp_connection_state_t->state %d", state->state);
+  }
+}
+
+amqp_boolean_t amqp_release_buffers_ok(amqp_connection_state_t state) {
+  return (state->state == CONNECTION_STATE_IDLE) && (state->first_queued_frame == NULL);
+}
+
+void amqp_release_buffers(amqp_connection_state_t state) {
+  ENFORCE_STATE(state, CONNECTION_STATE_IDLE);
+
+  amqp_assert(state->first_queued_frame == NULL,
+	      "Programming error: attempt to amqp_release_buffers while waiting events enqueued");
+
+  recycle_amqp_pool(&state->frame_pool);
+  recycle_amqp_pool(&state->decoding_pool);
+}
+
+void amqp_maybe_release_buffers(amqp_connection_state_t state) {
+  if (amqp_release_buffers_ok(state)) {
+    amqp_release_buffers(state);
   }
 }
 
 int amqp_send_frame(amqp_connection_state_t state,
-		    amqp_writer_fun_t writer,
-		    int context,
 		    amqp_frame_t const *frame)
 {
   amqp_bytes_t encoded;
@@ -139,20 +232,24 @@ int amqp_send_frame(amqp_connection_state_t state,
   E_16(state->outbound_buffer, 1, frame->channel);
   switch (frame->frame_type) {
     case AMQP_FRAME_METHOD: {
-      encoded.len = state->outbound_buffer.len - 8;
-      encoded.bytes = D_BYTES(state->outbound_buffer, 7, encoded.len);
-      payload_len = amqp_encode_method(frame->payload.method.id,
-				       frame->payload.method.decoded,
-				       encoded);
+      E_32(state->outbound_buffer, HEADER_SIZE, frame->payload.method.id);
+      encoded.len = state->outbound_buffer.len - (HEADER_SIZE + 4 + FOOTER_SIZE);
+      encoded.bytes = D_BYTES(state->outbound_buffer, HEADER_SIZE + 4, encoded.len);
+      payload_len = AMQP_CHECK_RESULT(amqp_encode_method(frame->payload.method.id,
+							 frame->payload.method.decoded,
+							 encoded)) + 4;
       separate_body = 0;
       break;
     }
     case AMQP_FRAME_HEADER: {
-      encoded.len = state->outbound_buffer.len - 8;
-      encoded.bytes = D_BYTES(state->outbound_buffer, 7, encoded.len);
-      payload_len = amqp_encode_properties(frame->payload.properties.class_id,
-					   frame->payload.properties.decoded,
-					   encoded);
+      E_16(state->outbound_buffer, HEADER_SIZE, frame->payload.properties.class_id);
+      E_16(state->outbound_buffer, HEADER_SIZE+2, 0); /* "weight" */
+      E_64(state->outbound_buffer, HEADER_SIZE+4, frame->payload.properties.body_size);
+      encoded.len = state->outbound_buffer.len - (HEADER_SIZE + 12 + FOOTER_SIZE);
+      encoded.bytes = D_BYTES(state->outbound_buffer, HEADER_SIZE + 12, encoded.len);
+      payload_len = AMQP_CHECK_RESULT(amqp_encode_properties(frame->payload.properties.class_id,
+							     frame->payload.properties.decoded,
+							     encoded)) + 12;
       separate_body = 0;
       break;
     }
@@ -166,21 +263,27 @@ int amqp_send_frame(amqp_connection_state_t state,
       return -EINVAL;
   }
 
-  if (payload_len < 0) {
-    return payload_len;
-  }
-
   E_32(state->outbound_buffer, 3, payload_len);
 
   if (separate_body) {
-    int result = writer(context, state->outbound_buffer.bytes, 7);
     char frame_end_byte = AMQP_FRAME_END;
-    if (result < 0) return result;
-    result = writer(context, encoded.bytes, payload_len);
-    if (result < 0) return result;
-    return writer(context, &frame_end_byte, 1);
+    printf("sending body frame (header):\n");
+    amqp_dump(state->outbound_buffer.bytes, HEADER_SIZE);
+    AMQP_CHECK_RESULT(write(state->sockfd, state->outbound_buffer.bytes, HEADER_SIZE));
+    printf("sending body frame (payload):\n");
+    amqp_dump(encoded.bytes, payload_len);
+    AMQP_CHECK_RESULT(write(state->sockfd, encoded.bytes, payload_len));
+    printf("sending body frame (footer).\n");
+    assert(FOOTER_SIZE == 1);
+    AMQP_CHECK_RESULT(write(state->sockfd, &frame_end_byte, FOOTER_SIZE));
   } else {
-    E_8(state->outbound_buffer, payload_len + 7, AMQP_FRAME_END);
-    return writer(context, state->outbound_buffer.bytes, payload_len + 8);
+    E_8(state->outbound_buffer, payload_len + HEADER_SIZE, AMQP_FRAME_END);
+    printf("sending:\n");
+    amqp_dump(state->outbound_buffer.bytes, payload_len + HEADER_SIZE + FOOTER_SIZE);
+    AMQP_CHECK_RESULT(write(state->sockfd,
+			    state->outbound_buffer.bytes,
+			    payload_len + (HEADER_SIZE + FOOTER_SIZE)));
   }
+
+  return 0;
 }

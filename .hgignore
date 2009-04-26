@@ -1,3 +1,5 @@
+^scratch$
+
 ^autom4te\.cache$
 ^aclocal\.m4$
 ^config\.(guess|log|status|sub|h\.in~?)$
@@ -6,12 +8,15 @@
 ^install-sh$
 ^ltmain.sh$
 ^missing$
+
 (^|/)\.libs$
 (^|/)\.deps$
 \.(o|lo|la)$
-^librabbitmq/amqp_framing\.[ch]$
 ^config\.h$
 ^stamp-h1$
 ^libtool$
 
+^librabbitmq/amqp_framing\.[ch]$
+
 ^(|librabbitmq/|examples/)Makefile(\.in)?$
+^examples/amqp_sendstring$

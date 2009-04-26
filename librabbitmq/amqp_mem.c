@@ -100,3 +100,16 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
 
   return pool->alloc_block;
 }
+
+void amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount, amqp_bytes_t *output) {
+  output->len = amount;
+  output->bytes = amqp_pool_alloc(pool, amount);
+}
+
+amqp_bytes_t amqp_cstring_bytes(char const *cstr) {
+  amqp_bytes_t result;
+  result.len = strlen(cstr);
+  result.bytes = (void *) cstr;
+  return result;
+}
+

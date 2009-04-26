@@ -5,7 +5,6 @@
 #include <errno.h>
 
 #include "amqp.h"
-#include "../config.h"
 #include "amqp_private.h"
 
 #define INITIAL_TABLE_SIZE 16
@@ -66,10 +65,9 @@ int amqp_decode_table(amqp_bytes_t encoded,
 	entry->value.u64 = D_64(encoded, offset);
 	offset += 8;
 	break;
-      case 'F': {
-	int table_result = amqp_decode_table(encoded, pool, &(entry->value.table), &offset);
-	if (table_result != 0) return table_result;
-      }
+      case 'F':
+	AMQP_CHECK_RESULT(amqp_decode_table(encoded, pool, &(entry->value.table), &offset));
+	break;
       default:
 	return -EINVAL;
     }
@@ -128,10 +126,9 @@ int amqp_encode_table(amqp_bytes_t encoded,
 	E_64(encoded, offset, entry->value.u64);
 	offset += 8;
 	break;
-      case 'F': {
-	int table_result = amqp_encode_table(encoded, &(entry->value.table), &offset);
-	if (table_result != 0) return table_result;
-      }
+      case 'F':
+	AMQP_CHECK_RESULT(amqp_encode_table(encoded, &(entry->value.table), &offset));
+	break;
       default:
 	return -EINVAL;
     }
