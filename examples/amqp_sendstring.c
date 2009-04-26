@@ -86,14 +86,19 @@ int main(int argc, char const * const *argv) {
   die_on_amqp_error(amqp_login(conn, "/", 131072, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
 		    "Logging in");
 
-  die_on_error(amqp_basic_publish(conn,
-				  amqp_cstring_bytes(exchange),
-				  amqp_cstring_bytes(routingkey),
-				  0,
-				  0,
-				  NULL,
-				  amqp_cstring_bytes(messagebody)),
-	       "Publishing");
+  {
+    amqp_basic_properties_t props;
+    props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG;
+    props.content_type = amqp_cstring_bytes("text/plain");
+    die_on_error(amqp_basic_publish(conn,
+				    amqp_cstring_bytes(exchange),
+				    amqp_cstring_bytes(routingkey),
+				    0,
+				    0,
+				    &props,
+				    amqp_cstring_bytes(messagebody)),
+		 "Publishing");
+  }
 
   printf("Waiting for frames...\n");
   while (1) {
