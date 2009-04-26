@@ -418,3 +418,33 @@ int amqp_basic_publish(amqp_connection_state_t state,
 
   return 0;
 }
+
+amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state, int code) {
+  amqp_channel_close_t s =
+    (amqp_channel_close_t) {
+      .reply_code = code,
+      .reply_text = {.len = 0, .bytes = NULL},
+      .class_id = 0,
+      .method_id = 0
+    };
+  return amqp_simple_rpc(state,
+			 1,
+			 AMQP_CHANNEL_CLOSE_METHOD,
+			 AMQP_CHANNEL_CLOSE_OK_METHOD,
+			 &s);
+}
+
+amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state, int code) {
+  amqp_connection_close_t s =
+    (amqp_connection_close_t) {
+      .reply_code = code,
+      .reply_text = {.len = 0, .bytes = NULL},
+      .class_id = 0,
+      .method_id = 0
+    };
+  return amqp_simple_rpc(state,
+			 0,
+			 AMQP_CONNECTION_CLOSE_METHOD,
+			 AMQP_CONNECTION_CLOSE_OK_METHOD,
+			 &s);
+}

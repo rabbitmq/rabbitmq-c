@@ -113,3 +113,10 @@ amqp_bytes_t amqp_cstring_bytes(char const *cstr) {
   return result;
 }
 
+amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src) {
+  amqp_bytes_t result;
+  result.len = src.len;
+  result.bytes = malloc(src.len);
+  memcpy(result.bytes, src.bytes, src.len);
+  return result;
+}

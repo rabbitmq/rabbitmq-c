@@ -20,3 +20,5 @@
 
 ^(|librabbitmq/|examples/)Makefile(\.in)?$
 ^examples/amqp_sendstring$
+^examples/amqp_exchange_declare$
+^examples/amqp_listen$

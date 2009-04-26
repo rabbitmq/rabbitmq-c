@@ -14,22 +14,20 @@ int main(int argc, char const * const *argv) {
   char const *hostname;
   int port;
   char const *exchange;
-  char const *routingkey;
-  char const *messagebody;
+  char const *exchangetype;
 
   int sockfd;
   amqp_connection_state_t conn;
 
-  if (argc < 6) {
-    fprintf(stderr, "Usage: amqp_sendstring host port exchange routingkey messagebody\n");
+  if (argc < 5) {
+    fprintf(stderr, "Usage: amqp_exchange_declare host port exchange exchangetype\n");
     return 1;
   }
 
   hostname = argv[1];
   port = atoi(argv[2]);
   exchange = argv[3];
-  routingkey = argv[4];
-  messagebody = argv[5];
+  exchangetype = argv[4];
 
   conn = amqp_new_connection();
 
@@ -39,17 +37,21 @@ int main(int argc, char const * const *argv) {
 		    "Logging in");
 
   {
-    amqp_basic_properties_t props;
-    props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG;
-    props.content_type = amqp_cstring_bytes("text/plain");
-    die_on_error(amqp_basic_publish(conn,
-				    amqp_cstring_bytes(exchange),
-				    amqp_cstring_bytes(routingkey),
-				    0,
-				    0,
-				    &props,
-				    amqp_cstring_bytes(messagebody)),
-		 "Publishing");
+    amqp_exchange_declare_t s =
+      (amqp_exchange_declare_t) {
+        .ticket = 0,
+	.exchange = amqp_cstring_bytes(exchange),
+	.type = amqp_cstring_bytes(exchangetype),
+	.passive = 0,
+	.durable = 0,
+	.auto_delete = 0,
+	.internal = 0,
+	.nowait = 0,
+	.arguments = {.num_entries = 0, .entries = NULL}
+      };
+    die_on_amqp_error(amqp_simple_rpc(conn, 1, AMQP_EXCHANGE_DECLARE_METHOD,
+				      AMQP_EXCHANGE_DECLARE_OK_METHOD, &s),
+		      "Declaring exchange");
   }
 
   die_on_amqp_error(amqp_channel_close(conn, AMQP_REPLY_SUCCESS), "Closing channel");

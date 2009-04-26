@@ -102,6 +102,7 @@ extern void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount);
 extern void amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount, amqp_bytes_t *output);
 
 extern amqp_bytes_t amqp_cstring_bytes(char const *cstr);
+extern amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src);
 
 extern amqp_connection_state_t amqp_new_connection(void);
 extern void amqp_set_sockfd(amqp_connection_state_t state,
@@ -162,6 +163,9 @@ extern int amqp_basic_publish(amqp_connection_state_t state,
 			      amqp_boolean_t immediate,
 			      struct amqp_basic_properties_t_ const *properties,
 			      amqp_bytes_t body);
+
+extern amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state, int code);
+extern amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state, int code);
 
 #ifdef __cplusplus
 }
