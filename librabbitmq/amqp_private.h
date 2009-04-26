@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include <arpa/inet.h> /* ntohl, htonl, ntohs, htons */
+
 /*
  * Connection states:
  *
