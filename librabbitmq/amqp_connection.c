@@ -114,6 +114,10 @@ int amqp_handle_input(amqp_connection_state_t state,
   int total_bytes_consumed = 0;
   int bytes_consumed;
 
+  /* Returning frame_type of zero indicates either insufficient input,
+     or a complete, ignored frame was read. */
+  decoded_frame->frame_type = 0;
+
  read_more:
   if (received_data.len == 0) {
     return total_bytes_consumed;
@@ -209,8 +213,7 @@ int amqp_handle_input(amqp_connection_state_t state,
 	}
 
 	default:
-	  /* Ignore the frame */
-	  decoded_frame->frame_type = 0;
+	  /* Ignore the frame by not changing frame_type away from 0. */
 	  break;
       }
 

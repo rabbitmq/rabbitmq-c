@@ -158,9 +158,13 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
 
   AMQP_CHECK_EOF_RESULT(amqp_simple_wait_frame(state, &frame));
   amqp_assert(frame.frame_type == AMQP_FRAME_METHOD,
-	      "Expected 0x%08X method frame", expected_or_zero);
+	      "Expected 0x%08X method frame, got frame type %d",
+	      expected_or_zero,
+	      frame.frame_type);
   amqp_assert((expected_or_zero == 0) || (frame.payload.method.id == expected_or_zero),
-	      "Expected method ID 0x%08X", expected_or_zero);
+	      "Expected method ID 0x%08X, got ID 0x%08X",
+	      expected_or_zero,
+	      frame.payload.method.id);
   *output = frame.payload.method;
   return 1;
 }
