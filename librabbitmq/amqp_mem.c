@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <errno.h>
 #include <assert.h>
 
 #include "amqp.h"
@@ -51,17 +52,25 @@ void empty_amqp_pool(amqp_pool_t *pool) {
   empty_blocklist(&pool->pages);
 }
 
-static void record_pool_block(amqp_pool_blocklist_t *x, void *block) {
+static int record_pool_block(amqp_pool_blocklist_t *x, void *block) {
   size_t blocklistlength = sizeof(void *) * (x->num_blocks + 1);
 
   if (x->blocklist == NULL) {
     x->blocklist = malloc(blocklistlength);
+    if (x->blocklist == NULL) {
+      return -ENOMEM;
+    }
   } else {
-    x->blocklist = realloc(x->blocklist, blocklistlength);
+    void *newbl = realloc(x->blocklist, blocklistlength);
+    if (newbl == NULL) {
+      return -ENOMEM;
+    }
+    x->blocklist = newbl;
   }
 
   x->blocklist[x->num_blocks] = block;
   x->num_blocks++;
+  return 0;
 }
 
 void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
@@ -73,7 +82,12 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
 
   if (amount > pool->pagesize) {
     void *result = calloc(1, amount);
-    record_pool_block(&pool->large_blocks, result);
+    if (result == NULL) {
+      return NULL;
+    }
+    if (record_pool_block(&pool->large_blocks, result) != 0) {
+      return NULL;
+    }
     return result;
   }
 
@@ -89,7 +103,12 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
 
   if (pool->next_page >= pool->pages.num_blocks) {
     pool->alloc_block = calloc(1, pool->pagesize);
-    record_pool_block(&pool->pages, pool->alloc_block);
+    if (pool->alloc_block == NULL) {
+      return NULL;
+    }
+    if (record_pool_block(&pool->pages, pool->alloc_block) != 0) {
+      return NULL;
+    }
     pool->next_page = pool->pages.num_blocks;
   } else {
     pool->alloc_block = pool->pages.blocklist[pool->next_page];
@@ -117,6 +136,8 @@ amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src) {
   amqp_bytes_t result;
   result.len = src.len;
   result.bytes = malloc(src.len);
-  memcpy(result.bytes, src.bytes, src.len);
+  if (result.bytes != NULL) {
+    memcpy(result.bytes, src.bytes, src.len);
+  }
   return result;
 }

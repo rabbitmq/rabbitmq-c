@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include <stdint.h>
 #include <amqp.h>
@@ -59,6 +60,9 @@ int main(int argc, char const * const *argv) {
 		      "Declaring queue");
     amqp_queue_declare_ok_t *r = (amqp_queue_declare_ok_t *) result.reply.decoded;
     queuename = amqp_bytes_malloc_dup(r->queue);
+    if (queuename.bytes == NULL) {
+      die_on_error(-ENOMEM, "Copying queue name");
+    }
   }
 
   {

@@ -107,8 +107,8 @@ extern amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src);
 extern amqp_connection_state_t amqp_new_connection(void);
 extern void amqp_set_sockfd(amqp_connection_state_t state,
 			    int sockfd);
-extern void amqp_tune_connection(amqp_connection_state_t state,
-				 int frame_max);
+extern int amqp_tune_connection(amqp_connection_state_t state,
+				int frame_max);
 extern void amqp_destroy_connection(amqp_connection_state_t state);
 
 extern int amqp_handle_input(amqp_connection_state_t state,

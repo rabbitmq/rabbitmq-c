@@ -21,6 +21,10 @@ int amqp_decode_table(amqp_bytes_t encoded,
   int allocated_entries = INITIAL_TABLE_SIZE;
   int limit;
 
+  if (entries == NULL) {
+    return -ENOMEM;
+  }
+
   offset += 4;
   limit = offset + tablesize;
 
@@ -32,8 +36,13 @@ int amqp_decode_table(amqp_bytes_t encoded,
     offset++;
 
     if (num_entries >= allocated_entries) {
+      void *newentries;
       allocated_entries = allocated_entries * 2;
-      entries = realloc(entries, allocated_entries * sizeof(amqp_table_entry_t));
+      newentries = realloc(entries, allocated_entries * sizeof(amqp_table_entry_t));
+      if (newentries == NULL) {
+	return -ENOMEM;
+      }
+      entries = newentries;
     }
     entry = &entries[num_entries];
 

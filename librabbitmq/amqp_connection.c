@@ -31,6 +31,10 @@ amqp_connection_state_t amqp_new_connection(void) {
   amqp_connection_state_t state =
     (amqp_connection_state_t) calloc(1, sizeof(struct amqp_connection_state_t_));
 
+  if (state == NULL) {
+    return NULL;
+  }
+
   init_amqp_pool(&state->frame_pool, INITIAL_FRAME_POOL_PAGE_SIZE);
   init_amqp_pool(&state->decoding_pool, INITIAL_DECODING_POOL_PAGE_SIZE);
 
@@ -38,7 +42,12 @@ amqp_connection_state_t amqp_new_connection(void) {
 
   state->inbound_buffer.bytes = NULL;
   state->outbound_buffer.bytes = NULL;
-  amqp_tune_connection(state, INITIAL_FRAME_POOL_PAGE_SIZE);
+  if (amqp_tune_connection(state, INITIAL_FRAME_POOL_PAGE_SIZE) != 0) {
+    empty_amqp_pool(&state->frame_pool);
+    empty_amqp_pool(&state->decoding_pool);
+    free(state);
+    return NULL;
+  }
 
   state->inbound_offset = 0;
   state->target_size = HEADER_SIZE;
@@ -46,6 +55,11 @@ amqp_connection_state_t amqp_new_connection(void) {
   state->sockfd = -1;
   state->sock_inbound_buffer.len = INITIAL_INBOUND_SOCK_BUFFER_SIZE;
   state->sock_inbound_buffer.bytes = malloc(INITIAL_INBOUND_SOCK_BUFFER_SIZE);
+  if (state->sock_inbound_buffer.bytes == NULL) {
+    amqp_destroy_connection(state);
+    return NULL;
+  }
+
   state->sock_inbound_offset = 0;
   state->sock_inbound_limit = 0;
 
@@ -61,9 +75,11 @@ void amqp_set_sockfd(amqp_connection_state_t state,
   state->sockfd = sockfd;
 }
 
-void amqp_tune_connection(amqp_connection_state_t state,
-			  int frame_max)
+int amqp_tune_connection(amqp_connection_state_t state,
+			 int frame_max)
 {
+  void *newbuf;
+
   ENFORCE_STATE(state, CONNECTION_STATE_IDLE);
 
   state->frame_max = frame_max;
@@ -73,7 +89,14 @@ void amqp_tune_connection(amqp_connection_state_t state,
 
   state->inbound_buffer.len = frame_max;
   state->outbound_buffer.len = frame_max;
-  state->outbound_buffer.bytes = realloc(state->outbound_buffer.bytes, frame_max);
+  newbuf = realloc(state->outbound_buffer.bytes, frame_max);
+  if (newbuf == NULL) {
+    amqp_destroy_connection(state);
+    return -ENOMEM;
+  }
+  state->outbound_buffer.bytes = newbuf;
+
+  return 0;
 }
 
 void amqp_destroy_connection(amqp_connection_state_t state) {
