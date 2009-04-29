@@ -40,6 +40,7 @@ int amqp_decode_table(amqp_bytes_t encoded,
       allocated_entries = allocated_entries * 2;
       newentries = realloc(entries, allocated_entries * sizeof(amqp_table_entry_t));
       if (newentries == NULL) {
+	free(entries);
 	return -ENOMEM;
       }
       entries = newentries;
