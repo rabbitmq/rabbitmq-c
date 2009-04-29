@@ -6,6 +6,7 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
+#include <sys/time.h>
 #include <unistd.h>
 
 void die_on_error(int x, char const *context) {
@@ -54,4 +55,10 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
   }
 
   exit(1);
+}
+
+long long now_microseconds(void) {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (long long) tv.tv_sec * 1000000 + (long long) tv.tv_usec;
 }

@@ -22,3 +22,5 @@
 ^examples/amqp_sendstring$
 ^examples/amqp_exchange_declare$
 ^examples/amqp_listen$
+^examples/amqp_producer$
+^examples/amqp_consumer$
