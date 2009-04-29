@@ -152,8 +152,10 @@ int amqp_handle_input(amqp_connection_state_t state,
     case CONNECTION_STATE_WAITING_FOR_BODY: {
       int frame_type = D_8(state->inbound_buffer, 0);
 
+#if 0
       printf("recving:\n");
       amqp_dump(state->inbound_buffer.bytes, state->target_size);
+#endif
 
       /* Check frame end marker (footer) */
       if (D_8(state->inbound_buffer, state->target_size - 1) != AMQP_FRAME_END) {
@@ -290,19 +292,22 @@ int amqp_send_frame(amqp_connection_state_t state,
 
   if (separate_body) {
     char frame_end_byte = AMQP_FRAME_END;
+#if 0
     printf("sending body frame (header):\n");
     amqp_dump(state->outbound_buffer.bytes, HEADER_SIZE);
-    AMQP_CHECK_RESULT(write(state->sockfd, state->outbound_buffer.bytes, HEADER_SIZE));
     printf("sending body frame (payload):\n");
     amqp_dump(encoded.bytes, payload_len);
+#endif
+    AMQP_CHECK_RESULT(write(state->sockfd, state->outbound_buffer.bytes, HEADER_SIZE));
     AMQP_CHECK_RESULT(write(state->sockfd, encoded.bytes, payload_len));
-    printf("sending body frame (footer).\n");
     assert(FOOTER_SIZE == 1);
     AMQP_CHECK_RESULT(write(state->sockfd, &frame_end_byte, FOOTER_SIZE));
   } else {
     E_8(state->outbound_buffer, payload_len + HEADER_SIZE, AMQP_FRAME_END);
+#if 0
     printf("sending:\n");
     amqp_dump(state->outbound_buffer.bytes, payload_len + HEADER_SIZE + FOOTER_SIZE);
+#endif
     AMQP_CHECK_RESULT(write(state->sockfd,
 			    state->outbound_buffer.bytes,
 			    payload_len + (HEADER_SIZE + FOOTER_SIZE)));
