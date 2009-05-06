@@ -85,8 +85,8 @@ int main(int argc, char const * const *argv) {
 	continue;
 
       d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
-      printf("Delivery %llu, exchange %.*s routingkey %.*s\n",
-	     d->delivery_tag,
+      printf("Delivery %u, exchange %.*s routingkey %.*s\n",
+	     (unsigned) d->delivery_tag,
 	     (int) d->exchange.len, (char *) d->exchange.bytes,
 	     (int) d->routing_key.len, (char *) d->routing_key.bytes);
 
