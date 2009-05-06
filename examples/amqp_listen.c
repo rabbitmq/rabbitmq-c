@@ -24,7 +24,6 @@ int main(int argc, char const * const *argv) {
   int sockfd;
   amqp_connection_state_t conn;
 
-  amqp_rpc_reply_t result;
   amqp_bytes_t queuename;
 
   if (argc < 5) {
@@ -45,57 +44,21 @@ int main(int argc, char const * const *argv) {
 		    "Logging in");
 
   {
-    amqp_queue_declare_t s =
-      (amqp_queue_declare_t) {
-        .ticket = 0,
-	.queue = {.len = 0, .bytes = NULL},
-	.passive = 0,
-	.durable = 0,
-	.exclusive = 0,
-	.auto_delete = 1,
-	.nowait = 0,
-	.arguments = {.num_entries = 0, .entries = NULL}
-      };
-    die_on_amqp_error(result = amqp_simple_rpc(conn, 1, AMQP_QUEUE_DECLARE_METHOD,
-					       AMQP_QUEUE_DECLARE_OK_METHOD, &s),
-		      "Declaring queue");
-    amqp_queue_declare_ok_t *r = (amqp_queue_declare_ok_t *) result.reply.decoded;
+    amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, AMQP_EMPTY_BYTES, 0, 0, 0, 1,
+						    AMQP_EMPTY_TABLE);
+    die_on_amqp_error(amqp_rpc_reply, "Declaring queue");
     queuename = amqp_bytes_malloc_dup(r->queue);
     if (queuename.bytes == NULL) {
       die_on_error(-ENOMEM, "Copying queue name");
     }
   }
 
-  {
-    amqp_queue_bind_t s =
-      (amqp_queue_bind_t) {
-        .ticket = 0,
-	.queue = queuename,
-	.exchange = amqp_cstring_bytes(exchange),
-	.routing_key = amqp_cstring_bytes(bindingkey),
-	.nowait = 0,
-	.arguments = {.num_entries = 0, .entries = NULL}
-      };
-    die_on_amqp_error(result = amqp_simple_rpc(conn, 1, AMQP_QUEUE_BIND_METHOD,
-					       AMQP_QUEUE_BIND_OK_METHOD, &s),
-		      "Binding queue");
-  }
+  amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange), amqp_cstring_bytes(bindingkey),
+		  AMQP_EMPTY_TABLE);
+  die_on_amqp_error(amqp_rpc_reply, "Binding queue");
 
-  {
-    amqp_basic_consume_t s =
-      (amqp_basic_consume_t) {
-        .ticket = 0,
-	.queue = queuename,
-	.consumer_tag = {.len = 0, .bytes = NULL},
-	.no_local = 0,
-	.no_ack = 1,
-	.exclusive = 0,
-	.nowait = 0
-      };
-    die_on_amqp_error(result = amqp_simple_rpc(conn, 1, AMQP_BASIC_CONSUME_METHOD,
-					       AMQP_BASIC_CONSUME_OK_METHOD, &s),
-		      "Consuming");
-  }
+  amqp_basic_consume(conn, 1, queuename, AMQP_EMPTY_BYTES, 0, 1, 0);
+  die_on_amqp_error(amqp_rpc_reply, "Consuming");
 
   {
     amqp_frame_t frame;

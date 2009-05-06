@@ -15,6 +15,8 @@ typedef struct amqp_bytes_t_ {
   void *bytes;
 } amqp_bytes_t;
 
+#define AMQP_EMPTY_BYTES ((amqp_bytes_t) { .len = 0, .bytes = NULL })
+
 typedef struct amqp_decimal_t_ {
   int decimals;
   uint32_t value;
@@ -26,6 +28,8 @@ typedef struct amqp_table_t_ {
   int num_entries;
   struct amqp_table_entry_t_ *entries;
 } amqp_table_t;
+
+#define AMQP_EMPTY_TABLE ((amqp_table_t) { .num_entries = 0, .entries = NULL })
 
 typedef struct amqp_table_entry_t_ {
   amqp_bytes_t key;
@@ -159,6 +163,15 @@ extern amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 					amqp_method_number_t expected_reply_id,
 					void *decoded_request_method);
 
+#define AMQP_SIMPLE_RPC(state, channel, classname, requestname, replyname, structname, ...) \
+  ({									\
+    structname _simple_rpc_request___ = (structname) { __VA_ARGS__ };	\
+    amqp_simple_rpc(state, channel,					\
+		    AMQP_ ## classname ## _ ## requestname ## _METHOD,	\
+		    AMQP_ ## classname ## _ ## replyname ## _METHOD,	\
+		    &_simple_rpc_request___);				\
+  })
+
 extern amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 				   char const *vhost,
 				   int frame_max,
@@ -175,6 +188,41 @@ extern int amqp_basic_publish(amqp_connection_state_t state,
 
 extern amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state, int code);
 extern amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state, int code);
+
+extern amqp_rpc_reply_t amqp_rpc_reply;
+
+extern struct amqp_exchange_declare_ok_t_ *amqp_exchange_declare(amqp_connection_state_t state,
+								 amqp_channel_t channel,
+								 amqp_bytes_t exchange,
+								 amqp_bytes_t type,
+								 amqp_boolean_t passive,
+								 amqp_boolean_t durable,
+								 amqp_boolean_t auto_delete,
+								 amqp_table_t arguments);
+
+extern struct amqp_queue_declare_ok_t_ *amqp_queue_declare(amqp_connection_state_t state,
+							   amqp_channel_t channel,
+							   amqp_bytes_t queue,
+							   amqp_boolean_t passive,
+							   amqp_boolean_t durable,
+							   amqp_boolean_t exclusive,
+							   amqp_boolean_t auto_delete,
+							   amqp_table_t arguments);
+
+extern struct amqp_queue_bind_ok_t_ *amqp_queue_bind(amqp_connection_state_t state,
+						     amqp_channel_t channel,
+						     amqp_bytes_t queue,
+						     amqp_bytes_t exchange,
+						     amqp_bytes_t routing_key,
+						     amqp_table_t arguments);
+
+extern struct amqp_basic_consume_ok_t_ *amqp_basic_consume(amqp_connection_state_t state,
+							   amqp_channel_t channel,
+							   amqp_bytes_t queue,
+							   amqp_bytes_t consumer_tag,
+							   amqp_boolean_t no_local,
+							   amqp_boolean_t no_ack,
+							   amqp_boolean_t exclusive);
 
 #ifdef __cplusplus
 }

@@ -406,7 +406,8 @@ extern int amqp_encode_properties(uint16_t class_id,
                m.klass.index,
                m.index,
                methodid)
-        print "typedef struct {\n%s} %s;\n" % (fieldDeclList(m.arguments), m.structName())
+        print "typedef struct %s_ {\n%s} %s;\n" % \
+              (m.structName(), fieldDeclList(m.arguments), m.structName())
 
     print "/* Class property records. */"
     for c in spec.allClasses():

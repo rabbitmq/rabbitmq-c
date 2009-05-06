@@ -36,23 +36,9 @@ int main(int argc, char const * const *argv) {
   die_on_amqp_error(amqp_login(conn, "/", 131072, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
 		    "Logging in");
 
-  {
-    amqp_exchange_declare_t s =
-      (amqp_exchange_declare_t) {
-        .ticket = 0,
-	.exchange = amqp_cstring_bytes(exchange),
-	.type = amqp_cstring_bytes(exchangetype),
-	.passive = 0,
-	.durable = 0,
-	.auto_delete = 0,
-	.internal = 0,
-	.nowait = 0,
-	.arguments = {.num_entries = 0, .entries = NULL}
-      };
-    die_on_amqp_error(amqp_simple_rpc(conn, 1, AMQP_EXCHANGE_DECLARE_METHOD,
-				      AMQP_EXCHANGE_DECLARE_OK_METHOD, &s),
-		      "Declaring exchange");
-  }
+  amqp_exchange_declare(conn, 1, amqp_cstring_bytes(exchange), amqp_cstring_bytes(exchangetype),
+			0, 0, 0, AMQP_EMPTY_TABLE);
+  die_on_amqp_error(amqp_rpc_reply, "Declaring exchange");
 
   die_on_amqp_error(amqp_channel_close(conn, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");

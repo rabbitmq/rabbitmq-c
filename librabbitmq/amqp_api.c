@@ -71,31 +71,81 @@ int amqp_basic_publish(amqp_connection_state_t state,
 }
 
 amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state, int code) {
-  amqp_channel_close_t s =
-    (amqp_channel_close_t) {
-      .reply_code = code,
-      .reply_text = {.len = 0, .bytes = NULL},
-      .class_id = 0,
-      .method_id = 0
-    };
-  return amqp_simple_rpc(state,
-			 1,
-			 AMQP_CHANNEL_CLOSE_METHOD,
-			 AMQP_CHANNEL_CLOSE_OK_METHOD,
-			 &s);
+  return AMQP_SIMPLE_RPC(state, 1, CHANNEL, CLOSE, CLOSE_OK,
+			 amqp_channel_close_t,
+			 code, {0,NULL}, 0, 0);
 }
 
 amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state, int code) {
-  amqp_connection_close_t s =
-    (amqp_connection_close_t) {
-      .reply_code = code,
-      .reply_text = {.len = 0, .bytes = NULL},
-      .class_id = 0,
-      .method_id = 0
-    };
-  return amqp_simple_rpc(state,
-			 0,
-			 AMQP_CONNECTION_CLOSE_METHOD,
-			 AMQP_CONNECTION_CLOSE_OK_METHOD,
-			 &s);
+  return AMQP_SIMPLE_RPC(state, 0, CONNECTION, CLOSE, CLOSE_OK,
+			 amqp_connection_close_t,
+			 code, {0,NULL}, 0, 0);
+}
+
+amqp_rpc_reply_t amqp_rpc_reply;
+
+#define RPC_REPLY(replytype)					\
+  (amqp_rpc_reply.reply_type == AMQP_RESPONSE_NORMAL		\
+   ? (replytype *) amqp_rpc_reply.reply.decoded	\
+   : NULL)
+
+amqp_exchange_declare_ok_t *amqp_exchange_declare(amqp_connection_state_t state,
+						  amqp_channel_t channel,
+						  amqp_bytes_t exchange,
+						  amqp_bytes_t type,
+						  amqp_boolean_t passive,
+						  amqp_boolean_t durable,
+						  amqp_boolean_t auto_delete,
+						  amqp_table_t arguments)
+{
+  amqp_rpc_reply =
+    AMQP_SIMPLE_RPC(state, channel, EXCHANGE, DECLARE, DECLARE_OK,
+		    amqp_exchange_declare_t,
+		    0, exchange, type, passive, durable, auto_delete, 0, 0, arguments);
+  return RPC_REPLY(amqp_exchange_declare_ok_t);
+}
+
+amqp_queue_declare_ok_t *amqp_queue_declare(amqp_connection_state_t state,
+					    amqp_channel_t channel,
+					    amqp_bytes_t queue,
+					    amqp_boolean_t passive,
+					    amqp_boolean_t durable,
+					    amqp_boolean_t exclusive,
+					    amqp_boolean_t auto_delete,
+					    amqp_table_t arguments)
+{
+  amqp_rpc_reply =
+    AMQP_SIMPLE_RPC(state, channel, QUEUE, DECLARE, DECLARE_OK,
+		    amqp_queue_declare_t,
+		    0, queue, passive, durable, exclusive, auto_delete, 0, arguments);
+  return RPC_REPLY(amqp_queue_declare_ok_t);
+}
+
+amqp_queue_bind_ok_t *amqp_queue_bind(amqp_connection_state_t state,
+				      amqp_channel_t channel,
+				      amqp_bytes_t queue,
+				      amqp_bytes_t exchange,
+				      amqp_bytes_t routing_key,
+				      amqp_table_t arguments)
+{
+  amqp_rpc_reply =
+    AMQP_SIMPLE_RPC(state, channel, QUEUE, BIND, BIND_OK,
+		    amqp_queue_bind_t,
+		    0, queue, exchange, routing_key, 0, arguments);
+  return RPC_REPLY(amqp_queue_bind_ok_t);
+}
+
+amqp_basic_consume_ok_t *amqp_basic_consume(amqp_connection_state_t state,
+					    amqp_channel_t channel,
+					    amqp_bytes_t queue,
+					    amqp_bytes_t consumer_tag,
+					    amqp_boolean_t no_local,
+					    amqp_boolean_t no_ack,
+					    amqp_boolean_t exclusive)
+{
+  amqp_rpc_reply =
+    AMQP_SIMPLE_RPC(state, channel, BASIC, CONSUME, CONSUME_OK,
+		    amqp_basic_consume_t,
+		    0, queue, consumer_tag, no_local, no_ack, exclusive, 0);
+  return RPC_REPLY(amqp_basic_consume_ok_t);
 }
