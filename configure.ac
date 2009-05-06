@@ -30,5 +30,6 @@ AC_SUBST(AMQP_SPEC_JSON_PATH)
 AC_OUTPUT(
 Makefile
 librabbitmq/Makefile
+tests/Makefile
 examples/Makefile
 )

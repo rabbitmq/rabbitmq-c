@@ -7,6 +7,8 @@
 #include "amqp.h"
 #include "amqp_private.h"
 
+#include <assert.h>
+
 #define INITIAL_TABLE_SIZE 16
 
 int amqp_decode_table(amqp_bytes_t encoded,
@@ -147,4 +149,22 @@ int amqp_encode_table(amqp_bytes_t encoded,
   E_32(encoded, tablesize_offset, (offset - *offsetptr - 4));
   *offsetptr = offset;
   return 0;
+}
+
+int amqp_table_entry_cmp(void const *entry1, void const *entry2) {
+  amqp_table_entry_t const *p1 = (amqp_table_entry_t const *) entry1;
+  amqp_table_entry_t const *p2 = (amqp_table_entry_t const *) entry2;
+
+  int d;
+  int minlen;
+
+  minlen = p1->key.len;
+  if (p2->key.len < minlen) minlen = p2->key.len;
+
+  d = memcmp(p1->key.bytes, p2->key.bytes, minlen);
+  if (d != 0) {
+    return d;
+  }
+
+  return p1->key.len - p2->key.len;
 }

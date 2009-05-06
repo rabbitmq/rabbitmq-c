@@ -20,6 +20,8 @@ typedef struct amqp_decimal_t_ {
   uint32_t value;
 } amqp_decimal_t;
 
+#define AMQP_DECIMAL(d,v) ((amqp_decimal_t) { .decimals = (d), .value = (v) })
+
 typedef struct amqp_table_t_ {
   int num_entries;
   struct amqp_table_entry_t_ *entries;
@@ -36,6 +38,13 @@ typedef struct amqp_table_entry_t_ {
     amqp_table_t table;
   } value;
 } amqp_table_entry_t;
+
+#define _AMQP_TE_INIT(ke,ki,v) { .key = (ke), .kind = (ki), .value = { v } }
+#define AMQP_TABLE_ENTRY_S(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'S', .bytes = (v))
+#define AMQP_TABLE_ENTRY_I(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'I', .i32 = (v))
+#define AMQP_TABLE_ENTRY_D(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'D', .decimal = (v))
+#define AMQP_TABLE_ENTRY_T(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'T', .u64 = (v))
+#define AMQP_TABLE_ENTRY_F(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'F', .table = (v))
 
 typedef struct amqp_pool_blocklist_t_ {
   int num_blocks;

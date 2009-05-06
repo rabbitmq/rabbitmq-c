@@ -18,7 +18,8 @@
 
 ^librabbitmq/amqp_framing\.[ch]$
 
-^(|librabbitmq/|examples/)Makefile(\.in)?$
+^(|librabbitmq/|tests/|examples/)Makefile(\.in)?$
+^tests/test_tables$
 ^examples/amqp_sendstring$
 ^examples/amqp_exchange_declare$
 ^examples/amqp_listen$
