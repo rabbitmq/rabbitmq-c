@@ -71,15 +71,19 @@ int amqp_basic_publish(amqp_connection_state_t state,
 }
 
 amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state, int code) {
+  char codestr[13];
+  snprintf(codestr, sizeof(codestr), "%d", code);
   return AMQP_SIMPLE_RPC(state, 1, CHANNEL, CLOSE, CLOSE_OK,
 			 amqp_channel_close_t,
-			 code, {0,NULL}, 0, 0);
+			 code, amqp_cstring_bytes(codestr), 0, 0);
 }
 
 amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state, int code) {
+  char codestr[13];
+  snprintf(codestr, sizeof(codestr), "%d", code);
   return AMQP_SIMPLE_RPC(state, 0, CONNECTION, CLOSE, CLOSE_OK,
 			 amqp_connection_close_t,
-			 code, {0,NULL}, 0, 0);
+			 code, amqp_cstring_bytes(codestr), 0, 0);
 }
 
 amqp_rpc_reply_t amqp_rpc_reply;
