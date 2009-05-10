@@ -82,6 +82,12 @@ typedef struct amqp_frame_t_ {
       void *decoded;
     } properties;
     amqp_bytes_t body_fragment;
+    struct {
+      uint8_t transport_high;
+      uint8_t transport_low;
+      uint8_t protocol_version_major;
+      uint8_t protocol_version_minor;
+    } protocol_header;
   } payload;
 } amqp_frame_t;
 
@@ -101,6 +107,9 @@ typedef struct amqp_rpc_reply_t_ {
 typedef enum amqp_sasl_method_enum_ {
   AMQP_SASL_METHOD_PLAIN = 0
 } amqp_sasl_method_enum;
+
+#define AMQP_PSEUDOFRAME_PROTOCOL_HEADER ((uint8_t) 'A')
+#define AMQP_PSEUDOFRAME_PROTOCOL_CHANNEL ((amqp_channel_t) ((((int) 'M') << 8) | ((int) 'Q')))
 
 /* Opaque struct. */
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;

@@ -107,6 +107,13 @@ void amqp_destroy_connection(amqp_connection_state_t state) {
   free(state);
 }
 
+static void return_to_idle(amqp_connection_state_t state) {
+  state->inbound_buffer.bytes = NULL;
+  state->inbound_offset = 0;
+  state->target_size = HEADER_SIZE;
+  state->state = CONNECTION_STATE_IDLE;
+}
+
 int amqp_handle_input(amqp_connection_state_t state,
 		      amqp_bytes_t received_data,
 		      amqp_frame_t *decoded_frame)
@@ -145,8 +152,15 @@ int amqp_handle_input(amqp_connection_state_t state,
 
   switch (state->state) {
     case CONNECTION_STATE_WAITING_FOR_HEADER:
-      state->target_size = D_32(state->inbound_buffer, 3) + HEADER_SIZE + FOOTER_SIZE;
-      state->state = CONNECTION_STATE_WAITING_FOR_BODY;
+      if (D_8(state->inbound_buffer, 0) == AMQP_PSEUDOFRAME_PROTOCOL_HEADER &&
+	  D_16(state->inbound_buffer, 1) == AMQP_PSEUDOFRAME_PROTOCOL_CHANNEL)
+      {
+	state->target_size = 8;
+	state->state = CONNECTION_STATE_WAITING_FOR_PROTOCOL_HEADER;
+      } else {
+	state->target_size = D_32(state->inbound_buffer, 3) + HEADER_SIZE + FOOTER_SIZE;
+	state->state = CONNECTION_STATE_WAITING_FOR_BODY;
+      }
 
       /* Wind buffer forward, and try to read some body out of it. */
       received_data.len -= bytes_consumed;
@@ -217,12 +231,22 @@ int amqp_handle_input(amqp_connection_state_t state,
 	  break;
       }
 
-      state->inbound_buffer.bytes = NULL;
-      state->inbound_offset = 0;
-      state->target_size = HEADER_SIZE;
-      state->state = CONNECTION_STATE_IDLE;
+      return_to_idle(state);
       return total_bytes_consumed;
     }
+
+    case CONNECTION_STATE_WAITING_FOR_PROTOCOL_HEADER:
+      decoded_frame->frame_type = AMQP_PSEUDOFRAME_PROTOCOL_HEADER;
+      decoded_frame->channel = AMQP_PSEUDOFRAME_PROTOCOL_CHANNEL;
+      amqp_assert(D_8(state->inbound_buffer, 3) == (uint8_t) 'P',
+		  "Invalid protocol header received");
+      decoded_frame->payload.protocol_header.transport_high = D_8(state->inbound_buffer, 4);
+      decoded_frame->payload.protocol_header.transport_low = D_8(state->inbound_buffer, 5);
+      decoded_frame->payload.protocol_header.protocol_version_major = D_8(state->inbound_buffer, 6);
+      decoded_frame->payload.protocol_header.protocol_version_minor = D_8(state->inbound_buffer, 7);
+
+      return_to_idle(state);
+      return total_bytes_consumed;
 
     default:
       amqp_assert(0, "Internal error: invalid amqp_connection_state_t->state %d", state->state);

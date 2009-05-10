@@ -26,11 +26,17 @@ extern "C" {
  *   completed, it will be returned, and the connection will return to
  *   IDLE state.
  *
+ * - CONNECTION_STATE_WAITING_FOR_PROTOCOL_HEADER: The beginning of a
+ *   protocol version header has been seen, but the full eight bytes
+ *   hasn't yet been received. When it is completed, it will be
+ *   returned, and the connection will return to IDLE state.
+ *
  */
 typedef enum amqp_connection_state_enum_ {
   CONNECTION_STATE_IDLE = 0,
   CONNECTION_STATE_WAITING_FOR_HEADER,
-  CONNECTION_STATE_WAITING_FOR_BODY
+  CONNECTION_STATE_WAITING_FOR_BODY,
+  CONNECTION_STATE_WAITING_FOR_PROTOCOL_HEADER
 } amqp_connection_state_enum;
 
 /* 7 bytes up front, then payload, then 1 byte footer */
