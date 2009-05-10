@@ -145,12 +145,19 @@ extern void amqp_maybe_release_buffers(amqp_connection_state_t state);
 
 extern int amqp_send_frame(amqp_connection_state_t state,
 			   amqp_frame_t const *frame);
+extern int amqp_send_frame_to(amqp_connection_state_t state,
+			      amqp_frame_t const *frame,
+			      int (*fn)(void *context, void *buffer, size_t count),
+			      void *context);
 
 extern int amqp_table_entry_cmp(void const *entry1, void const *entry2);
 
 extern int amqp_open_socket(char const *hostname, int portnumber);
 
 extern int amqp_send_header(amqp_connection_state_t state);
+extern int amqp_send_header_to(amqp_connection_state_t state,
+			       int (*fn)(void *context, void *buffer, size_t count),
+			       void *context);
 
 extern amqp_boolean_t amqp_frames_enqueued(amqp_connection_state_t state);
 
