@@ -44,8 +44,8 @@ int amqp_open_socket(char const *hostname,
   return sockfd;
 }
 
-int amqp_send_header(amqp_connection_state_t state) {
-  char header[8];
+static char *header() {
+  static char header[8];
   header[0] = 'A';
   header[1] = 'M';
   header[2] = 'Q';
@@ -54,7 +54,18 @@ int amqp_send_header(amqp_connection_state_t state) {
   header[5] = 1;
   header[6] = AMQP_PROTOCOL_VERSION_MAJOR;
   header[7] = AMQP_PROTOCOL_VERSION_MINOR;
-  return write(state->sockfd, &header[0], 8);
+  return header;
+}
+
+int amqp_send_header(amqp_connection_state_t state) {
+  return write(state->sockfd, header(), 8);
+}
+
+int amqp_send_header_to(amqp_connection_state_t state,
+			amqp_output_fn_t fn,
+			void *context)
+{
+  return fn(context, header(), 8);
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method) {

@@ -367,7 +367,7 @@ int amqp_send_frame(amqp_connection_state_t state,
 
 int amqp_send_frame_to(amqp_connection_state_t state,
 		       amqp_frame_t const *frame,
-		       int (*fn)(void *context, void *buffer, size_t count),
+		       amqp_output_fn_t fn,
 		       void *context)
 {
   amqp_bytes_t encoded;

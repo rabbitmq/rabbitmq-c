@@ -111,6 +111,8 @@ typedef enum amqp_sasl_method_enum_ {
 #define AMQP_PSEUDOFRAME_PROTOCOL_HEADER ((uint8_t) 'A')
 #define AMQP_PSEUDOFRAME_PROTOCOL_CHANNEL ((amqp_channel_t) ((((int) 'M') << 8) | ((int) 'Q')))
 
+typedef int (*amqp_output_fn_t)(void *context, void *buffer, size_t count);
+
 /* Opaque struct. */
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
@@ -147,7 +149,7 @@ extern int amqp_send_frame(amqp_connection_state_t state,
 			   amqp_frame_t const *frame);
 extern int amqp_send_frame_to(amqp_connection_state_t state,
 			      amqp_frame_t const *frame,
-			      int (*fn)(void *context, void *buffer, size_t count),
+			      amqp_output_fn_t fn,
 			      void *context);
 
 extern int amqp_table_entry_cmp(void const *entry1, void const *entry2);
@@ -156,7 +158,7 @@ extern int amqp_open_socket(char const *hostname, int portnumber);
 
 extern int amqp_send_header(amqp_connection_state_t state);
 extern int amqp_send_header_to(amqp_connection_state_t state,
-			       int (*fn)(void *context, void *buffer, size_t count),
+			       amqp_output_fn_t fn,
 			       void *context);
 
 extern amqp_boolean_t amqp_frames_enqueued(amqp_connection_state_t state);
