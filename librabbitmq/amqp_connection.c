@@ -226,6 +226,10 @@ int amqp_handle_input(amqp_connection_state_t state,
 	  break;
 	}
 
+	case AMQP_FRAME_HEARTBEAT:
+	  decoded_frame->frame_type = AMQP_FRAME_HEARTBEAT;
+	  break;
+
 	default:
 	  /* Ignore the frame by not changing frame_type away from 0. */
 	  break;
@@ -309,6 +313,12 @@ static int inner_send_frame(amqp_connection_state_t state,
       *encoded = frame->payload.body_fragment;
       *payload_len = encoded->len;
       separate_body = 1;
+      break;
+
+    case AMQP_FRAME_HEARTBEAT:
+      *encoded = AMQP_EMPTY_BYTES;
+      *payload_len = 0;
+      separate_body = 0;
       break;
 
     default:
