@@ -33,14 +33,16 @@ int main(int argc, char const * const *argv) {
 
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
-  die_on_amqp_error(amqp_login(conn, "/", 131072, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
 		    "Logging in");
+  amqp_channel_open(conn, 1);
+  die_on_amqp_error(amqp_rpc_reply, "Opening channel");
 
   amqp_exchange_declare(conn, 1, amqp_cstring_bytes(exchange), amqp_cstring_bytes(exchangetype),
 			0, 0, 0, AMQP_EMPTY_TABLE);
   die_on_amqp_error(amqp_rpc_reply, "Declaring exchange");
 
-  die_on_amqp_error(amqp_channel_close(conn, AMQP_REPLY_SUCCESS), "Closing channel");
+  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
   amqp_destroy_connection(conn);
   die_on_error(close(sockfd), "Closing socket");

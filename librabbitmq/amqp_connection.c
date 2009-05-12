@@ -42,7 +42,7 @@ amqp_connection_state_t amqp_new_connection(void) {
 
   state->inbound_buffer.bytes = NULL;
   state->outbound_buffer.bytes = NULL;
-  if (amqp_tune_connection(state, INITIAL_FRAME_POOL_PAGE_SIZE) != 0) {
+  if (amqp_tune_connection(state, 0, INITIAL_FRAME_POOL_PAGE_SIZE) != 0) {
     empty_amqp_pool(&state->frame_pool);
     empty_amqp_pool(&state->decoding_pool);
     free(state);
@@ -69,6 +69,10 @@ amqp_connection_state_t amqp_new_connection(void) {
   return state;
 }
 
+int amqp_get_sockfd(amqp_connection_state_t state) {
+  return state->sockfd;
+}
+
 void amqp_set_sockfd(amqp_connection_state_t state,
 		     int sockfd)
 {
@@ -76,12 +80,14 @@ void amqp_set_sockfd(amqp_connection_state_t state,
 }
 
 int amqp_tune_connection(amqp_connection_state_t state,
+			 int channel_max,
 			 int frame_max)
 {
   void *newbuf;
 
   ENFORCE_STATE(state, CONNECTION_STATE_IDLE);
 
+  state->channel_max = channel_max;
   state->frame_max = frame_max;
 
   empty_amqp_pool(&state->frame_pool);
@@ -97,6 +103,10 @@ int amqp_tune_connection(amqp_connection_state_t state,
   state->outbound_buffer.bytes = newbuf;
 
   return 0;
+}
+
+int amqp_get_channel_max(amqp_connection_state_t state) {
+  return state->channel_max;
 }
 
 void amqp_destroy_connection(amqp_connection_state_t state) {

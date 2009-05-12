@@ -137,10 +137,13 @@ extern amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src);
   })
 
 extern amqp_connection_state_t amqp_new_connection(void);
+extern int amqp_get_sockfd(amqp_connection_state_t state);
 extern void amqp_set_sockfd(amqp_connection_state_t state,
 			    int sockfd);
 extern int amqp_tune_connection(amqp_connection_state_t state,
+				int channel_max,
 				int frame_max);
+int amqp_get_channel_max(amqp_connection_state_t state);
 extern void amqp_destroy_connection(amqp_connection_state_t state);
 
 extern int amqp_handle_input(amqp_connection_state_t state,
@@ -175,7 +178,8 @@ extern int amqp_simple_wait_frame(amqp_connection_state_t state,
 				  amqp_frame_t *decoded_frame);
 
 extern int amqp_simple_wait_method(amqp_connection_state_t state,
-				   amqp_method_number_t expected_or_zero,
+				   amqp_channel_t expected_channel,
+				   amqp_method_number_t expected_method,
 				   amqp_method_t *output);
 
 extern int amqp_send_method(amqp_connection_state_t state,
@@ -200,11 +204,18 @@ extern amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 
 extern amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 				   char const *vhost,
+				   int channel_max,
 				   int frame_max,
 				   amqp_sasl_method_enum sasl_method, ...);
 
+extern amqp_rpc_reply_t amqp_rpc_reply;
+
+extern struct amqp_channel_open_ok_t_ *amqp_channel_open(amqp_connection_state_t state,
+							 amqp_channel_t channel);
+
 struct amqp_basic_properties_t_;
 extern int amqp_basic_publish(amqp_connection_state_t state,
+			      amqp_channel_t channel,
 			      amqp_bytes_t exchange,
 			      amqp_bytes_t routing_key,
 			      amqp_boolean_t mandatory,
@@ -212,10 +223,11 @@ extern int amqp_basic_publish(amqp_connection_state_t state,
 			      struct amqp_basic_properties_t_ const *properties,
 			      amqp_bytes_t body);
 
-extern amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state, int code);
-extern amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state, int code);
-
-extern amqp_rpc_reply_t amqp_rpc_reply;
+extern amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state,
+					   amqp_channel_t channel,
+					   int code);
+extern amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state,
+					      int code);
 
 extern struct amqp_exchange_declare_ok_t_ *amqp_exchange_declare(amqp_connection_state_t state,
 								 amqp_channel_t channel,

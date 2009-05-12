@@ -33,6 +33,7 @@ static void send_batch(amqp_connection_state_t conn,
   for (i = 0; i < message_count; i++) {
     long long now = now_microseconds();
     die_on_error(amqp_basic_publish(conn,
+				    1,
 				    amqp_cstring_bytes("amq.direct"),
 				    amqp_cstring_bytes(queue_name),
 				    0,
@@ -91,12 +92,14 @@ int main(int argc, char const * const *argv) {
 
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
-  die_on_amqp_error(amqp_login(conn, "/", 131072, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
 		    "Logging in");
+  amqp_channel_open(conn, 1);
+  die_on_amqp_error(amqp_rpc_reply, "Opening channel");
 
   send_batch(conn, "test queue", rate_limit, message_count);
 
-  die_on_amqp_error(amqp_channel_close(conn, AMQP_REPLY_SUCCESS), "Closing channel");
+  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
   amqp_destroy_connection(conn);
   die_on_error(close(sockfd), "Closing socket");

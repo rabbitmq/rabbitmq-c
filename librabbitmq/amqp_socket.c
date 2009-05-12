@@ -162,19 +162,27 @@ int amqp_simple_wait_frame(amqp_connection_state_t state,
 }
 
 int amqp_simple_wait_method(amqp_connection_state_t state,
-			    amqp_method_number_t expected_or_zero,
+			    amqp_channel_t expected_channel,
+			    amqp_method_number_t expected_method,
 			    amqp_method_t *output)
 {
   amqp_frame_t frame;
 
   AMQP_CHECK_EOF_RESULT(amqp_simple_wait_frame(state, &frame));
+  amqp_assert(frame.channel == expected_channel,
+	      "Expected 0x%08X method frame on channel %d, got frame on channel %d",
+	      expected_method,
+	      expected_channel,
+	      frame.channel);
   amqp_assert(frame.frame_type == AMQP_FRAME_METHOD,
-	      "Expected 0x%08X method frame, got frame type %d",
-	      expected_or_zero,
+	      "Expected 0x%08X method frame on channel %d, got frame type %d",
+	      expected_method,
+	      expected_channel,
 	      frame.frame_type);
-  amqp_assert((expected_or_zero == 0) || (frame.payload.method.id == expected_or_zero),
-	      "Expected method ID 0x%08X, got ID 0x%08X",
-	      expected_or_zero,
+  amqp_assert(frame.payload.method.id == expected_method,
+	      "Expected method ID 0x%08X on channel %d, got ID 0x%08X",
+	      expected_method,
+	      expected_channel,
 	      frame.payload.method.id);
   *output = frame.payload.method;
   return 1;
@@ -267,16 +275,18 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 }
 
 static int amqp_login_inner(amqp_connection_state_t state,
+			    int channel_max,
 			    int frame_max,
 			    amqp_sasl_method_enum sasl_method,
 			    va_list vl)
 {
   amqp_method_t method;
   uint32_t server_frame_max;
+  uint16_t server_channel_max;
 
   amqp_send_header(state);
 
-  AMQP_CHECK_EOF_RESULT(amqp_simple_wait_method(state, AMQP_CONNECTION_START_METHOD, &method));
+  AMQP_CHECK_EOF_RESULT(amqp_simple_wait_method(state, 0, AMQP_CONNECTION_START_METHOD, &method));
   {
     amqp_connection_start_t *s = (amqp_connection_start_t *) method.decoded;
     if ((s->version_major != AMQP_PROTOCOL_VERSION_MAJOR) ||
@@ -303,20 +313,27 @@ static int amqp_login_inner(amqp_connection_state_t state,
 
   amqp_release_buffers(state);
 
-  AMQP_CHECK_EOF_RESULT(amqp_simple_wait_method(state, AMQP_CONNECTION_TUNE_METHOD, &method));
+  AMQP_CHECK_EOF_RESULT(amqp_simple_wait_method(state, 0, AMQP_CONNECTION_TUNE_METHOD, &method));
   {
     amqp_connection_tune_t *s = (amqp_connection_tune_t *) method.decoded;
+    server_channel_max = s->channel_max;
     server_frame_max = s->frame_max;
+  }
+
+  if (server_channel_max != 0 && server_channel_max < channel_max) {
+    channel_max = server_channel_max;
   }
 
   if (server_frame_max != 0 && server_frame_max < frame_max) {
     frame_max = server_frame_max;
   }
 
+  AMQP_CHECK_RESULT(amqp_tune_connection(state, channel_max, frame_max));
+
   {
     amqp_connection_tune_ok_t s =
       (amqp_connection_tune_ok_t) {
-        .channel_max = 1,
+        .channel_max = channel_max,
 	.frame_max = frame_max,
 	.heartbeat = 0
       };
@@ -330,6 +347,7 @@ static int amqp_login_inner(amqp_connection_state_t state,
 
 amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 			    char const *vhost,
+			    int channel_max,
 			    int frame_max,
 			    amqp_sasl_method_enum sasl_method,
 			    ...)
@@ -339,7 +357,7 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 
   va_start(vl, sasl_method);
 
-  amqp_login_inner(state, frame_max, sasl_method, vl);
+  amqp_login_inner(state, channel_max, frame_max, sasl_method, vl);
 
   {
     amqp_connection_open_t s =
@@ -352,22 +370,6 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 			     0,
 			     AMQP_CONNECTION_OPEN_METHOD,
 			     AMQP_CONNECTION_OPEN_OK_METHOD,
-			     &s);
-    if (result.reply_type != AMQP_RESPONSE_NORMAL) {
-      return result;
-    }
-  }
-  amqp_maybe_release_buffers(state);
-
-  {
-    amqp_channel_open_t s =
-      (amqp_channel_open_t) {
-	.out_of_band = {.len = 0, .bytes = NULL}
-      };
-    result = amqp_simple_rpc(state,
-			     1,
-			     AMQP_CHANNEL_OPEN_METHOD,
-			     AMQP_CHANNEL_OPEN_OK_METHOD,
 			     &s);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
       return result;

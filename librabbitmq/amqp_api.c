@@ -10,7 +10,25 @@
 
 #include <assert.h>
 
+amqp_rpc_reply_t amqp_rpc_reply;
+
+#define RPC_REPLY(replytype)					\
+  (amqp_rpc_reply.reply_type == AMQP_RESPONSE_NORMAL		\
+   ? (replytype *) amqp_rpc_reply.reply.decoded	\
+   : NULL)
+
+amqp_channel_open_ok_t *amqp_channel_open(amqp_connection_state_t state,
+					  amqp_channel_t channel)
+{
+  amqp_rpc_reply =
+    AMQP_SIMPLE_RPC(state, channel, CHANNEL, OPEN, OPEN_OK,
+		    amqp_channel_open_t,
+		    AMQP_EMPTY_BYTES);
+  return RPC_REPLY(amqp_channel_open_ok_t);
+}
+
 int amqp_basic_publish(amqp_connection_state_t state,
+		       amqp_channel_t channel,
 		       amqp_bytes_t exchange,
 		       amqp_bytes_t routing_key,
 		       amqp_boolean_t mandatory,
@@ -32,7 +50,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
 
   amqp_basic_properties_t default_properties;
 
-  AMQP_CHECK_RESULT(amqp_send_method(state, 1, AMQP_BASIC_PUBLISH_METHOD, &m));
+  AMQP_CHECK_RESULT(amqp_send_method(state, channel, AMQP_BASIC_PUBLISH_METHOD, &m));
 
   if (properties == NULL) {
     memset(&default_properties, 0, sizeof(default_properties));
@@ -40,7 +58,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
   }
 
   f.frame_type = AMQP_FRAME_HEADER;
-  f.channel = 1;
+  f.channel = channel;
   f.payload.properties.class_id = AMQP_BASIC_CLASS;
   f.payload.properties.body_size = body.len;
   f.payload.properties.decoded = (void *) properties;
@@ -55,7 +73,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
       break;
 
     f.frame_type = AMQP_FRAME_BODY;
-    f.channel = 1;
+    f.channel = channel;
     f.payload.body_fragment.bytes = BUF_AT(body, body_offset);
     if (remaining >= usable_body_payload_size) {
       f.payload.body_fragment.len = usable_body_payload_size;
@@ -70,28 +88,26 @@ int amqp_basic_publish(amqp_connection_state_t state,
   return 0;
 }
 
-amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state, int code) {
+amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state,
+				    amqp_channel_t channel,
+				    int code)
+{
   char codestr[13];
   snprintf(codestr, sizeof(codestr), "%d", code);
-  return AMQP_SIMPLE_RPC(state, 1, CHANNEL, CLOSE, CLOSE_OK,
+  return AMQP_SIMPLE_RPC(state, channel, CHANNEL, CLOSE, CLOSE_OK,
 			 amqp_channel_close_t,
 			 code, amqp_cstring_bytes(codestr), 0, 0);
 }
 
-amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state, int code) {
+amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state,
+				       int code)
+{
   char codestr[13];
   snprintf(codestr, sizeof(codestr), "%d", code);
   return AMQP_SIMPLE_RPC(state, 0, CONNECTION, CLOSE, CLOSE_OK,
 			 amqp_connection_close_t,
 			 code, amqp_cstring_bytes(codestr), 0, 0);
 }
-
-amqp_rpc_reply_t amqp_rpc_reply;
-
-#define RPC_REPLY(replytype)					\
-  (amqp_rpc_reply.reply_type == AMQP_RESPONSE_NORMAL		\
-   ? (replytype *) amqp_rpc_reply.reply.decoded	\
-   : NULL)
 
 amqp_exchange_declare_ok_t *amqp_exchange_declare(amqp_connection_state_t state,
 						  amqp_channel_t channel,
