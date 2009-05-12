@@ -223,12 +223,22 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
       return result;
     }
 
-    if (!((frame.frame_type == AMQP_FRAME_METHOD) &&
-	  (frame.channel == channel) &&
-	  ((frame.payload.method.id == expected_reply_id) ||
-	   (frame.payload.method.id == AMQP_CONNECTION_CLOSE_METHOD) ||
-	   (frame.payload.method.id == AMQP_CHANNEL_CLOSE_METHOD))))
-    {
+    /*
+     * We store the frame for later processing unless it's something
+     * that directly affects us here, namely a method frame that is
+     * either
+     *  - on the channel we want, and of the expected type, or
+     *  - on the channel we want, and a channel.close frame, or
+     *  - on channel zero, and a connection.close frame.
+     */
+    if (!( (frame.frame_type == AMQP_FRAME_METHOD) &&
+	   (   ((frame.channel == channel) &&
+		((frame.payload.method.id == expected_reply_id) ||
+		 (frame.payload.method.id == AMQP_CHANNEL_CLOSE_METHOD)))
+	    ||
+	       ((frame.channel == 0) &&
+		(frame.payload.method.id == AMQP_CONNECTION_CLOSE_METHOD))   ) ))
+    {	     
       amqp_frame_t *frame_copy = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_frame_t));
       amqp_link_t *link = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_link_t));
 
