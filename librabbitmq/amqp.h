@@ -254,6 +254,13 @@ extern struct amqp_queue_bind_ok_t_ *amqp_queue_bind(amqp_connection_state_t sta
 						     amqp_bytes_t routing_key,
 						     amqp_table_t arguments);
 
+extern struct amqp_queue_unbind_ok_t_ *amqp_queue_unbind(amqp_connection_state_t state,
+							 amqp_channel_t channel,
+							 amqp_bytes_t queue,
+							 amqp_bytes_t exchange,
+							 amqp_bytes_t binding_key,
+							 amqp_table_t arguments);
+
 extern struct amqp_basic_consume_ok_t_ *amqp_basic_consume(amqp_connection_state_t state,
 							   amqp_channel_t channel,
 							   amqp_bytes_t queue,

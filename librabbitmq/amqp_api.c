@@ -155,6 +155,20 @@ amqp_queue_bind_ok_t *amqp_queue_bind(amqp_connection_state_t state,
   return RPC_REPLY(amqp_queue_bind_ok_t);
 }
 
+amqp_queue_unbind_ok_t *amqp_queue_unbind(amqp_connection_state_t state,
+					  amqp_channel_t channel,
+					  amqp_bytes_t queue,
+					  amqp_bytes_t exchange,
+					  amqp_bytes_t binding_key,
+					  amqp_table_t arguments)
+{
+  amqp_rpc_reply =
+    AMQP_SIMPLE_RPC(state, channel, QUEUE, UNBIND, UNBIND_OK,
+		    amqp_queue_unbind_t,
+		    0, queue, exchange, binding_key, arguments);
+  return RPC_REPLY(amqp_queue_unbind_ok_t);
+}
+
 amqp_basic_consume_ok_t *amqp_basic_consume(amqp_connection_state_t state,
 					    amqp_channel_t channel,
 					    amqp_bytes_t queue,
