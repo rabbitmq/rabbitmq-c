@@ -22,7 +22,7 @@ fi
 
 sibling_codegen_dir=$(pwd)/../rabbitmq-codegen
 AMQP_CODEGEN_DIR=$(test -d $sibling_codegen_dir && echo $sibling_codegen_dir || echo codegen)
-AMQP_SPEC_JSON_PATH=$AMQP_CODEGEN_DIR/amqp-0.8.json
+AMQP_SPEC_JSON_PATH=$AMQP_CODEGEN_DIR/amqp-0.9.1.json
 
 AC_SUBST(AMQP_CODEGEN_DIR)
 AC_SUBST(AMQP_SPEC_JSON_PATH)

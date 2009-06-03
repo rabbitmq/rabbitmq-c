@@ -267,7 +267,8 @@ extern struct amqp_basic_consume_ok_t_ *amqp_basic_consume(amqp_connection_state
 							   amqp_bytes_t consumer_tag,
 							   amqp_boolean_t no_local,
 							   amqp_boolean_t no_ack,
-							   amqp_boolean_t exclusive);
+							   amqp_boolean_t exclusive,
+							   amqp_table_t filter);
 
 #ifdef __cplusplus
 }
