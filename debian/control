@@ -1,4 +1,4 @@
-Source: rabbitmq-c
+Source: librabbitmq
 Section: libs
 Priority: extra
 Maintainer: Tony Garnock-Jones <tonyg@lshift.net>
