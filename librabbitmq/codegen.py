@@ -294,6 +294,7 @@ int amqp_decode_properties(uint16_t class_id,
     partial_flags = D_16(encoded, offset);
     offset += 2;
     flags |= (partial_flags << (flagword_index * 16));
+    flagword_index++;
   } while (partial_flags & 1);
 
   switch (class_id) {"""
