@@ -1,10 +1,10 @@
 bin_PROGRAMS = amqp_sendstring amqp_exchange_declare amqp_listen amqp_producer amqp_consumer \
 	amqp_unbind amqp_bind
 
-AM_CFLAGS = -I../librabbitmq
-AM_LDFLAGS = ../librabbitmq/librabbitmq.la
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq
+AM_LDFLAGS = $(top_builddir)/librabbitmq/librabbitmq.la
 
-nodist_INCLUDES = example_utils.h
+noinst_HEADERS = example_utils.h
 
 amqp_sendstring_SOURCES = amqp_sendstring.c example_utils.c
 amqp_exchange_declare_SOURCES = amqp_exchange_declare.c example_utils.c
