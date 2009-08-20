@@ -142,7 +142,8 @@ extern void amqp_set_sockfd(amqp_connection_state_t state,
 			    int sockfd);
 extern int amqp_tune_connection(amqp_connection_state_t state,
 				int channel_max,
-				int frame_max);
+				int frame_max,
+				int heartbeat);
 int amqp_get_channel_max(amqp_connection_state_t state);
 extern void amqp_destroy_connection(amqp_connection_state_t state);
 
@@ -206,6 +207,7 @@ extern amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 				   char const *vhost,
 				   int channel_max,
 				   int frame_max,
+				   int heartbeat,
 				   amqp_sasl_method_enum sasl_method, ...);
 
 extern amqp_rpc_reply_t amqp_rpc_reply;

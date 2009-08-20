@@ -277,12 +277,14 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 static int amqp_login_inner(amqp_connection_state_t state,
 			    int channel_max,
 			    int frame_max,
+			    int heartbeat,
 			    amqp_sasl_method_enum sasl_method,
 			    va_list vl)
 {
   amqp_method_t method;
   uint32_t server_frame_max;
   uint16_t server_channel_max;
+  uint16_t server_heartbeat;
 
   amqp_send_header(state);
 
@@ -318,6 +320,7 @@ static int amqp_login_inner(amqp_connection_state_t state,
     amqp_connection_tune_t *s = (amqp_connection_tune_t *) method.decoded;
     server_channel_max = s->channel_max;
     server_frame_max = s->frame_max;
+    server_heartbeat = s->heartbeat;
   }
 
   if (server_channel_max != 0 && server_channel_max < channel_max) {
@@ -328,14 +331,18 @@ static int amqp_login_inner(amqp_connection_state_t state,
     frame_max = server_frame_max;
   }
 
-  AMQP_CHECK_RESULT(amqp_tune_connection(state, channel_max, frame_max));
+  if (server_heartbeat != 0 && server_heartbeat < heartbeat) {
+    heartbeat = server_heartbeat;
+  }
+
+  AMQP_CHECK_RESULT(amqp_tune_connection(state, channel_max, frame_max, heartbeat));
 
   {
     amqp_connection_tune_ok_t s =
       (amqp_connection_tune_ok_t) {
         .channel_max = channel_max,
 	.frame_max = frame_max,
-	.heartbeat = 0
+	.heartbeat = heartbeat
       };
     AMQP_CHECK_RESULT(amqp_send_method(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD, &s));
   }
@@ -349,6 +356,7 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 			    char const *vhost,
 			    int channel_max,
 			    int frame_max,
+			    int heartbeat,
 			    amqp_sasl_method_enum sasl_method,
 			    ...)
 {
@@ -357,7 +365,7 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 
   va_start(vl, sasl_method);
 
-  amqp_login_inner(state, channel_max, frame_max, sasl_method, vl);
+  amqp_login_inner(state, channel_max, frame_max, heartbeat, sasl_method, vl);
 
   {
     amqp_connection_open_t s =

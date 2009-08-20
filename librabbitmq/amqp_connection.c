@@ -42,7 +42,7 @@ amqp_connection_state_t amqp_new_connection(void) {
 
   state->inbound_buffer.bytes = NULL;
   state->outbound_buffer.bytes = NULL;
-  if (amqp_tune_connection(state, 0, INITIAL_FRAME_POOL_PAGE_SIZE) != 0) {
+  if (amqp_tune_connection(state, 0, INITIAL_FRAME_POOL_PAGE_SIZE, 0) != 0) {
     empty_amqp_pool(&state->frame_pool);
     empty_amqp_pool(&state->decoding_pool);
     free(state);
@@ -81,7 +81,8 @@ void amqp_set_sockfd(amqp_connection_state_t state,
 
 int amqp_tune_connection(amqp_connection_state_t state,
 			 int channel_max,
-			 int frame_max)
+			 int frame_max,
+			 int heartbeat)
 {
   void *newbuf;
 
@@ -89,6 +90,7 @@ int amqp_tune_connection(amqp_connection_state_t state,
 
   state->channel_max = channel_max;
   state->frame_max = frame_max;
+  state->heartbeat = heartbeat;
 
   empty_amqp_pool(&state->frame_pool);
   init_amqp_pool(&state->frame_pool, frame_max);

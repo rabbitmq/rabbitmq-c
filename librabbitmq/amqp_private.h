@@ -56,6 +56,7 @@ struct amqp_connection_state_t_ {
 
   int channel_max;
   int frame_max;
+  int heartbeat;
   amqp_bytes_t inbound_buffer;
 
   size_t inbound_offset;
