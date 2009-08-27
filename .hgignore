@@ -27,3 +27,4 @@
 ^examples/amqp_consumer$
 ^examples/amqp_unbind$
 ^examples/amqp_bind$
+^examples/amqp_listenq$
