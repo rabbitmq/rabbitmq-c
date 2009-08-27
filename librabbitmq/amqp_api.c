@@ -183,3 +183,17 @@ amqp_basic_consume_ok_t *amqp_basic_consume(amqp_connection_state_t state,
 		    0, queue, consumer_tag, no_local, no_ack, exclusive, 0);
   return RPC_REPLY(amqp_basic_consume_ok_t);
 }
+
+int amqp_basic_ack(amqp_connection_state_t state,
+		   amqp_channel_t channel,
+		   uint64_t delivery_tag,
+		   amqp_boolean_t multiple)
+{
+  amqp_basic_ack_t m =
+    (amqp_basic_ack_t) {
+      .delivery_tag = delivery_tag,
+      .multiple = multiple
+    };
+  AMQP_CHECK_RESULT(amqp_send_method(state, channel, AMQP_BASIC_ACK_METHOD, &m));
+  return 0;
+}
