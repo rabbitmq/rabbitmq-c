@@ -346,6 +346,18 @@ amqp_tx_rollback_ok_t *amqp_tx_rollback(amqp_connection_state_t state,
   return RPC_REPLY(amqp_tx_rollback_ok_t);
 }
 
+amqp_confirm_select_ok_t *amqp_confirm_select(amqp_connection_state_t state,
+                                              amqp_channel_t channel,
+                                              amqp_boolean_t multiple,
+                                              amqp_boolean_t no_wait)
+{
+  state->most_recent_api_result =
+    AMQP_SIMPLE_RPC(state, channel, CONFIRM, SELECT, SELECT_OK,
+		    amqp_confirm_select_t,
+                    multiple, no_wait);
+  return RPC_REPLY(amqp_tx_select_ok_t);
+}
+
 amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state)
 {
   return state->most_recent_api_result;
