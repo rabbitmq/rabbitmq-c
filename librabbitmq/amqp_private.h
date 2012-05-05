@@ -34,6 +34,7 @@
  */
 
 #include "config.h"
+#include "amqp.h"
 
 /* Error numbering: Because of differences in error numbering on
  * different platforms, we want to keep error numbers opaque for
@@ -56,6 +57,21 @@
 #define ERROR_CONNECTION_CLOSED 7
 #define ERROR_BAD_AMQP_URL 8
 #define ERROR_MAX 8
+
+/* GCC attributes */
+#if __GNUC__ > 2 | (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
+#define AMQP_UNUSED \
+  __attribute__ ((__unused__))
+#else
+#define AMQP_UNUSED
+#endif
+
+#if __GNUC__ >= 4
+#define AMQP_PRIVATE \
+  __attribute__ ((visibility ("hidden")))
+#else
+#define AMQP_PRIVATE
+#endif
 
 extern char *amqp_os_error_string(int err);
 
@@ -118,6 +134,13 @@ struct amqp_connection_state_t_ {
   amqp_bytes_t outbound_buffer;
 
   int sockfd;
+  amqp_socket_writev_fn writev;
+  amqp_socket_send_fn send;
+  amqp_socket_recv_fn recv;
+  amqp_socket_close_fn close;
+  amqp_socket_error_fn error;
+  void *user_data;
+
   amqp_bytes_t sock_inbound_buffer;
   size_t sock_inbound_offset;
   size_t sock_inbound_limit;
