@@ -32,8 +32,8 @@
 
 #include "config.h"
 
+#include <errno.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdint.h>
@@ -44,6 +44,7 @@
 #include "amqp_private.h"
 #include "socket.h"
 
+AMQP_PRIVATE
 int amqp_socket_socket(int domain, int type, int proto)
 {
 	int flags;
@@ -65,7 +66,27 @@ int amqp_socket_socket(int domain, int type, int proto)
 	return s;
 }
 
+AMQP_PRIVATE
 char *amqp_os_error_string(int err)
 {
 	return strdup(strerror(err));
+}
+
+AMQP_PRIVATE
+int amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data)
+{
+	return close(sockfd);
+}
+
+AMQP_PRIVATE
+int amqp_socket_writev(int sockfd, const struct iovec *iov,
+		       int iovcnt, AMQP_UNUSED void *user_data)
+{
+	return writev(sockfd, iov, iovcnt);
+}
+
+AMQP_PRIVATE
+int amqp_socket_error(AMQP_UNUSED void *user_data)
+{
+	return errno | ERROR_CATEGORY_OS;
 }

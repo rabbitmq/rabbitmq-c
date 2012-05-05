@@ -45,6 +45,7 @@
 
 static int called_wsastartup;
 
+AMQP_PRIVATE
 int amqp_socket_init(void)
 {
 	if (!called_wsastartup) {
@@ -59,6 +60,7 @@ int amqp_socket_init(void)
 	return 0;
 }
 
+AMQP_PRIVATE
 char *amqp_os_error_string(int err)
 {
 	char *msg, *copy;
@@ -73,4 +75,27 @@ char *amqp_os_error_string(int err)
 	copy = strdup(msg);
 	LocalFree(msg);
 	return copy;
+}
+
+AMQP_PRIVATE
+int amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data)
+{
+	return closesocket(sockfd);
+}
+
+AMQP_PRIVATE
+int amqp_socket_writev(int sock, struct iovec *iov, int nvecs,
+		       AMQP_UNUSED void *user_data)
+{
+	DWORD ret;
+	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0)
+		return ret;
+	else
+		return -1;
+}
+
+AMQP_PRIVATE
+int amqp_socket_error(AMQP_UNUSED void *user_data)
+{
+	return WSAGetLastError() | ERROR_CATEGORY_OS;
 }

@@ -33,20 +33,8 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#include "amqp_private.h"
 #include <winsock2.h>
-
-extern int amqp_socket_init(void);
-
-#define amqp_socket_socket socket
-#define amqp_socket_close closesocket
-
-static inline int amqp_socket_setsockopt(int sock, int level, int optname,
-                                    const void *optval, size_t optlen)
-{
-        /* the winsock setsockopt function has its 4th argument as a
-           const char * */
-        return setsockopt(sock, level, optname, (const char *)optval, optlen);
-}
 
 /* same as WSABUF */
 struct iovec {
@@ -54,18 +42,19 @@ struct iovec {
 	void *iov_base;
 };
 
-static inline int amqp_socket_writev(int sock, struct iovec *iov, int nvecs)
-{
-	DWORD ret;
-	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0)
-		return ret;
-	else
-		return -1;
-}
+int amqp_socket_init(void);
+int amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data);
+int amqp_socket_writev(int sock, struct iovec *iov, int nvecs,
+		       AMQP_UNUSED void *user_data);
+static inline int amqp_socket_error();
+#define amqp_socket_socket socket
 
-static inline int amqp_socket_error()
+static inline int amqp_socket_setsockopt(int sock, int level, int optname,
+                                    const void *optval, size_t optlen)
 {
-	return WSAGetLastError() | ERROR_CATEGORY_OS;
+        /* the winsock setsockopt function has its 4th argument as a
+           const char * */
+        return setsockopt(sock, level, optname, (const char *)optval, optlen);
 }
 
 #endif

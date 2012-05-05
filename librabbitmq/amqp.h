@@ -37,14 +37,18 @@
 extern "C" {
 #endif
 
+#include <sys/types.h>
+
 #ifdef  _WIN32
 #ifdef BUILDING_LIBRABBITMQ
 #define RABBITMQ_EXPORT extern __declspec(dllexport)
 #else
 #define RABBITMQ_EXPORT extern __declspec(dllimport)
 #endif
+struct iovec;
 #else
 #define RABBITMQ_EXPORT extern
+#include <sys/uio.h>
 #endif
 
 typedef int amqp_boolean_t;
@@ -220,6 +224,13 @@ typedef enum amqp_sasl_method_enum_ {
 /* Opaque struct. */
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
+/* Socket callbacks. */
+typedef ssize_t (*amqp_socket_writev_fn)(int, const struct iovec *, int, void *);
+typedef ssize_t (*amqp_socket_send_fn)(int, const void *, size_t, int, void *);
+typedef ssize_t (*amqp_socket_recv_fn)(int, void *, size_t, int, void *);
+typedef int (*amqp_socket_close_fn)(int, void *);
+typedef int (*amqp_socket_error_fn)(void *);
+
 RABBITMQ_EXPORT char const *amqp_version(void);
 
 /* Exported empty data structures */
@@ -250,6 +261,14 @@ RABBITMQ_EXPORT amqp_connection_state_t amqp_new_connection(void);
 RABBITMQ_EXPORT int amqp_get_sockfd(amqp_connection_state_t state);
 RABBITMQ_EXPORT void amqp_set_sockfd(amqp_connection_state_t state,
 				     int sockfd);
+RABBITMQ_EXPORT void
+amqp_set_sockfd_full(amqp_connection_state_t state, int sockfd,
+		     amqp_socket_writev_fn writev_fn,
+		     amqp_socket_send_fn send_fn,
+		     amqp_socket_recv_fn recv_fn,
+		     amqp_socket_close_fn close_fn,
+		     amqp_socket_error_fn error_fn,
+		     void *user_data);
 RABBITMQ_EXPORT int amqp_tune_connection(amqp_connection_state_t state,
 					 int channel_max,
 					 int frame_max,
