@@ -30,7 +30,9 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -141,8 +143,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
 
   body_offset = 0;
   while (1) {
-    int remaining = body.len - body_offset;
-    assert(remaining >= 0);
+    size_t remaining = body.len - body_offset;
 
     if (remaining == 0)
       break;
