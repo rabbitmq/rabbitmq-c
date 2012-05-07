@@ -31,6 +31,7 @@ examples/amqp_listenq
 examples/amqp_producer
 examples/amqp_sendstring
 examples/amqp_unbind
+librabbitmq.pc
 librabbitmq/amqp_framing.c
 librabbitmq/amqp_framing.h
 tests/test_parse_url
