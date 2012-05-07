@@ -54,7 +54,7 @@ os_unix=no
 os_win32=no
 AS_CASE([$host],
 	[*-*-mingw*],
-		[os_win32=yes]
+		[os_win32=yes],
 	[*],
 		[os_unix=yes])
 AM_CONDITIONAL([OS_UNIX], [test "x$os_unix" = xyes])
