@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(rabbitmq-c "C")
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+
 #find python
 find_package(PythonInterp REQUIRED)
 
@@ -60,8 +62,6 @@ else (FETCH_CODEGEN_FROM_GIT)
 endif (FETCH_CODEGEN_FROM_GIT)
 
 mark_as_advanced(AMQP_CODEGEN_DIR)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 find_package(POPT)
 

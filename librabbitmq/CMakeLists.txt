@@ -43,7 +43,7 @@ SET(CONFIG_CONTENTS "#define VERSION \"0.0.1\"
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/config.h" ${CONFIG_CONTENTS})
 
 if(WIN32)
-  set(SOCKET_IMPL "windows")
+  set(SOCKET_IMPL "win32")
 else(WIN32)
   set(SOCKET_IMPL "unix")
 endif(WIN32)

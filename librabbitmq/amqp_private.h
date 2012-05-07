@@ -33,7 +33,9 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 /* Error numbering: Because of differences in error numbering on
  * different platforms, we want to keep error numbers opaque for
@@ -56,6 +58,24 @@
 #define ERROR_CONNECTION_CLOSED 7
 #define ERROR_BAD_AMQP_URL 8
 #define ERROR_MAX 8
+
+/* GCC attributes */
+#if __GNUC__ > 2 | (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
+#define AMQP_NORETURN \
+  __attribute__ ((__noreturn__))
+#else
+#define AMQP_NORETURN
+#endif
+
+#if __GNUC__ >= 4
+#define AMQP_PUBLIC \
+  __attribute__ ((visibility ("default")))
+#define AMQP_PRIVATE \
+  __attribute__ ((visibility ("hidden")))
+#else
+#define AMQP_PUBLIC
+#define AMQP_PRIVATE
+#endif
 
 extern char *amqp_os_error_string(int err);
 
@@ -253,6 +273,8 @@ static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
   }
 }
 
+AMQP_PRIVATE
+AMQP_NORETURN
 extern void amqp_abort(const char *fmt, ...);
 
 #endif
