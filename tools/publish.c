@@ -44,6 +44,8 @@
 
 #include "common.h"
 
+#define MAX_LINE_LENGTH 1024 * 32
+
 static void do_publish(amqp_connection_state_t conn,
                        char *exchange, char *routing_key,
                        amqp_basic_properties_t *props, amqp_bytes_t body)
@@ -62,10 +64,12 @@ int main(int argc, const char **argv)
   char *routing_key = NULL;
   char *content_type = NULL;
   char *content_encoding = NULL;
+  char *reply_to = NULL;
   char *body = NULL;
   amqp_basic_properties_t props;
   amqp_bytes_t body_bytes;
   int delivery = 1; /* non-persistent by default */
+  int line_buffered = 0;
 
   struct poptOption options[] = {
     INCLUDE_OPTIONS(connect_options),
@@ -84,6 +88,14 @@ int main(int argc, const char **argv)
     {
       "content-type", 'C', POPT_ARG_STRING, &content_type, 0,
       "the content-type for the message", "content type"
+    },
+    {
+      "reply-to", 't', POPT_ARG_STRING, &reply_to, 0,
+      "the replyTo to use for the message", "reply to"
+    },
+    {
+      "line-buffered", 'l', POPT_ARG_VAL, &line_buffered, 2,
+      "treat each line from standard in as a separate message", NULL
     },
     {
       "content-encoding", 'E', POPT_ARG_STRING,
@@ -120,15 +132,30 @@ int main(int argc, const char **argv)
     props.content_encoding = amqp_cstring_bytes(content_encoding);
   }
 
+  if (reply_to) {
+    props._flags |= AMQP_BASIC_REPLY_TO_FLAG;
+    props.reply_to = amqp_cstring_bytes(reply_to);
+  }
+
   conn = make_connection();
 
   if (body) {
     body_bytes = amqp_cstring_bytes(body);
   } else {
-    body_bytes = read_all(0);
+    if ( line_buffered ) {
+      body_bytes.bytes = ( char * ) malloc( MAX_LINE_LENGTH );
+      while ( fgets( body_bytes.bytes, MAX_LINE_LENGTH, stdin ) ) {
+        body_bytes.len = strlen( body_bytes.bytes );
+        do_publish(conn, exchange, routing_key, &props, body_bytes);
+      }
+    } else {
+      body_bytes = read_all(0);
+    }
   }
 
-  do_publish(conn, exchange, routing_key, &props, body_bytes);
+  if ( !line_buffered ) {
+    do_publish(conn, exchange, routing_key, &props, body_bytes);
+  }
 
   if (!body) {
     free(body_bytes.bytes);
