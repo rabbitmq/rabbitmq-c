@@ -165,6 +165,8 @@ struct amqp_connection_state_t_ {
 amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);
 amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state, amqp_channel_t channel);
 
+int amqp_try_recv(amqp_connection_state_t state, uint64_t current_time);
+
 static inline void *amqp_offset(void *data, size_t offset)
 {
   return (char *)data + offset;

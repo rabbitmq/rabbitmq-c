@@ -39,6 +39,7 @@
 #endif
 
 #include "amqp_private.h"
+#include "amqp_timer.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -185,6 +186,22 @@ int amqp_basic_publish(amqp_connection_state_t state,
   m.mandatory = mandatory;
   m.immediate = immediate;
   m.ticket = 0;
+
+  if (state->heartbeat > 0) {
+    uint64_t current_timestamp = amqp_get_monotonic_timestamp();
+    if (0 == current_timestamp) {
+      return AMQP_STATUS_TIMER_FAILURE;
+    }
+
+    if (current_timestamp > state->next_recv_heartbeat) {
+      res = amqp_try_recv(state, current_timestamp);
+      if (AMQP_STATUS_TIMEOUT == res) {
+        return AMQP_STATUS_HEARTBEAT_TIMEOUT;
+      } else if (AMQP_STATUS_OK != res) {
+        return res;
+      }
+    }
+  }
 
   res = amqp_send_method(state, channel, AMQP_BASIC_PUBLISH_METHOD, &m);
   if (res < 0) {

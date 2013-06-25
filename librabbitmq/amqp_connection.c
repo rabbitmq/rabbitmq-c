@@ -139,8 +139,8 @@ int amqp_tune_connection(amqp_connection_state_t state,
     if (0 == current_time) {
       return AMQP_STATUS_TIMER_FAILURE;
     }
-    state->next_send_heartbeat = current_time + (state->heartbeat * AMQP_NS_PER_S);
-    state->next_recv_heartbeat = current_time + (2 * state->heartbeat * AMQP_NS_PER_S);
+    state->next_send_heartbeat = current_time + ((uint64_t)state->heartbeat * AMQP_NS_PER_S);
+    state->next_recv_heartbeat = current_time + (2 * (uint64_t)state->heartbeat * AMQP_NS_PER_S);
   }
 
   state->outbound_buffer.len = frame_max;
