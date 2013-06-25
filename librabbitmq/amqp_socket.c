@@ -246,13 +246,13 @@ int amqp_open_socket(char const *hostname,
       last_error = AMQP_STATUS_SOCKET_ERROR;
       continue;
     }
-#ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
+#ifdef SO_NOSIGPIPE
     if (0 != amqp_os_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one))) {
       last_error = AMQP_STATUS_SOCKET_ERROR;
       amqp_os_socket_close(sockfd);
       continue;
     }
-#endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
+#endif /* SO_NOSIGPIPE */
     if (0 != amqp_os_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))
         || 0 != connect(sockfd, addr->ai_addr, addr->ai_addrlen)) {
       last_error = AMQP_STATUS_SOCKET_ERROR;
