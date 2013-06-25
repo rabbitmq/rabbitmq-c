@@ -75,7 +75,8 @@ amqp_get_monotonic_timestamp(void)
     }
   }
 
-  timestamp = timestamp * s_timebase.numer / s_timebase.denom;
+  timestamp *= (uint64_t)s_timebase.numer;
+  timestamp /= (uint64_t)s_timebase.denom;
 
   return timestamp;
 }
