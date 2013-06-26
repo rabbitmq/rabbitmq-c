@@ -78,6 +78,7 @@ amqp_ssl_error_string(int err);
 #endif
 
 #include "amqp_socket.h"
+#include "amqp_timer.h"
 
 /*
  * Connection states: XXX FIX THIS
@@ -164,6 +165,21 @@ struct amqp_connection_state_t_ {
 
 amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);
 amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state, amqp_channel_t channel);
+
+static inline amqp_boolean_t amqp_heartbeat_enabled(amqp_connection_state_t state)
+{
+  return (state->heartbeat > 0);
+}
+
+static inline uint64_t amqp_calc_next_send_heartbeat(amqp_connection_state_t state, uint64_t cur)
+{
+  return cur + ((uint64_t)state->heartbeat * AMQP_NS_PER_S);
+}
+
+static inline uint64_t amqp_calc_next_recv_heartbeat(amqp_connection_state_t state, uint64_t cur)
+{
+  return cur + ((uint64_t)state->heartbeat * 2 * AMQP_NS_PER_S);
+}
 
 int amqp_try_recv(amqp_connection_state_t state, uint64_t current_time);
 

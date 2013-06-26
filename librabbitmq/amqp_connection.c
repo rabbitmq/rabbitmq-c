@@ -134,13 +134,13 @@ int amqp_tune_connection(amqp_connection_state_t state,
   state->frame_max = frame_max;
   state->heartbeat = heartbeat;
 
-  if (state->heartbeat > 0) {
+  if (amqp_heartbeat_enabled(state)) {
     uint64_t current_time = amqp_get_monotonic_timestamp();
     if (0 == current_time) {
       return AMQP_STATUS_TIMER_FAILURE;
     }
-    state->next_send_heartbeat = current_time + ((uint64_t)state->heartbeat * AMQP_NS_PER_S);
-    state->next_recv_heartbeat = current_time + (2 * (uint64_t)state->heartbeat * AMQP_NS_PER_S);
+    state->next_send_heartbeat = amqp_calc_next_send_heartbeat(state, current_time);
+    state->next_recv_heartbeat = amqp_calc_next_recv_heartbeat(state, current_time);
   }
 
   state->outbound_buffer.len = frame_max;
@@ -506,7 +506,7 @@ int amqp_send_frame(amqp_connection_state_t state,
     if (0 == current_time) {
       return AMQP_STATUS_TIMER_FAILURE;
     }
-    state->next_send_heartbeat = current_time + (state->heartbeat * AMQP_NS_PER_S);
+    state->next_send_heartbeat = amqp_calc_next_send_heartbeat(state, current_time);
   }
 
   return res;

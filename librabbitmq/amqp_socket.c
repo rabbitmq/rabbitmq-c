@@ -432,12 +432,12 @@ static int recv_with_timeout(amqp_connection_state_t state, uint64_t start, stru
   state->sock_inbound_limit = res;
   state->sock_inbound_offset = 0;
 
-  if (state->heartbeat > 0) {
+  if (amqp_heartbeat_enabled(state)) {
     uint64_t current_time = amqp_get_monotonic_timestamp();
     if (0 == current_time) {
       return AMQP_STATUS_TIMER_FAILURE;
     }
-    state->next_recv_heartbeat = current_time + (2 * (uint64_t)state->heartbeat * AMQP_NS_PER_S);
+    state->next_recv_heartbeat = amqp_calc_next_recv_heartbeat(state, current_time);
   }
 
   return AMQP_STATUS_OK;
@@ -532,7 +532,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
     }
 
 beginrecv:
-    if (timeout || state->heartbeat > 0) {
+    if (timeout || amqp_heartbeat_enabled(state)) {
       uint64_t ns_until_next_timeout;
 
       current_timestamp = amqp_get_monotonic_timestamp();
@@ -540,7 +540,7 @@ beginrecv:
         return AMQP_STATUS_TIMER_FAILURE;
       }
 
-      if (state->heartbeat > 0 && current_timestamp > state->next_send_heartbeat) {
+      if (amqp_heartbeat_enabled(state) && current_timestamp > state->next_send_heartbeat) {
         amqp_frame_t heartbeat;
         heartbeat.channel = 0;
         heartbeat.frame_type = AMQP_FRAME_HEARTBEAT;
@@ -569,7 +569,7 @@ beginrecv:
       }
 
 
-      if (state->heartbeat > 0) {
+      if (amqp_heartbeat_enabled(state)) {
         if (current_timestamp > state->next_recv_heartbeat) {
           state->next_recv_heartbeat = current_timestamp;
         }

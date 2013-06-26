@@ -187,7 +187,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
   m.immediate = immediate;
   m.ticket = 0;
 
-  if (state->heartbeat > 0) {
+  if (amqp_heartbeat_enabled(state)) {
     uint64_t current_timestamp = amqp_get_monotonic_timestamp();
     if (0 == current_timestamp) {
       return AMQP_STATUS_TIMER_FAILURE;
