@@ -157,6 +157,94 @@ struct timeval;
 AMQP_BEGIN_DECLS
 
 /**
+ * @def AMQP_VERSION_MAJOR major version number constant
+ *
+ * The major version is incremented when backwards incompatible API changes
+ * are made.
+ */
+/**
+ * @ def AMQP_VERSION_MINOR minor version number constant
+ *
+ * The minor version is incremented when new APIs are added. Existing APIs
+ * are left alone.
+ */
+/**
+ * @def AMQP_VERSION_PATCH patch version number constant
+ *
+ * The patch version is incremented when library code changes, but the API
+ * is not changed.
+ */
+/**
+ * @def AMQP_VERSION_IS_RELEASE constant set to 1 for tagged release, 0 otherwise
+ *
+ * NOTE: versions that are not tagged releases are not guaranteed to be API/ABI
+ * compatible with older releases, and may change commit-to-commit.
+ */
+/*
+ * Developer note: when changing these, be sure to update SOVERSION constants
+ *  in CMakeLists.txt and configure.ac
+ */
+#define AMQP_VERSION_MAJOR 0
+#define AMQP_VERSION_MINOR 4
+#define AMQP_VERSION_PATCH 0
+#define AMQP_VERSION_IS_RELEASE 0
+
+/**
+ * @def AMQP_VERSION is a packed version number
+ *
+ * AMQP_VERSION is a 4-byte unsigned integer with the high byte set to the
+ * major version, next byte set to the minor version, the next byte the patch
+ * version, and the lowest byte set to 1 for released versions, 0 otherwise.
+ *
+ * Version 2.3.4 which is released version would be encoded as 0x02030401
+ */
+#define AMQP_VERSION ((AMQP_VERSION_MAJOR << 24) | \
+                      (AMQP_VERSION_MINOR << 16) | \
+                      (AMQP_VERSION_PATCH << 8)  | \
+                      (AMQP_VERSION_IS_RELEASE))
+
+#define AMQ_STRINGIFY(s) AMQ_STRINGIFY_HELPER(s)
+#define AMQ_STRINGIFY_HELPER(s) #s
+
+#define AMQ_VERSION_STRING  AMQ_STRINGIFY(AMQP_VERSION_MAJOR) "." \
+                            AMQ_STRINGIFY(AMQP_VERSION_MINOR) "." \
+                            AMQ_STRINGIFY(AMQP_VERSION_PATCH)
+
+/**
+ * @def AMQP_VERSION_STRING is a string representation of AMQP_VERSION.
+ * Non-released versions of the library will have "-pre" appended to the
+ * version string
+ */
+#if AMQP_VERSION_IS_RELEASE
+# define AMQP_VERSION_STRING AMQ_VERSION_STRING
+#else
+# define AMQP_VERSION_STRING AMQ_VERSION_STRING "-pre"
+#endif
+
+
+/**
+ * Returns the rabbitmq-c version as a packed integer.
+ *
+ * See \ref AMQP_VERSION
+ *
+ * @return packed 32-bit integer representing version of library at runtime
+ */
+AMQP_PUBLIC_FUNCTION
+uint32_t
+AMQP_CALL amqp_version_number(void);
+
+/**
+ * Returns the rabbitmq-c version as a string.
+ *
+ * See \ref AMQP_VERSION_STRING
+ *
+ * @return a statically allocated string describing the version of rabbitmq-c.
+ */
+AMQP_PUBLIC_FUNCTION
+char const *
+AMQP_CALL amqp_version(void);
+
+/**
  * Default frame size
  */
 #define AMQP_DEFAULT_FRAME_SIZE 131072
