@@ -78,6 +78,19 @@ struct iovec {
 };
 #endif
 
+
+/**
+ * Set set the socket object for a connection
+ *
+ * This assigns a socket object to the connection, closing and deleting any
+ * existing socket
+ *
+ * \param [in] state The connection object to add the socket to
+ * \param [in] socket The socket object to assign to the connection
+ */
+void
+amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket);
+
 /**
  * Write to a socket.
  *

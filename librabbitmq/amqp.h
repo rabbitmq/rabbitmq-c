@@ -425,10 +425,6 @@ AMQP_DEPRECATED(
 );
 
 AMQP_PUBLIC_FUNCTION
-void
-AMQP_CALL amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket);
-
-AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_tune_connection(amqp_connection_state_t state,
                                int channel_max,
