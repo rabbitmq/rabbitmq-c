@@ -107,18 +107,23 @@ int amqp_get_sockfd(amqp_connection_state_t state)
 void amqp_set_sockfd(amqp_connection_state_t state,
                      int sockfd)
 {
-  amqp_socket_t *socket = amqp_tcp_socket_new();
+  amqp_socket_t *socket = amqp_tcp_socket_new(state);
   if (!socket) {
     amqp_abort("%s", strerror(errno));
   }
   amqp_tcp_socket_set_sockfd(socket, sockfd);
-  amqp_set_socket(state, socket);
 }
 
 void amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket)
 {
-  amqp_socket_close(state->socket);
+  amqp_socket_delete(state->socket);
   state->socket = socket;
+}
+
+amqp_socket_t *
+amqp_get_socket(amqp_connection_state_t state)
+{
+  return state->socket;
 }
 
 int amqp_tune_connection(amqp_connection_state_t state,
@@ -175,7 +180,7 @@ int amqp_destroy_connection(amqp_connection_state_t state)
 
     free(state->outbound_buffer.bytes);
     free(state->sock_inbound_buffer.bytes);
-    status = amqp_socket_close(state->socket);
+    amqp_socket_delete(state->socket);
     free(state);
   }
   return status;

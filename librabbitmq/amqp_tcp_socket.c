@@ -236,18 +236,15 @@ static int
 amqp_tcp_socket_close(void *base)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-  int status = -1;
-  if (self) {
-    status = amqp_os_socket_close(self->sockfd);
-    free(self->buffer);
-    free(self);
+
+  if (-1 != self->sockfd) {
+    if (amqp_os_socket_close(self->sockfd)) {
+      return AMQP_STATUS_SOCKET_ERROR;
+    }
+    self->sockfd = -1;
   }
 
-  if (0 == status) {
-    return AMQP_STATUS_OK;
-  } else {
-    return AMQP_STATUS_SOCKET_ERROR;
-  }
+  return AMQP_STATUS_OK;
 }
 
 static int
@@ -264,6 +261,18 @@ amqp_tcp_socket_get_sockfd(void *base)
   return self->sockfd;
 }
 
+static void
+amqp_tcp_socket_delete(void *base)
+{
+  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+
+  if (self) {
+    amqp_tcp_socket_close(self);
+    free(self->buffer);
+    free(self);
+  }
+}
+
 static const struct amqp_socket_class_t amqp_tcp_socket_class = {
   amqp_tcp_socket_writev, /* writev */
   amqp_tcp_socket_send, /* send */
@@ -271,11 +280,12 @@ static const struct amqp_socket_class_t amqp_tcp_socket_class = {
   amqp_tcp_socket_open, /* open */
   amqp_tcp_socket_close, /* close */
   amqp_tcp_socket_error, /* error */
-  amqp_tcp_socket_get_sockfd /* get_sockfd */
+  amqp_tcp_socket_get_sockfd, /* get_sockfd */
+  amqp_tcp_socket_delete /* delete */
 };
 
 amqp_socket_t *
-amqp_tcp_socket_new(void)
+amqp_tcp_socket_new(amqp_connection_state_t state)
 {
   struct amqp_tcp_socket_t *self = calloc(1, sizeof(*self));
   if (!self) {
@@ -283,6 +293,9 @@ amqp_tcp_socket_new(void)
   }
   self->klass = &amqp_tcp_socket_class;
   self->sockfd = -1;
+
+  amqp_set_socket(state, (amqp_socket_t *)self);
+
   return (amqp_socket_t *)self;
 }
 

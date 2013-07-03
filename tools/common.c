@@ -332,7 +332,7 @@ amqp_connection_state_t make_connection(void)
   conn = amqp_new_connection();
   if (ci.ssl) {
 #ifdef WITH_SSL
-    socket = amqp_ssl_socket_new();
+    socket = amqp_ssl_socket_new(conn);
     if (!socket) {
       die("creating SSL/TLS socket");
     }
@@ -346,7 +346,7 @@ amqp_connection_state_t make_connection(void)
     die("librabbitmq was not built with SSL/TLS support");
 #endif
   } else {
-    socket = amqp_tcp_socket_new();
+    socket = amqp_tcp_socket_new(conn);
     if (!socket) {
       die("creating TCP socket (out of memory)");
     }
@@ -355,7 +355,6 @@ amqp_connection_state_t make_connection(void)
   if (status) {
     die("opening socket to %s:%d", ci.host, ci.port);
   }
-  amqp_set_socket(conn, socket);
   die_rpc(amqp_login(conn, ci.vhost, 0, 131072, 0,
                      AMQP_SASL_METHOD_PLAIN,
                      ci.user, ci.password),

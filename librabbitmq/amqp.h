@@ -670,22 +670,6 @@ AMQP_CALL
 amqp_socket_open(amqp_socket_t *self, const char *host, int port);
 
 /**
- * Close a socket connection and free resources.
- *
- * This function closes a socket connection and releases any resources used by
- * the object. After calling this function the specified socket should no
- * longer be referenced.
- *
- * \param [in,out] self A socket object.
- *
- * \return Zero upon success, non-zero otherwise.
- */
-AMQP_PUBLIC_FUNCTION
-int
-AMQP_CALL
-amqp_socket_close(amqp_socket_t *self);
-
-/**
  * Retrieve an error code for the last socket operation.
  *
  * At the time of writing, this interface is not well supported and is subject
@@ -715,6 +699,10 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL
 amqp_socket_get_sockfd(amqp_socket_t *self);
+
+AMQP_PUBLIC_FUNCTION
+amqp_socket_t *
+amqp_get_socket(amqp_connection_state_t state);
 
 AMQP_END_DECLS
 

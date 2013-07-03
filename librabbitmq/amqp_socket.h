@@ -50,6 +50,7 @@ typedef int (*amqp_socket_open_fn)(void *, const char *, int);
 typedef int (*amqp_socket_close_fn)(void *);
 typedef int (*amqp_socket_error_fn)(void *);
 typedef int (*amqp_socket_get_sockfd_fn)(void *);
+typedef void (*amqp_socket_delete_fn)(void *);
 
 /** V-table for amqp_socket_t */
 struct amqp_socket_class_t {
@@ -60,6 +61,7 @@ struct amqp_socket_class_t {
   amqp_socket_close_fn close;
   amqp_socket_error_fn error;
   amqp_socket_get_sockfd_fn get_sockfd;
+  amqp_socket_delete_fn delete;
 };
 
 /** Abstract base class for amqp_socket_t */
@@ -126,6 +128,30 @@ amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len);
  */
 ssize_t
 amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags);
+
+/**
+ * Close a socket connection and free resources.
+ *
+ * This function closes a socket connection and releases any resources used by
+ * the object. After calling this function the specified socket should no
+ * longer be referenced.
+ *
+ * \param [in,out] self A socket object.
+ *
+ * \return Zero upon success, non-zero otherwise.
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_close(amqp_socket_t *self);
+
+/**
+ * Destroy a socket object
+ *
+ * \param [in] self the socket object to delete
+ */
+void
+amqp_socket_delete(amqp_socket_t *self);
 
 AMQP_END_DECLS
 

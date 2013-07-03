@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
   conn = amqp_new_connection();
 
-  socket = amqp_tcp_socket_new();
+  socket = amqp_tcp_socket_new(conn);
   if (!socket) {
     die("creating TCP socket");
   }
@@ -85,7 +85,6 @@ int main(int argc, char *argv[])
     die("opening TCP socket");
   }
 
-  amqp_set_socket(conn, socket);
   die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
                     "Logging in");
   amqp_channel_open(conn, 1);

@@ -42,7 +42,7 @@ AMQP_BEGIN_DECLS
 AMQP_PUBLIC_FUNCTION
 amqp_socket_t *
 AMQP_CALL
-amqp_tcp_socket_new(void);
+amqp_tcp_socket_new(amqp_connection_state_t state);
 
 /**
  * Assign an open file descriptor to a socket object.

@@ -188,11 +188,18 @@ amqp_socket_open(amqp_socket_t *self, const char *host, int port)
 int
 amqp_socket_close(amqp_socket_t *self)
 {
+  assert(self);
+  assert(self->klass->close);
+  return self->klass->close(self);
+}
+
+void
+amqp_socket_delete(amqp_socket_t *self)
+{
   if (self) {
-    assert(self->klass->close);
-    return self->klass->close(self);
+    assert(self->klass->delete);
+    self->klass->delete(self);
   }
-  return AMQP_STATUS_OK;
 }
 
 int
@@ -600,7 +607,6 @@ beginrecv:
     if (AMQP_STATUS_TIMEOUT == res) {
       if (next_timestamp == state->next_recv_heartbeat) {
         amqp_socket_close(state->socket);
-        state->socket = NULL;
         return AMQP_STATUS_HEARTBEAT_TIMEOUT;
       } else if (next_timestamp == timeout_timestamp) {
         return AMQP_STATUS_TIMEOUT;
@@ -654,7 +660,6 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
       || frame.frame_type != AMQP_FRAME_METHOD
       || frame.payload.method.id != expected_method) {
     amqp_socket_close(state->socket);
-    state->socket = NULL;
     return AMQP_STATUS_WRONG_METHOD;
   }
   *output = frame.payload.method;
