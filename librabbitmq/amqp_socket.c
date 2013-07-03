@@ -203,14 +203,6 @@ amqp_socket_delete(amqp_socket_t *self)
 }
 
 int
-amqp_socket_error(amqp_socket_t *self)
-{
-  assert(self);
-  assert(self->klass->error);
-  return self->klass->error(self);
-}
-
-int
 amqp_socket_get_sockfd(amqp_socket_t *self)
 {
   assert(self);

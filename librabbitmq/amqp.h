@@ -670,21 +670,6 @@ AMQP_CALL
 amqp_socket_open(amqp_socket_t *self, const char *host, int port);
 
 /**
- * Retrieve an error code for the last socket operation.
- *
- * At the time of writing, this interface is not well supported and is subject
- * to changes!
- *
- * \param [in,out] self A socket object.
- *
- * \return Zero upon success, an opaque error code otherwise
- */
-AMQP_PUBLIC_FUNCTION
-int
-AMQP_CALL
-amqp_socket_error(amqp_socket_t *self);
-
-/**
  * Get the socket descriptor in use by a socket object.
  *
  * Retrieve the underlying socket descriptor. This function can be used to

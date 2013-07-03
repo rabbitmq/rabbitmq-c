@@ -248,13 +248,6 @@ amqp_tcp_socket_close(void *base)
 }
 
 static int
-amqp_tcp_socket_error(AMQP_UNUSED void *base)
-{
-  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-  return self->internal_error;
-}
-
-static int
 amqp_tcp_socket_get_sockfd(void *base)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
@@ -279,7 +272,6 @@ static const struct amqp_socket_class_t amqp_tcp_socket_class = {
   amqp_tcp_socket_recv, /* recv */
   amqp_tcp_socket_open, /* open */
   amqp_tcp_socket_close, /* close */
-  amqp_tcp_socket_error, /* error */
   amqp_tcp_socket_get_sockfd, /* get_sockfd */
   amqp_tcp_socket_delete /* delete */
 };

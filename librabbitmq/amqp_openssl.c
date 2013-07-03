@@ -319,19 +319,6 @@ amqp_ssl_socket_close(void *base)
 }
 
 static int
-amqp_ssl_socket_error(void *base)
-{
-  struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  return self->internal_error;
-}
-
-char *
-amqp_ssl_error_string(AMQP_UNUSED int err)
-{
-  return strdup("A ssl socket error occurred.");
-}
-
-static int
 amqp_ssl_socket_get_sockfd(void *base)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
@@ -359,7 +346,6 @@ static const struct amqp_socket_class_t amqp_ssl_socket_class = {
   amqp_ssl_socket_recv, /* recv */
   amqp_ssl_socket_open, /* open */
   amqp_ssl_socket_close, /* close */
-  amqp_ssl_socket_error, /* error */
   amqp_ssl_socket_get_sockfd, /* get_sockfd */
   amqp_ssl_socket_delete /* delete */
 };

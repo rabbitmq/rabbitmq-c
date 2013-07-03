@@ -48,7 +48,6 @@ typedef ssize_t (*amqp_socket_send_fn)(void *, const void *, size_t);
 typedef ssize_t (*amqp_socket_recv_fn)(void *, void *, size_t, int);
 typedef int (*amqp_socket_open_fn)(void *, const char *, int);
 typedef int (*amqp_socket_close_fn)(void *);
-typedef int (*amqp_socket_error_fn)(void *);
 typedef int (*amqp_socket_get_sockfd_fn)(void *);
 typedef void (*amqp_socket_delete_fn)(void *);
 
@@ -59,7 +58,6 @@ struct amqp_socket_class_t {
   amqp_socket_recv_fn recv;
   amqp_socket_open_fn open;
   amqp_socket_close_fn close;
-  amqp_socket_error_fn error;
   amqp_socket_get_sockfd_fn get_sockfd;
   amqp_socket_delete_fn delete;
 };
