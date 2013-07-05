@@ -627,6 +627,10 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_encode_table(amqp_bytes_t encoded, amqp_table_t *input, size_t *offset);
 
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_table_clone(amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool);
+
 struct amqp_connection_info {
   char *user;
   char *password;
