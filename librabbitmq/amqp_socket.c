@@ -570,8 +570,9 @@ static int recv_with_timeout(amqp_connection_state_t state, uint64_t start, stru
             if (0 == current_timestamp) {
               return AMQP_STATUS_TIMER_FAILURE;
             }
-            end_timestamp = start + timeout->tv_sec * AMQP_NS_PER_S +
-              timeout->tv_usec * AMQP_NS_PER_US;
+            end_timestamp = start +
+              (uint64_t)timeout->tv_sec * AMQP_NS_PER_S +
+              (uint64_t)timeout->tv_usec * AMQP_NS_PER_US;
             if (current_timestamp > end_timestamp) {
               return AMQP_STATUS_TIMEOUT;
             }
@@ -725,8 +726,8 @@ beginrecv:
       if (timeout) {
         if (0 == timeout_timestamp) {
           timeout_timestamp = current_timestamp +
-            timeout->tv_sec * AMQP_NS_PER_S +
-            timeout->tv_usec * AMQP_NS_PER_US;
+            (uint64_t)timeout->tv_sec * AMQP_NS_PER_S +
+            (uint64_t)timeout->tv_usec * AMQP_NS_PER_US;
         }
 
         if (current_timestamp > timeout_timestamp) {
