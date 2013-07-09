@@ -693,9 +693,6 @@ static int wait_frame_inner(amqp_connection_state_t state,
         /* Complete frame was read. Return it. */
         return AMQP_STATUS_OK;
       }
-
-      /* Incomplete or ignored frame. Keep processing input. */
-      assert(res != 0);
     }
 
 beginrecv:
