@@ -42,12 +42,16 @@ int amqp_basic_properties_clone(amqp_basic_properties_t *original,
   memset(clone, 0, sizeof(amqp_basic_properties_t));
   clone->_flags = original->_flags;
 
-#define CLONE_BYTES_POOL(original, clone, pool) \
-  amqp_pool_alloc_bytes(pool, original.len, &clone); \
-  if (NULL == clone.bytes) { \
-    return AMQP_STATUS_NO_MEMORY; \
-  } \
-  memcpy(clone.bytes, original.bytes, clone.len);
+#define CLONE_BYTES_POOL(original, clone, pool)         \
+  if (0 == original.len) {                              \
+    clone = amqp_empty_bytes;                           \
+  } else {                                              \
+    amqp_pool_alloc_bytes(pool, original.len, &clone);  \
+    if (NULL == clone.bytes) {                          \
+      return AMQP_STATUS_NO_MEMORY;                     \
+    }                                                   \
+    memcpy(clone.bytes, original.bytes, clone.len);     \
+  }
 
   if (clone->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
     CLONE_BYTES_POOL(original->content_type, clone->content_type, pool)
