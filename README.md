@@ -16,13 +16,15 @@ rabbitmq-discuss mailing list:
 
 ## Latest Stable Version
 
-The latest stable version of rabbitmq-c is v0.4.0. A complete list of changes
-can be found in the [Change Log](ChangeLog.md)
+The latest stable release of [rabbitmq-c is v0.4.0](https://github.com/alanxz/rabbitmq-c/releases/tag/v0.4.0).
+A complete list of changes can be found in the [Change Log](ChangeLog.md)
 
 The v0.4.0 source tarball can be downloaded from:
-<https://github.com/alanxz/rabbitmq-c/>
 
-API documentation for v0.4.0 can viewed here:
+<https://github.com/alanxz/rabbitmq-c/releases/download/v0.4.0/rabbitmq-c-0.4.0.tar.gz>
+
+API documentation for v0.4.0 can viewed from:
+
 <http://alanxz.github.io/rabbitmq-c/docs/0.4.0/>
 
 ## Getting started
