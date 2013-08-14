@@ -362,8 +362,10 @@ EXTRA_DIST = \
 	librabbitmq/CMakeLists.txt \
 	librabbitmq/codegen.py \
 	librabbitmq/descrip.mms \
+	librabbitmq/win32 \
 	tests/CMakeLists.txt \
 	tests/test_tables.expected \
+	tests/win32 \
 	tools/CMakeLists.txt \
 	tools/doc/amqp-consume.xml \
 	tools/doc/amqp-declare-queue.xml \
