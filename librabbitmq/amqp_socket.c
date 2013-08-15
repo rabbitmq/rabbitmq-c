@@ -1102,6 +1102,13 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
+    res = amqp_table_clone(&s->server_properties, &state->server_properties,
+                           &state->properties_pool);
+
+    if (AMQP_STATUS_OK != res) {
+      goto error_res;
+    }
+
     /* TODO: check that our chosen SASL mechanism is in the list of
        acceptable mechanisms. Or even let the application choose from
        the list! */
