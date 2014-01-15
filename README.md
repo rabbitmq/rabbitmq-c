@@ -92,6 +92,7 @@ utilities you need are autoconf v2.59+, automake v1.9+, libtool v2.2+, and pkg-c
 
 Then the standard autotools build procedure will build rabbitmq-c:
 
+    autoreconf -i
     ./configure
     make
     make install
