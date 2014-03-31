@@ -471,12 +471,63 @@ static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
     res.bytes = "PLAIN";
     res.len = 5;
     break;
+  case AMQP_SASL_METHOD_EXTERNAL:
+    res.bytes = "EXTERNAL";
+    res.len = 8;
+    break;
 
   default:
     amqp_abort("Invalid SASL method: %d", (int) method);
   }
 
   return res;
+}
+
+static int bytes_equal(amqp_bytes_t l, amqp_bytes_t r)
+{
+  if (l.len == r.len) {
+    if (l.bytes && r.bytes) {
+      if (0 == memcmp(l.bytes, r.bytes, l.len)) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+static int sasl_mechanism_in_list(amqp_bytes_t mechanisms,
+                                  amqp_sasl_method_enum method)
+{
+  amqp_bytes_t mechanism;
+  amqp_bytes_t supported_mechanism;
+  uint8_t* start;
+  uint8_t* end;
+  uint8_t* current;
+
+  assert(NULL != mechanisms.bytes);
+
+  mechanism = sasl_method_name(method);
+
+  start = (uint8_t*)mechanisms.bytes;
+  current = start;
+  end = start + mechanisms.len;
+
+  for ( ; current != end; start = current + 1) {
+    /* HACK: SASL states that we should be parsing this string as a UTF-8
+     * string, which we're plainly not doing here. At this point its not worth
+     * dragging an entire UTF-8 parser for this one case, and this should work
+     * most of the time */
+    current = memchr(start, ' ', end - start);
+    if (NULL == current) {
+      current = end;
+    }
+    supported_mechanism.bytes = start;
+    supported_mechanism.len = current - start;
+    if (bytes_equal(mechanism, supported_mechanism)) {
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 static amqp_bytes_t sasl_response(amqp_pool_t *pool,
@@ -506,6 +557,18 @@ static amqp_bytes_t sasl_response(amqp_pool_t *pool,
     memcpy(response_buf + 1, username, username_len);
     response_buf[username_len + 1] = 0;
     memcpy(response_buf + username_len + 2, password, password_len);
+    break;
+  }
+  case AMQP_SASL_METHOD_EXTERNAL: {
+    char *identity = va_arg(args, char *);
+    size_t identity_len = strlen(identity);
+
+    amqp_pool_alloc_bytes(pool, identity_len, &response);
+    if (response.bytes == NULL) {
+      return response;
+    }
+
+    memcpy(response.bytes, identity, identity_len);
     break;
   }
   default:
@@ -1155,6 +1218,10 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     /* TODO: check that our chosen SASL mechanism is in the list of
        acceptable mechanisms. Or even let the application choose from
        the list! */
+    if (!sasl_mechanism_in_list(s->mechanisms, sasl_method)) {
+      res = AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD;
+      goto error_res;
+    }
   }
 
   {
