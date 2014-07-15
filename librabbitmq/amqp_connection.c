@@ -279,13 +279,21 @@ int amqp_handle_input(amqp_connection_state_t state,
     /* frame length is 3 bytes in */
     channel = amqp_d16(raw_frame, 1);
 
-    channel_pool = amqp_get_or_create_channel_pool(state, channel);
-    if (NULL == channel_pool) {
-      return AMQP_STATUS_NO_MEMORY;
+    if ((int)channel > state->channel_max) {
+      return AMQP_STATUS_BAD_AMQP_DATA;
     }
 
     state->target_size
       = amqp_d32(raw_frame, 3) + HEADER_SIZE + FOOTER_SIZE;
+
+    if ((size_t)state->frame_max < state->target_size) {
+      return AMQP_STATUS_BAD_AMQP_DATA;
+    }
+
+    channel_pool = amqp_get_or_create_channel_pool(state, channel);
+    if (NULL == channel_pool) {
+      return AMQP_STATUS_NO_MEMORY;
+    }
 
     amqp_pool_alloc_bytes(channel_pool, state->target_size, &state->inbound_buffer);
     if (NULL == state->inbound_buffer.bytes) {
