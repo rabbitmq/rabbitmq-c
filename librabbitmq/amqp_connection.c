@@ -279,10 +279,6 @@ int amqp_handle_input(amqp_connection_state_t state,
     /* frame length is 3 bytes in */
     channel = amqp_d16(raw_frame, 1);
 
-    if ((int)channel > state->channel_max) {
-      return AMQP_STATUS_BAD_AMQP_DATA;
-    }
-
     state->target_size
       = amqp_d32(raw_frame, 3) + HEADER_SIZE + FOOTER_SIZE;
 
