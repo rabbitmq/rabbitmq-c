@@ -1,4 +1,28 @@
 # Change Log
+## Changes since v0.5.0 (a.k.a., v0.5.1)
+### Enhancements:
+- `a566929` SSL: Add support for wildcards in hostname verification (Mike
+  Steinert)
+- `a78aa8a` Lib: Use poll(2) instead of select(2) for timeouts on sockets.
+- `357bdb3` Lib: support for specifying frame and decoding pool sizes. (Mike
+  Stitt)
+- `8956003` Lib: improve invalid frame detection code.
+
+### Bug fixes:
+- `b852f84` Lib: Add missing amqp_get_server_properties() function.
+- `7001e82` Lib: Add missing ssize_t on Win32 (emazv72)
+- `c2ce2cb` Lib: Correctly specify WINVER on Win32 when unspecified.
+- `fe844e4` CMake: specify -DHAVE_CONFIG_H in examples.
+- `932de5f` Lib: correct time computation on Win32 (jestor)
+- `3e83192` HPUX: use gethrtime on HP-UX for timers.
+- `cb1b44e` HPUX: correct include location of sys/uio.h
+- `8ce585d` Lib: incorrect OOM condition when 0-lenth exchange name is received.
+- `c7716b8` CMake: correct htonll detection code on platforms defined with a
+  macro.
+- `4dc4eda` Lib: remove unused assignment.
+- `45302cf` Lib: remove range-check of channel-ids.
+
+
 ## Changes since v0.4.1 (a.k.a., v0.5.0):
 ### Major changes:
 - Add amqp_get_broker_properties() function 5c7c40adc1
