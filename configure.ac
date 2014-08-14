@@ -99,7 +99,26 @@ AC_SEARCH_LIBS([socket], [socket], [],
                              [AC_MSG_ERROR([cannot find socket library (library with socket symbol)])],
                              [-lnsl])])
 AC_SEARCH_LIBS([clock_gettime], [rt])
-AC_CHECK_FUNCS([htonll])
+AC_MSG_CHECKING([if htonll is defined])
+
+dnl # Check for htonll
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[
+        #include <arpa/inet.h>
+     ]],
+     [[
+       return htonll(0);
+     ]]
+  )],
+  [
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_HTONLL, 1, [Define to 1 if the function (or macro) htonll exists.])
+  ],
+  [
+    AC_MSG_RESULT(no)
+  ]
+)
 
 # Configure SSL/TLS
 AC_ARG_WITH([ssl],
