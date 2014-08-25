@@ -271,8 +271,8 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
     goto error_out3;
   }
   if (self->verify) {
-    int status = amqp_ssl_socket_verify_hostname(self, host);
-    if (status) {
+    int verify_status = amqp_ssl_socket_verify_hostname(self, host);
+    if (verify_status) {
       self->internal_error = 0;
       status = AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED;
       goto error_out3;
