@@ -25,10 +25,6 @@
 #include "config.h"
 #endif
 
-#if defined(__APPLE__) && defined(__MACH__)
-# define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_6
-#endif
-
 #include "amqp_ssl_socket.h"
 #include "amqp_socket.h"
 #include "amqp_hostcheck.h"

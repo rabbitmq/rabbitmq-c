@@ -61,13 +61,17 @@ AC_SUBST([LT_AGE])
 
 # OS setup
 os_unix=no
+os_apple=no
 os_win32=no
 AS_CASE([$host],
         [*-*-mingw*],
                 [os_win32=yes],
+        [*-apple-darwin*],
+                [os_apple=yes; os_unix=yes],
         [*],
                 [os_unix=yes])
 AM_CONDITIONAL([OS_UNIX], [test "x$os_unix" = xyes])
+AM_CONDITIONAL([OS_APPLE], [test "x$os_apple" = xyes])
 AM_CONDITIONAL([OS_WIN32], [test "x$os_win32" = xyes])
 AC_DEFINE([ENABLE_THREAD_SAFETY], [1], [Define to 1 to enable thread safety])
 

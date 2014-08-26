@@ -88,6 +88,11 @@ if (ENABLE_SSL_SUPPORT)
     )
     include_directories(${OPENSSL_INCLUDE_DIR})
     set(AMQP_SSL_LIBS ${OPENSSL_LIBRARIES})
+    if (APPLE)
+      # Apple has deprecated OpenSSL in 10.7+. This disables that warning.
+      set_source_files_properties(${AMQP_SSL_SRCS}
+        PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+    endif()
 
   elseif (SSL_ENGINE STREQUAL "cyaSSL")
     set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH} amqp_cyassl.c)
