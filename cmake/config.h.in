@@ -8,4 +8,6 @@
 
 #cmakedefine HAVE_HTONLL
 
+#define AMQ_PLATFORM "@CMAKE_SYSTEM@"
+
 #endif /* CONFIG_H */

@@ -188,6 +188,7 @@ AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" = "xyes"])
 
 AC_SUBST([requires_private], [$ssl_pkg_required])
 AC_SUBST([libs_private], [$LIBS])
+AC_DEFINE_UNQUOTED([AMQ_PLATFORM], ["$host_os"], [Host operating system string])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	librabbitmq.pc

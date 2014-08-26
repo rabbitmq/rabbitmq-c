@@ -1158,7 +1158,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   }
 
   {
-    amqp_table_entry_t default_properties[2];
+    amqp_table_entry_t default_properties[5];
     amqp_table_t default_table;
     amqp_connection_start_ok_t s;
     amqp_pool_t *channel_pool;
@@ -1182,9 +1182,27 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     default_properties[0].value.value.bytes =
       amqp_cstring_bytes("rabbitmq-c");
 
-    default_properties[1].key = amqp_cstring_bytes("information");
+    /* version */
+    default_properties[1].key = amqp_cstring_bytes("version");
     default_properties[1].value.kind = AMQP_FIELD_KIND_UTF8;
     default_properties[1].value.value.bytes =
+        amqp_cstring_bytes(AMQP_VERSION_STRING);
+
+    /* platform */
+    default_properties[2].key = amqp_cstring_bytes("platform");
+    default_properties[2].value.kind = AMQP_FIELD_KIND_UTF8;
+    default_properties[2].value.value.bytes =
+        amqp_cstring_bytes(AMQ_PLATFORM);
+
+    /* copyright */
+    default_properties[3].key = amqp_cstring_bytes("copyright");
+    default_properties[3].value.kind = AMQP_FIELD_KIND_UTF8;
+    default_properties[3].value.value.bytes =
+        amqp_cstring_bytes(AMQ_COPYRIGHT);
+
+    default_properties[4].key = amqp_cstring_bytes("information");
+    default_properties[4].value.kind = AMQP_FIELD_KIND_UTF8;
+    default_properties[4].value.value.bytes =
       amqp_cstring_bytes("See https://github.com/alanxz/rabbitmq-c");
 
     default_table.entries = default_properties;

@@ -41,6 +41,9 @@
 #include "config.h"
 #endif
 
+#define AMQ_COPYRIGHT "Copyright (c) 2007-2014 VMWare Inc, Tony Garnock-Jones," \
+                      " and Alan Antonuk."
+
 #include "amqp.h"
 #include "amqp_framing.h"
 #include <string.h>
