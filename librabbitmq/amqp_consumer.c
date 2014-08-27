@@ -3,7 +3,7 @@
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
  *
- * Portions created by Alan Antonuk are Copyright (c) 2013
+ * Portions created by Alan Antonuk are Copyright (c) 2013-2014
  * Alan Antonuk. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person

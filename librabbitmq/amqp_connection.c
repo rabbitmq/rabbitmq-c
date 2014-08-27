@@ -3,7 +3,7 @@
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
  *
- * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2014
  * Alan Antonuk. All Rights Reserved.
  *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
