@@ -160,6 +160,27 @@
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><option>-p</option></term>
+                <term><option>--prefetch-count</option>=<replaceable class="parameter">limit</replaceable></term>
+                <listitem>
+                    <para>
+                        Request the server to only send
+                        <replaceable class="parameter">limit</replaceable>
+                        messages at a time.
+                    </para>
+                    <para>
+                        If any value was passed to <option>--count</option>,
+                        the value passed to <option>--prefetch-count</option>
+                        should be smaller than that, or otherwise it will be
+                        ignored.
+                    </para>
+                    <para>
+                        If <option>-A</option>/<option>--no-ack</option> is
+                        passed, this option has no effect.
+                    </para>
+                </listitem>
+            </varlistentry>
         </variablelist>
     </refsect1>
 

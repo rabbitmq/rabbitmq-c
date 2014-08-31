@@ -141,15 +141,30 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
   return queue_bytes;
 }
 
+#define AMQP_CONSUME_MAX_PREFETCH_COUNT 65535
+
 static void do_consume(amqp_connection_state_t conn, amqp_bytes_t queue,
-                       int no_ack, int count, const char *const *argv)
+                       int no_ack, int count, int prefetch_count,
+                       const char *const *argv)
 {
   int i;
 
   /* If there is a limit, set the qos to match */
-  if (count > 0 && count <= 65535
+  if (count > 0 && count <= AMQP_CONSUME_MAX_PREFETCH_COUNT
       && !amqp_basic_qos(conn, 1, 0, count, 0)) {
     die_rpc(amqp_get_rpc_reply(conn), "basic.qos");
+  }
+
+  /* if there is a maximum number of messages to be received at a time, set the
+   * qos to match */
+  if (prefetch_count > 0 && prefetch_count <= AMQP_CONSUME_MAX_PREFETCH_COUNT) {
+    /* the maximum number of messages to be received at a time must be less
+     * than the global maximum number of messages. */
+    if (!(count > 0 && count <= AMQP_CONSUME_MAX_PREFETCH_COUNT && prefetch_count >= count)) {
+      if (!amqp_basic_qos(conn, 1, 0, prefetch_count, 0)) {
+        die_rpc(amqp_get_rpc_reply(conn), "basic.qos");
+      }
+    }
   }
 
   if (!amqp_basic_consume(conn, 1, queue, amqp_empty_bytes, 0, no_ack,
@@ -197,6 +212,7 @@ int main(int argc, const char **argv)
   int exclusive = 0;
   int no_ack = 0;
   int count = -1;
+  int prefetch_count = -1;
   amqp_bytes_t queue_bytes;
 
   struct poptOption options[] = {
@@ -230,6 +246,11 @@ int main(int argc, const char **argv)
       "stop consuming after this many messages are consumed",
       "limit"
     },
+    {
+      "prefetch-count", 'p', POPT_ARG_INT, &prefetch_count, 0,
+      "receive only this many message at a time from the server",
+      "limit"
+    },
     POPT_AUTOHELP
     { NULL, '\0', 0, NULL, 0, NULL, NULL }
   };
@@ -246,7 +267,7 @@ int main(int argc, const char **argv)
 
   conn = make_connection();
   queue_bytes = setup_queue(conn, queue, exchange, routing_key, declare, exclusive);
-  do_consume(conn, queue_bytes, no_ack, count, cmd_argv);
+  do_consume(conn, queue_bytes, no_ack, count, prefetch_count, cmd_argv);
   close_connection(conn);
   return 0;
 
