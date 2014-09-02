@@ -113,9 +113,6 @@ In another terminal,
 You should see output similar to the following in the listener's
 terminal window:
 
-    Result 1
-    Frame type 1, channel 1
-    Method AMQP_BASIC_DELIVER_METHOD
     Delivery 1, exchange amq.direct routingkey test
     Content-type: text/plain
     ----

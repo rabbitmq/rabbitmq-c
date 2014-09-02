@@ -107,6 +107,9 @@ int main(int argc, char const *const *argv)
                (int) envelope.message.properties.content_type.len,
                (char *) envelope.message.properties.content_type.bytes);
       }
+      printf("----\n");
+
+      amqp_dump(envelope.message.body.bytes, envelope.message.body.len);
 
       amqp_destroy_envelope(&envelope);
     }
