@@ -4,13 +4,15 @@
 #
 #  POPT_FOUND - System has popt
 #  POPT_INCLUDE_DIR - The popt include directory
-#  POPT_LIBRARIES - The libraries needed to use popt
+#  POPT_LIBRARY - The libraries needed to use popt
 
 # use pkg-config to get the directories and then use these values
 # in the FIND_PATH() and FIND_LIBRARY() calls
 
 find_package(PkgConfig QUIET)
-pkg_search_module(PC_POPT QUIET popt)
+if (PKG_CONFIG_FOUND)
+  pkg_search_module(PC_POPT QUIET popt)
+endif ()
 
 # Find the include directories
 FIND_PATH(POPT_INCLUDE_DIR
