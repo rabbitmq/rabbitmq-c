@@ -1,6 +1,5 @@
 # vim:set ts=2 sw=2 sts=2 et:
 cmake_minimum_required(VERSION 2.6)
-cmake_policy(SET CMP0042 OLD)  # Use old @rpath behavior on Mac OSX.
 project(rabbitmq-c "C")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
