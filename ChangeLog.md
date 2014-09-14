@@ -1,4 +1,12 @@
 # Change Log
+## Changes since v0.5.1 (a.k.a., v0.5.2)
+- `fcdf0f8` Autoconf: check for htonll as declaration in a header file
+- `5790ec7` SSL: correctly report hostname verification errors.
+- `d60c28c` Build: disable OpenSSL deprecation warnings on OSX
+- `072191a` Lib: include platform, version and copyright in AMQP handshake
+- `8b448c6` Examples: print message body in amqp[s]_listen[q] examples
+- `7188e5d` Tools: Add flag to set prefetch for amqp-consume tool
+
 ## Changes since v0.5.0 (a.k.a., v0.5.1)
 ### Enhancements:
 - `a566929` SSL: Add support for wildcards in hostname verification (Mike
