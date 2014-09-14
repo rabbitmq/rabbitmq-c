@@ -3,7 +3,7 @@ AC_PREREQ([2.59])
 
 m4_define([major_version], [0])
 m4_define([minor_version], [5])
-m4_define([micro_version], [2])
+m4_define([micro_version], [3])
 
 # Follow all steps below in order to calculate new ABI version when updating the library
 # NOTE: THIS IS UNRELATED to the actual project version
@@ -13,7 +13,7 @@ m4_define([micro_version], [2])
 # 3. If any interfaces have been added since the last public release, then increment age.
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 m4_define([soversion_current],   [3])
-m4_define([soversion_revision],  [2])
+m4_define([soversion_revision],  [3])
 m4_define([soversion_age],       [2])
 
 AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
