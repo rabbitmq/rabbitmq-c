@@ -96,7 +96,7 @@ amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket);
  *
  * This function wraps writev(2) functionality.
  *
- * This function will only reutrn on error, or when all of the bytes referred
+ * This function will only return on error, or when all of the bytes referred
  * to in iov have been sent. NOTE: this function may modify the iov struct.
  *
  * \param [in,out] self A socket object.
