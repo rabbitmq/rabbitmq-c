@@ -225,7 +225,6 @@ apiMethodInfo  = {
     "amqp_channel_open": ["out_of_band"],
     "amqp_channel_close": False, # needs special handling
     "amqp_access_request": False, # huh?
-    "amqp_exchange_declare": ["auto_delete", "internal"],
     "amqp_basic_get": False, # get-ok has content
 }
 

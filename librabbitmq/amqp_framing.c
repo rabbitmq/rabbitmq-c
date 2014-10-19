@@ -1926,12 +1926,14 @@ AMQP_CALL amqp_channel_flow(amqp_connection_state_t state, amqp_channel_t channe
  * @param [in] type type
  * @param [in] passive passive
  * @param [in] durable durable
+ * @param [in] auto_delete auto_delete
+ * @param [in] internal internal
  * @param [in] arguments arguments
  * @returns amqp_exchange_declare_ok_t
  */
 AMQP_PUBLIC_FUNCTION
 amqp_exchange_declare_ok_t *
-AMQP_CALL amqp_exchange_declare(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t exchange, amqp_bytes_t type, amqp_boolean_t passive, amqp_boolean_t durable, amqp_table_t arguments)
+AMQP_CALL amqp_exchange_declare(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t exchange, amqp_bytes_t type, amqp_boolean_t passive, amqp_boolean_t durable, amqp_boolean_t auto_delete, amqp_boolean_t internal, amqp_table_t arguments)
 {
   amqp_exchange_declare_t req;
   req.ticket = 0;
@@ -1939,8 +1941,8 @@ AMQP_CALL amqp_exchange_declare(amqp_connection_state_t state, amqp_channel_t ch
   req.type = type;
   req.passive = passive;
   req.durable = durable;
-  req.auto_delete = 0;
-  req.internal = 0;
+  req.auto_delete = auto_delete;
+  req.internal = internal;
   req.nowait = 0;
   req.arguments = arguments;
 
