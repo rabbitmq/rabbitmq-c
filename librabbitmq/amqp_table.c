@@ -39,6 +39,7 @@
 #endif
 
 #include "amqp_private.h"
+#include "amqp_table.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -611,4 +612,43 @@ amqp_table_clone(amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool)
 
 error_out1:
   return res;
+}
+
+amqp_table_entry_t amqp_table_construct_utf8_entry(const char *key,
+                                                   const char *value) {
+  amqp_table_entry_t ret;
+  ret.key = amqp_cstring_bytes(key);
+  ret.value.kind = AMQP_FIELD_KIND_UTF8;
+  ret.value.value.bytes = amqp_cstring_bytes(value);
+  return ret;
+}
+
+amqp_table_entry_t amqp_table_construct_table_entry(const char *key,
+                                                    const amqp_table_t *value) {
+  amqp_table_entry_t ret;
+  ret.key = amqp_cstring_bytes(key);
+  ret.value.kind = AMQP_FIELD_KIND_TABLE;
+  ret.value.value.table = *value;
+  return ret;
+}
+
+amqp_table_entry_t amqp_table_construct_bool_entry(const char *key,
+                                                   const int value) {
+  amqp_table_entry_t ret;
+  ret.key = amqp_cstring_bytes(key);
+  ret.value.kind = AMQP_FIELD_KIND_BOOLEAN;
+  ret.value.value.boolean = value;
+  return ret;
+}
+
+amqp_table_entry_t *amqp_table_get_entry_by_key(const amqp_table_t *table,
+                                                const amqp_bytes_t key) {
+  int i;
+  assert(table != NULL);
+  for (i = 0; i < table->num_entries; ++i) {
+    if (amqp_bytes_equal(table->entries[i].key, key)) {
+      return &table->entries[i];
+    }
+  }
+  return NULL;
 }

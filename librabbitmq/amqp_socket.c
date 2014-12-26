@@ -1187,36 +1187,22 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    default_properties[0].key = amqp_cstring_bytes("product");
-    default_properties[0].value.kind = AMQP_FIELD_KIND_UTF8;
-    default_properties[0].value.value.bytes =
-      amqp_cstring_bytes("rabbitmq-c");
 
-    /* version */
-    default_properties[1].key = amqp_cstring_bytes("version");
-    default_properties[1].value.kind = AMQP_FIELD_KIND_UTF8;
-    default_properties[1].value.value.bytes =
-        amqp_cstring_bytes(AMQP_VERSION_STRING);
 
-    /* platform */
-    default_properties[2].key = amqp_cstring_bytes("platform");
-    default_properties[2].value.kind = AMQP_FIELD_KIND_UTF8;
-    default_properties[2].value.value.bytes =
-        amqp_cstring_bytes(AMQ_PLATFORM);
-
-    /* copyright */
-    default_properties[3].key = amqp_cstring_bytes("copyright");
-    default_properties[3].value.kind = AMQP_FIELD_KIND_UTF8;
-    default_properties[3].value.value.bytes =
-        amqp_cstring_bytes(AMQ_COPYRIGHT);
-
-    default_properties[4].key = amqp_cstring_bytes("information");
-    default_properties[4].value.kind = AMQP_FIELD_KIND_UTF8;
-    default_properties[4].value.value.bytes =
-      amqp_cstring_bytes("See https://github.com/alanxz/rabbitmq-c");
+    default_properties[0] =
+        amqp_table_construct_utf8_entry("product", "rabbitmq-c");
+    default_properties[1] =
+        amqp_table_construct_utf8_entry("version", AMQP_VERSION_STRING);
+    default_properties[2] =
+        amqp_table_construct_utf8_entry("platform", AMQ_PLATFORM);
+    default_properties[3] =
+        amqp_table_construct_utf8_entry("copyright", AMQ_COPYRIGHT);
+    default_properties[4] = amqp_table_construct_utf8_entry(
+        "information", "See https://github.com/alanxz/rabbitmq-c");
 
     default_table.entries = default_properties;
-    default_table.num_entries = sizeof(default_properties) / sizeof(amqp_table_entry_t);
+    default_table.num_entries =
+        sizeof(default_properties) / sizeof(amqp_table_entry_t);
 
     if (0 == client_properties->num_entries) {
       s.client_properties = default_table;
@@ -1261,8 +1247,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
 
     s.mechanism = sasl_method_name(sasl_method);
     s.response = response_bytes;
-    s.locale.bytes = "en_US";
-    s.locale.len = 5;
+    s.locale = amqp_cstring_bytes("en_US");
 
     res = amqp_send_method(state, 0, AMQP_CONNECTION_START_OK_METHOD, &s);
     if (res < 0) {
