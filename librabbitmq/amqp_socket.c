@@ -1211,8 +1211,10 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   }
 
   {
-    amqp_table_entry_t default_properties[5];
+    amqp_table_entry_t default_properties[6];
     amqp_table_t default_table;
+    amqp_table_entry_t client_capabilities[1];
+    amqp_table_t client_capabilities_table;
     amqp_connection_start_ok_t s;
     amqp_pool_t *channel_pool;
     amqp_bytes_t response_bytes;
@@ -1230,7 +1232,12 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
+    client_capabilities[0] =
+        amqp_table_construct_bool_entry("authentication_failure_close", 1);
 
+    client_capabilities_table.entries = client_capabilities;
+    client_capabilities_table.num_entries =
+        sizeof(client_capabilities) / sizeof(amqp_table_entry_t);
 
     default_properties[0] =
         amqp_table_construct_utf8_entry("product", "rabbitmq-c");
@@ -1242,6 +1249,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
         amqp_table_construct_utf8_entry("copyright", AMQ_COPYRIGHT);
     default_properties[4] = amqp_table_construct_utf8_entry(
         "information", "See https://github.com/alanxz/rabbitmq-c");
+    default_properties[5] = amqp_table_construct_table_entry(
+        "capabilities", &client_capabilities_table);
 
     default_table.entries = default_properties;
     default_table.num_entries =
