@@ -177,6 +177,8 @@ amqp_simple_wait_frame_on_channel(amqp_connection_state_t state,
 int
 sasl_mechanism_in_list(amqp_bytes_t mechanisms, amqp_sasl_method_enum method);
 
+int amqp_merge_capabilities(const amqp_table_t *base, const amqp_table_t *add,
+                            amqp_table_t *result, amqp_pool_t *pool);
 AMQP_END_DECLS
 
 #endif /* AMQP_SOCKET_H */
