@@ -366,4 +366,6 @@ AMQP_NORETURN
 void
 amqp_abort(const char *fmt, ...);
 
+int amqp_bytes_equal(amqp_bytes_t r, amqp_bytes_t l);
+
 #endif
