@@ -284,12 +284,9 @@ def genErl(spec):
 
     def genDecodeMethodFields(m):
         print "    case %s: {" % (m.defName(),)
-        if m.arguments:
-            print "      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
-                (m.structName(), m.structName(), m.structName())
-            print "      if (m == NULL) { return AMQP_STATUS_NO_MEMORY; }"
-        else:
-            print "      %s *m = NULL; /* no fields */" % (m.structName(),)
+        print "      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
+            (m.structName(), m.structName(), m.structName())
+        print "      if (m == NULL) { return AMQP_STATUS_NO_MEMORY; }"
 
         emitter = BitDecoder(Emitter("      "))
         for f in m.arguments:
