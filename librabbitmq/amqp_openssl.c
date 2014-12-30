@@ -117,6 +117,10 @@ amqp_ssl_socket_writev(void *base,
   char *bufferp;
   size_t bytes;
   int i;
+  if (-1 == self->sockfd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
+  }
+
   bytes = 0;
   for (i = 0; i < iovcnt; ++i) {
     bytes += iov[i].iov_len;
@@ -148,6 +152,9 @@ amqp_ssl_socket_recv(void *base,
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   ssize_t received;
+  if (-1 == self->sockfd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
+  }
   ERR_clear_error();
   self->internal_error = 0;
 
@@ -232,6 +239,9 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   long result;
   int status;
+  if (-1 != self->sockfd) {
+    return AMQP_STATUS_SOCKET_INUSE;
+  }
   ERR_clear_error();
 
   self->ssl = SSL_new(self->ctx);
@@ -301,19 +311,18 @@ amqp_ssl_socket_close(void *base)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 
-  if (self->ssl) {
-    SSL_shutdown(self->ssl);
-    SSL_free(self->ssl);
-    self->ssl = NULL;
+  if (-1 == self->sockfd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
   }
 
-  if (-1 != self->sockfd) {
-    if (amqp_os_socket_close(self->sockfd)) {
-      return AMQP_STATUS_SOCKET_ERROR;
-    }
+  SSL_shutdown(self->ssl);
+  SSL_free(self->ssl);
+  self->ssl = NULL;
 
-    self->sockfd = -1;
+  if (amqp_os_socket_close(self->sockfd)) {
+    return AMQP_STATUS_SOCKET_ERROR;
   }
+  self->sockfd = -1;
 
   return AMQP_STATUS_OK;
 }

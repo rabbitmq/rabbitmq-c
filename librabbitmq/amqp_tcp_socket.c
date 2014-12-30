@@ -46,9 +46,12 @@ amqp_tcp_socket_send_inner(void *base, const void *buf, size_t len, int flags)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
   ssize_t res;
-
   const char *buf_left = buf;
   ssize_t len_left = len;
+
+  if (-1 == self->sockfd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
+  }
 
 #ifdef MSG_NOSIGNAL
   flags |= MSG_NOSIGNAL;
@@ -89,6 +92,9 @@ amqp_tcp_socket_writev(void *base, struct iovec *iov, int iovcnt)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
   ssize_t ret;
+  if (-1 == self->sockfd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
+  }
 
 #if defined(_WIN32)
   DWORD res;
@@ -201,6 +207,9 @@ amqp_tcp_socket_recv(void *base, void *buf, size_t len, int flags)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
   ssize_t ret;
+  if (-1 == self->sockfd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
+  }
 
 start:
   ret = recv(self->sockfd, buf, len, flags);
@@ -223,6 +232,9 @@ static int
 amqp_tcp_socket_open(void *base, const char *host, int port, struct timeval *timeout)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+  if (-1 != self->sockfd) {
+    return AMQP_STATUS_SOCKET_INUSE;
+  }
   self->sockfd = amqp_open_socket_noblock(host, port, timeout);
   if (0 > self->sockfd) {
     int err = self->sockfd;
@@ -236,13 +248,14 @@ static int
 amqp_tcp_socket_close(void *base)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-
-  if (-1 != self->sockfd) {
-    if (amqp_os_socket_close(self->sockfd)) {
-      return AMQP_STATUS_SOCKET_ERROR;
-    }
-    self->sockfd = -1;
+  if (-1 == self->sockfd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
   }
+
+  if (amqp_os_socket_close(self->sockfd)) {
+    return AMQP_STATUS_SOCKET_ERROR;
+  }
+  self->sockfd = -1;
 
   return AMQP_STATUS_OK;
 }

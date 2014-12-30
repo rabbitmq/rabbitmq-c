@@ -698,6 +698,10 @@ typedef enum amqp_status_enum_
                                                         heartbeat */
   AMQP_STATUS_UNEXPECTED_STATE =          -0x0010, /**< Unexpected protocol
                                                         state */
+  AMQP_STATUS_SOCKET_CLOSED =             -0x0011, /**< Underlying socket is
+                                                        closed */
+  AMQP_STATUS_SOCKET_INUSE =              -0x0012, /**< Underlying socket is
+                                                        already open */
 
   AMQP_STATUS_TCP_ERROR =                 -0x0100, /**< A generic TCP error
                                                         occurred */
