@@ -39,6 +39,7 @@
 #include <openssl/conf.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+#include <openssl/x509v3.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -178,36 +179,10 @@ amqp_ssl_socket_recv(void *base,
   return received;
 }
 
-static int
-amqp_ssl_socket_verify_hostname(void *base, const char *host)
+static int match(ASN1_STRING *entry_string, const char *string)
 {
-  struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   unsigned char *utf8_value = NULL, *cp, ch;
-  int pos, utf8_length, status = 0;
-  ASN1_STRING *entry_string;
-  X509_NAME_ENTRY *entry;
-  X509_NAME *name;
-  X509 *peer;
-  peer = SSL_get_peer_certificate(self->ssl);
-  if (!peer) {
-    goto error;
-  }
-  name = X509_get_subject_name(peer);
-  if (!name) {
-    goto error;
-  }
-  pos = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
-  if (0 > pos) {
-    goto error;
-  }
-  entry = X509_NAME_get_entry(name, pos);
-  if (!entry) {
-    goto error;
-  }
-  entry_string = X509_NAME_ENTRY_get_data(entry);
-  if (!entry_string) {
-    goto error;
-  }
+  int utf8_length, status = 1;
   utf8_length = ASN1_STRING_to_UTF8(&utf8_value, entry_string);
   if (0 > utf8_length) {
     goto error;
@@ -226,11 +201,82 @@ amqp_ssl_socket_verify_hostname(void *base, const char *host)
       goto error;
     }
   }
-  if (!amqp_hostcheck((char *)utf8_value, host)) {
+  if (!amqp_hostcheck((char *)utf8_value, string)) {
     goto error;
   }
 exit:
   OPENSSL_free(utf8_value);
+  return status;
+error:
+  status = 0;
+  goto exit;
+}
+
+/* Does this hostname match an entry in the subjectAltName extension?
+ * returns: 0 if no, 1 if yes, -1 if no subjectAltName entries were found.
+ */
+static int hostname_matches_subject_alt_name(const char *hostname, X509 *cert)
+{
+  int found_any_entries = 0;
+  int found_match;
+  GENERAL_NAME *namePart = NULL;
+  STACK_OF(GENERAL_NAME) *san =
+    (STACK_OF(GENERAL_NAME)*) X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+
+  while (sk_GENERAL_NAME_num(san) > 0)
+  {
+    namePart = sk_GENERAL_NAME_pop(san);
+
+    if (namePart->type == GEN_DNS) {
+      found_any_entries = 1;
+      found_match = match(namePart->d.uniformResourceIdentifier, hostname);
+      if (found_match)
+        return 1;
+    }
+  }
+
+  return (found_any_entries ? 0 : -1);
+}
+
+static int hostname_matches_subject_common_name(const char *hostname, X509 *cert)
+{
+  X509_NAME *name;
+  X509_NAME_ENTRY *name_entry;
+  int position;
+  ASN1_STRING *entry_string;
+
+  name = X509_get_subject_name(cert);
+  position = -1;
+  for (;;) {
+    position = X509_NAME_get_index_by_NID(name, NID_commonName, position);
+    if (position == -1)
+      break;
+    name_entry = X509_NAME_get_entry(name, position);
+    entry_string = X509_NAME_ENTRY_get_data(name_entry);
+    if (match(entry_string, hostname))
+      return 1;
+  }
+  return 0;
+}
+
+static int
+amqp_ssl_socket_verify_hostname(void *base, const char *host)
+{
+  struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
+  int status = 0;
+  X509 *cert;
+  int res;
+  cert = SSL_get_peer_certificate(self->ssl);
+  if (!cert) {
+    goto error;
+  }
+  res = hostname_matches_subject_alt_name(host, cert);
+  if (res != 1) {
+    res = hostname_matches_subject_common_name(host, cert);
+    if (!res)
+      goto error;
+  }
+exit:
   return status;
 error:
   status = -1;
