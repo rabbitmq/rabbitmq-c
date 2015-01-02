@@ -1806,7 +1806,6 @@ struct amqp_basic_properties_t_;
  * a non-existent exchange) will not be reflected in the return value of this
  * function.
  *
- * in the return value from this function.
  * \param [in] state the connection object
  * \param [in] channel the channel identifier
  * \param [in] exchange the exchange on the broker to publish to
