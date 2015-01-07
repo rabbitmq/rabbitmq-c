@@ -81,6 +81,10 @@ amqp_ssl_socket_send(void *base,
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   ssize_t res;
+  if (-1 == self->sockfd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
+  }
+
   ERR_clear_error();
   self->internal_error = 0;
 
