@@ -72,7 +72,10 @@ static const char *base_error_strings[] = {
   "unexpected method received",         /* AMQP_STATUS_WRONG_METHOD             -0x000C */
   "request timed out",                  /* AMQP_STATUS_TIMEOUT                  -0x000D */
   "system timer has failed",            /* AMQP_STATUS_TIMER_FAILED             -0x000E */
-  "heartbeat timeout, connection closed"/* AMQP_STATUS_HEARTBEAT_TIMEOUT        -0x000F */
+  "heartbeat timeout, connection closed",/* AMQP_STATUS_HEARTBEAT_TIMEOUT       -0x000F */
+  "unexpected protocol state",          /* AMQP_STATUS_UNEXPECTED STATE         -0x0010 */
+  "socket is closed",                   /* AMQP_STATUS_SOCKET_CLOSED            -0x0011 */
+  "socket already open"                 /* AMQP_STATUS_SOCKET_INUSE             -0x0012 */
 };
 
 static const char *tcp_error_strings[] = {

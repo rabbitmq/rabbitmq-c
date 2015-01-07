@@ -656,6 +656,7 @@ typedef struct amqp_socket_t_ amqp_socket_t;
  *
  * \since v0.4.0
  */
+/* NOTE: When updating this enum, update the strings in librabbitmq/amqp_api.c */
 typedef enum amqp_status_enum_
 {
   AMQP_STATUS_OK =                         0x0,     /**< Operation successful */
