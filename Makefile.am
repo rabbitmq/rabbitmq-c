@@ -78,7 +78,8 @@ endif
 check_PROGRAMS = \
 	tests/test_tables \
 	tests/test_parse_url \
-	tests/test_hostcheck
+	tests/test_hostcheck \
+	tests/test_status_enum
 
 TESTS = $(check_PROGRAMS)
 
@@ -91,6 +92,9 @@ tests_test_parse_url_LDADD = librabbitmq/librabbitmq.la
 tests_test_hostcheck_SOURCES = \
   tests/test_hostcheck.c \
 	librabbitmq/amqp_hostcheck.c
+
+tests_test_status_enum_SOURCES = tests/test_status_enum.c
+tests_test_status_enum_LDADD = librabbitmq/librabbitmq.la
 
 noinst_LTLIBRARIES =
 

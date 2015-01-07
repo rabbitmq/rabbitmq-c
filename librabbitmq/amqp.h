@@ -703,12 +703,14 @@ typedef enum amqp_status_enum_
                                                         closed */
   AMQP_STATUS_SOCKET_INUSE =              -0x0012, /**< Underlying socket is
                                                         already open */
+  _AMQP_STATUS_NEXT_VALUE =               -0x0013, /**< Internal value */
 
   AMQP_STATUS_TCP_ERROR =                 -0x0100, /**< A generic TCP error
                                                         occurred */
   AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR =  -0x0101, /**< An error occurred trying
                                                         to initialize the
                                                         socket library*/
+  _AMQP_STATUS_TCP_NEXT_VALUE =           -0x0102, /**< Internal value */
 
   AMQP_STATUS_SSL_ERROR =                 -0x0200, /**< A generic SSL error
                                                         occurred. */
@@ -718,7 +720,8 @@ typedef enum amqp_status_enum_
                                                         failed */
   AMQP_STATUS_SSL_PEER_VERIFY_FAILED =    -0x0202, /**< SSL validation of peer
                                                         certificate failed. */
-  AMQP_STATUS_SSL_CONNECTION_FAILED =     -0x0203  /**< SSL handshake failed. */
+  AMQP_STATUS_SSL_CONNECTION_FAILED =     -0x0203, /**< SSL handshake failed. */
+  _AMQP_STATUS_SSL_NEXT_VALUE =           -0x0204  /**< Internal value */
 } amqp_status_enum;
 
 /**

@@ -52,6 +52,7 @@ tests/*.log
 tests/*.trs
 tests/test_hostcheck
 tests/test_parse_url
+tests/test_status_enum
 tests/test_tables
 tools/amqp-consume
 tools/amqp-declare-queue

@@ -23,3 +23,8 @@ add_executable(test_hostcheck
                test_hostcheck.c
                ../librabbitmq/amqp_hostcheck.c)
 add_test(hostcheck test_hostcheck)
+
+add_executable(test_status_enum
+               test_status_enum.c)
+target_link_libraries(test_status_enum ${RMQ_LIBRARY_TARGET})
+add_test(status_enum test_status_enum)
