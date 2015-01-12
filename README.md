@@ -23,6 +23,8 @@ The v0.5.2 source tarball can be downloaded from:
 
 <https://github.com/alanxz/rabbitmq-c/releases/download/v0.5.2/rabbitmq-c-0.5.2.tar.gz>
 
+## Documentation
+
 API documentation for v0.5.0+ can viewed from:
 
 <http://alanxz.github.io/rabbitmq-c/docs/0.5.0/>
