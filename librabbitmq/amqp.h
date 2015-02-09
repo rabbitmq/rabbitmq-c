@@ -1098,6 +1098,36 @@ int
 AMQP_CALL amqp_get_channel_max(amqp_connection_state_t state);
 
 /**
+ * Get the maximum size of an frame the connection can handle
+ *
+ * The maximum size of an frame is set when connection negotiation takes
+ * place in amqp_login() or amqp_login_with_properties().
+ *
+ * \param [in] state the connection object
+ * \return the maximum size of an frame.
+ *
+ * \since v0.6
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_get_frame_max(amqp_connection_state_t state);
+
+/**
+ * Get the number of seconds between heartbeats of the connection
+ *
+ * The number of seconds between heartbeats is set when connection
+ * negotiation takes place in amqp_login() or amqp_login_with_properties().
+ *
+ * \param [in] state the connection object
+ * \return the number of seconds between heartbeats.
+ *
+ * \since v0.6
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_get_heartbeat(amqp_connection_state_t state);
+
+/**
  * Destroys an amqp_connection_state_t object
  *
  * Destroys a amqp_connection_state_t object that was created with

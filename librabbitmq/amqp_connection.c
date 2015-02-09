@@ -170,6 +170,16 @@ int amqp_get_channel_max(amqp_connection_state_t state)
   return state->channel_max;
 }
 
+int amqp_get_frame_max(amqp_connection_state_t state)
+{
+  return state->frame_max;
+}
+
+int amqp_get_heartbeat(amqp_connection_state_t state)
+{
+  return state->heartbeat;
+}
+
 int amqp_destroy_connection(amqp_connection_state_t state)
 {
   int status = AMQP_STATUS_OK;
