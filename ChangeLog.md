@@ -1,4 +1,13 @@
 # Change Log
+## Changes since v0.5.2 (a.k.a., v0.6.0)
+- `e1746f9` Tools: Enable support for SSL in tools.
+- `9626dd5` Lib: ABI CHANGE: enable support for auto_delete, internal flags to
+     amqp_exchange_declare
+- `ee54e27`, `656f833` Lib: check for double-close in SSL/TCP socket impl
+- `cf2760d` Lib: allocate struct when method has no field.
+- `513ad4a` Lib: add support for SANs in OpenSSL socket impl.
+- `5348c69` Lib: add functions to get negotiated frame_max and heartbeat parms.
+
 ## Changes since v0.5.1 (a.k.a., v0.5.2)
 - `fcdf0f8` Autoconf: check for htonll as declaration in a header file
 - `5790ec7` SSL: correctly report hostname verification errors.
