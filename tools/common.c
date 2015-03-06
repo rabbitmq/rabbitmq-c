@@ -171,6 +171,7 @@ static int amqp_port = -1;
 static char *amqp_vhost;
 static char *amqp_username;
 static char *amqp_password;
+static int amqp_heartbeat = 0;
 #ifdef WITH_SSL
 static int amqp_ssl = 0;
 static char *amqp_cacert = "/etc/ssl/certs/cacert.pem";
@@ -203,6 +204,10 @@ struct poptOption connect_options[] = {
   {
     "password", 0, POPT_ARG_STRING, &amqp_password, 0,
     "the password to login with", "password"
+  },
+  {
+    "heartbeat", 0, POPT_ARG_INT, &amqp_heartbeat, 0,
+    "heartbeat interval, set to 0 to disable", "heartbeat"
   },
 #ifdef WITH_SSL
   {
@@ -319,6 +324,10 @@ static void init_connection_info(struct amqp_connection_info *ci)
 
     ci->vhost = amqp_vhost;
   }
+
+  if (amqp_heartbeat < 0) {
+    die("--heartbeat must be a positive value");
+  }
 }
 
 amqp_connection_state_t make_connection(void)
@@ -355,7 +364,7 @@ amqp_connection_state_t make_connection(void)
   if (status) {
     die("opening socket to %s:%d", ci.host, ci.port);
   }
-  die_rpc(amqp_login(conn, ci.vhost, 0, 131072, 0,
+  die_rpc(amqp_login(conn, ci.vhost, 0, 131072, amqp_heartbeat,
                      AMQP_SASL_METHOD_PLAIN,
                      ci.user, ci.password),
           "logging in to AMQP server");
