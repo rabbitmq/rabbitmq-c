@@ -1,0 +1,14 @@
+# appveyor configuration
+version: '{build}'
+
+environment:
+  matrix:
+    - GENERATOR: Visual Studio 12 Win64
+    - GENERATOR: Visual Studio 12
+
+before_build:
+  - cmake -DENABLE_SSL_SUPPORT=False -G"%GENERATOR%" .
+
+build:
+  project: ALL_BUILD.vcxproj
+  verbosity: normal
