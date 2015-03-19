@@ -262,7 +262,7 @@ int amqp_handle_input(amqp_connection_state_t state,
   /* do we have target_size data yet? if not, return with the
      expectation that more will arrive */
   if (state->inbound_offset < state->target_size) {
-    return bytes_consumed;
+    return (int)bytes_consumed;
   }
 
   raw_frame = state->inbound_buffer.bytes;
@@ -284,7 +284,7 @@ int amqp_handle_input(amqp_connection_state_t state,
         = amqp_d8(raw_frame, 7);
 
       return_to_idle(state);
-      return bytes_consumed;
+      return (int)bytes_consumed;
     }
 
     /* it's not a protocol header; fall through to process it as a
@@ -322,7 +322,7 @@ int amqp_handle_input(amqp_connection_state_t state,
     /* do we have target_size data yet? if not, return with the
        expectation that more will arrive */
     if (state->inbound_offset < state->target_size) {
-      return bytes_consumed;
+      return (int)bytes_consumed;
     }
 
   }
@@ -397,12 +397,12 @@ int amqp_handle_input(amqp_connection_state_t state,
     }
 
     return_to_idle(state);
-    return bytes_consumed;
+    return (int)bytes_consumed;
   }
 
   default:
     amqp_abort("Internal error: invalid amqp_connection_state_t->state %d", state->state);
-    return bytes_consumed;
+    return (int)bytes_consumed;
   }
 }
 
@@ -519,7 +519,7 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
       return AMQP_STATUS_INVALID_PARAMETER;
   }
 
-  amqp_e32(out_frame, 3, out_frame_len);
+  amqp_e32(out_frame, 3, (uint32_t)out_frame_len);
   amqp_e8(out_frame, HEADER_SIZE + out_frame_len, AMQP_FRAME_END);
 
   encoded->bytes = out_frame;

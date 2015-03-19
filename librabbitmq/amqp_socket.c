@@ -134,7 +134,7 @@ amqp_os_socket_setsockopt(int sock, int level, int optname,
 #ifdef _WIN32
   /* the winsock setsockopt function has its 4th argument as a
      const char * */
-  return setsockopt(sock, level, optname, (const char *)optval, optlen);
+  return setsockopt(sock, level, optname, (const char *)optval, (int)optlen);
 #else
   return setsockopt(sock, level, optname, optval, optlen);
 #endif
@@ -295,7 +295,7 @@ int amqp_poll_write(int fd, amqp_time_t deadline) {
   return amqp_poll(fd, POLLOUT, deadline);
 }
 
-static int do_poll(amqp_connection_state_t state, int res,
+static ssize_t do_poll(amqp_connection_state_t state, ssize_t res,
                    amqp_time_t deadline) {
   int fd = amqp_get_sockfd(state);
   if (-1 == fd) {
@@ -419,7 +419,11 @@ int amqp_open_socket_inner(char const *hostname,
       continue;
     }
 
+#ifdef _WIN32
+    res = connect(sockfd, addr->ai_addr, (int)addr->ai_addrlen);
+#else
     res = connect(sockfd, addr->ai_addr, addr->ai_addrlen);
+#endif
 
     if (0 == res) {
       last_error = AMQP_STATUS_OK;
@@ -432,8 +436,13 @@ int amqp_open_socket_inner(char const *hostname,
         int result;
         socklen_t result_len = sizeof(result);
 
-        if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &result, &result_len) <
-            0 || result != 0) {
+#ifdef _WIN32
+        if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, (char *)&result,
+                       (int *)&result_len) < 0
+#else
+        if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &result, &result_len) < 0
+#endif
+            || result != 0) {
           last_error = AMQP_STATUS_SOCKET_ERROR;
         } else {
           last_error = AMQP_STATUS_OK;
@@ -467,7 +476,7 @@ int amqp_open_socket_inner(char const *hostname,
 
 int amqp_send_header(amqp_connection_state_t state)
 {
-  int res;
+  ssize_t res;
   static const uint8_t header[8] = { 'A', 'M', 'Q', 'P', 0,
                                      AMQP_PROTOCOL_VERSION_MAJOR,
                                      AMQP_PROTOCOL_VERSION_MINOR,
@@ -477,7 +486,7 @@ int amqp_send_header(amqp_connection_state_t state)
   if (sizeof(header) == res) {
     return AMQP_STATUS_OK;
   }
-  return res;
+  return (int)res;
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
@@ -631,7 +640,7 @@ static int consume_one_frame(amqp_connection_state_t state, amqp_frame_t *decode
 
 
 static int recv_with_timeout(amqp_connection_state_t state, amqp_time_t timeout) {
-  int res;
+  ssize_t res;
   int fd;
 
 start_recv:
@@ -645,7 +654,7 @@ start_recv:
     }
     switch (res) {
       default:
-        return res;
+        return (int)res;
       case AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD:
         res = amqp_poll_read(fd, timeout);
         break;
@@ -656,7 +665,7 @@ start_recv:
     if (AMQP_STATUS_OK == res) {
       goto start_recv;
     }
-    return res;
+    return (int)res;
   }
 
   state->sock_inbound_limit = res;
@@ -665,7 +674,7 @@ start_recv:
   res = amqp_time_s_from_now(&state->next_recv_heartbeat,
                              amqp_heartbeat_recv(state));
   if (AMQP_STATUS_OK != res) {
-    return res;
+    return (int)res;
   }
   return AMQP_STATUS_OK;
 }

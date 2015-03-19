@@ -199,7 +199,7 @@ int amqp_time_ms_until(amqp_time_t time) {
   }
 
   delta_ns = time.time_point_ns - now_ns;
-  left_ms = delta_ns / AMQP_NS_PER_MS;
+  left_ms = (int)(delta_ns / AMQP_NS_PER_MS);
 
   return left_ms;
 }

@@ -252,7 +252,12 @@ amqp_rpc_reply_t amqp_read_message(amqp_connection_state_t state,
   if (0 == frame.payload.properties.body_size) {
     message->body = amqp_empty_bytes;
   } else {
-    message->body = amqp_bytes_malloc(frame.payload.properties.body_size);
+    if (SIZE_MAX < frame.payload.properties.body_size) {
+      ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+      ret.library_error = AMQP_STATUS_NO_MEMORY;
+      goto error_out1;
+    }
+    message->body = amqp_bytes_malloc((size_t)frame.payload.properties.body_size);
     if (NULL == message->body.bytes) {
       ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
       ret.library_error = AMQP_STATUS_NO_MEMORY;

@@ -61,7 +61,11 @@ amqp_tcp_socket_send(void *base, const void *buf, size_t len)
 #endif
 
 start:
+#ifdef _WIN32
+  res = send(self->sockfd, buf, (int)len, flags);
+#else
   res = send(self->sockfd, buf, len, flags);
+#endif
 
   if (res < 0) {
     self->internal_error = amqp_os_socket_error();
@@ -94,7 +98,11 @@ amqp_tcp_socket_recv(void *base, void *buf, size_t len, int flags)
   }
 
 start:
+#ifdef _WIN32
+  ret = recv(self->sockfd, buf, (int)len, flags);
+#else
   ret = recv(self->sockfd, buf, len, flags);
+#endif
 
   if (0 > ret) {
     self->internal_error = amqp_os_socket_error();

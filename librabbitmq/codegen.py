@@ -144,7 +144,9 @@ class StrType(object):
         emitter.emit("}")
 
     def encode(self, emitter, value):
-        emitter.emit("if (!amqp_encode_%d(encoded, &offset, %s.len)" % (self.lenbits, value))
+        emitter.emit("if (UINT%d_MAX < %s.len" % (self.lenbits, value))
+        emitter.emit("    || !amqp_encode_%d(encoded, &offset, (uint%d_t)%s.len)" %
+                (self.lenbits, self.lenbits, value))
         emitter.emit("    || !amqp_encode_bytes(encoded, &offset, %s))" % (value,))
         emitter.emit("  return AMQP_STATUS_BAD_AMQP_DATA;")
 
@@ -323,7 +325,7 @@ def genErl(spec):
             typeFor(spec, f).encode(emitter, "m->"+c_ize(f.name))
         emitter.flush()
 
-        print "      return offset;"
+        print "      return (int)offset;"
         print "    }"
 
     def genEncodeProperties(c):
@@ -337,7 +339,7 @@ def genErl(spec):
             typeFor(spec, f).encode(emitter, "p->"+c_ize(f.name))
             emitter.emit("}")
 
-        print "      return offset;"
+        print "      return (int)offset;"
         print "    }"
 
     methods = spec.allMethods()
