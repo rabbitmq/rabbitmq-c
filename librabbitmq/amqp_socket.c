@@ -338,12 +338,6 @@ int amqp_open_socket_noblock(char const *hostname,
     res = connect(sockfd, addr->ai_addr, addr->ai_addrlen);
 
     if (0 == res) {
-      /* Connected immediately, set to blocking mode again */
-      if (AMQP_STATUS_OK != amqp_os_socket_setsockblock(sockfd, 1)) {
-        last_error = AMQP_STATUS_SOCKET_ERROR;
-        continue;
-      }
-
       last_error = AMQP_STATUS_OK;
       break;
     }
@@ -388,12 +382,6 @@ int amqp_open_socket_noblock(char const *hostname,
           if (result != 0) {
             last_error = AMQP_STATUS_SOCKET_ERROR;
             break;
-          }
-
-          /* socket is ready to be written to, set to blocking mode again */
-          if (AMQP_STATUS_OK != amqp_os_socket_setsockblock(sockfd, 1)) {
-            last_error = AMQP_STATUS_SOCKET_ERROR;
-            continue;
           }
 
           last_error = AMQP_STATUS_OK;
