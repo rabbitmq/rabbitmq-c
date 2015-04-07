@@ -32,6 +32,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef _WIN32
+# define EWOULDBLOCK WSAEWOULDBLOCK
+#endif
+
 struct amqp_tcp_socket_t {
   const struct amqp_socket_class_t *klass;
   int sockfd;
@@ -226,10 +230,17 @@ start:
 
   if (0 > ret) {
     self->internal_error = amqp_os_socket_error();
-    if (EINTR == self->internal_error) {
-      goto start;
-    } else {
-      ret = AMQP_STATUS_SOCKET_ERROR;
+    switch (self->internal_error) {
+      case EINTR:
+        goto start;
+      case EWOULDBLOCK:
+#if defined(EAGAIN) && EAGAIN != EWOULDBLOCK
+      case EAGAIN:
+#endif
+        ret = AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD;
+        break;
+      default:
+        ret = AMQP_STATUS_SOCKET_ERROR;
     }
   } else if (0 == ret) {
     ret = AMQP_STATUS_CONNECTION_CLOSED;

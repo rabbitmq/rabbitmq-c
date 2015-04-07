@@ -121,6 +121,15 @@ typedef enum amqp_connection_state_enum_ {
   CONNECTION_STATE_BODY
 } amqp_connection_state_enum;
 
+typedef enum amqp_status_private_enum_
+{
+  /* 0x00xx -> AMQP_STATUS_*/
+  /* 0x01xx -> AMQP_STATUS_TCP_* */
+  /* 0x02xx -> AMQP_STATUS_SSL_* */
+  AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD =  -0x1301,
+  AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE = -0x1302
+} amqp_status_private_enum;
+
 /* 7 bytes up front, then payload, then 1 byte footer */
 #define HEADER_SIZE 7
 #define FOOTER_SIZE 1
