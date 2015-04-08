@@ -360,7 +360,7 @@ int amqp_open_socket_noblock(char const *hostname,
           int timeout_ms;
 
           pfd.fd = sockfd;
-          pfd.events = POLLERR | POLLOUT;
+          pfd.events = POLLOUT;
           pfd.revents = 0;
 
           timer_error = amqp_timer_update(&timer, timeout);
