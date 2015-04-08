@@ -108,6 +108,9 @@ amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket);
 ssize_t
 amqp_socket_writev(amqp_socket_t *self, struct iovec *iov, int iovcnt);
 
+ssize_t amqp_try_writev(amqp_connection_state_t state, struct iovec *iov,
+                        int iovcnt);
+
 /**
  * Send a message from a socket.
  *
@@ -124,6 +127,9 @@ amqp_socket_writev(amqp_socket_t *self, struct iovec *iov, int iovcnt);
  */
 ssize_t
 amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len);
+
+ssize_t amqp_try_send(amqp_connection_state_t state, const void *buf,
+                      size_t len);
 
 /**
  * Receive a message from a socket.
