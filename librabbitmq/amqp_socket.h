@@ -186,6 +186,12 @@ int
 amqp_open_socket_noblock(char const *hostname, int portnumber, struct timeval *timeout);
 
 int
+amqp_poll_read(int fd, uint64_t start, struct timeval *timeout);
+
+int
+amqp_poll_write(int fd, uint64_t start, struct timeval *timeout);
+
+int
 amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame);
 
 int
