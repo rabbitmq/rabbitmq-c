@@ -33,6 +33,7 @@
 #define AMQP_SOCKET_H
 
 #include "amqp_private.h"
+#include "amqp_timer.h"
 
 AMQP_BEGIN_DECLS
 
@@ -185,11 +186,12 @@ amqp_socket_delete(amqp_socket_t *self);
 int
 amqp_open_socket_noblock(char const *hostname, int portnumber, struct timeval *timeout);
 
-int
-amqp_poll_read(int fd, uint64_t start, struct timeval *timeout);
+int amqp_open_socket_inner(char const *hostname, int portnumber,
+                           amqp_timer_t timeout);
 
-int
-amqp_poll_write(int fd, uint64_t start, struct timeval *timeout);
+int amqp_poll_read(int fd, amqp_timer_t timeout);
+
+int amqp_poll_write(int fd, amqp_timer_t timeout);
 
 int
 amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame);

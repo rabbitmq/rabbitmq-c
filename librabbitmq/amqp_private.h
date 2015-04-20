@@ -205,7 +205,7 @@ static inline uint64_t amqp_calc_next_recv_heartbeat(amqp_connection_state_t sta
   return cur + ((uint64_t)state->heartbeat * 2 * AMQP_NS_PER_S);
 }
 
-int amqp_try_recv(amqp_connection_state_t state, uint64_t current_time);
+int amqp_try_recv(amqp_connection_state_t state);
 
 static inline void *amqp_offset(void *data, size_t offset)
 {

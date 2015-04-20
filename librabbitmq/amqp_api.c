@@ -198,7 +198,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
     }
 
     if (current_timestamp > state->next_recv_heartbeat) {
-      res = amqp_try_recv(state, current_timestamp);
+      res = amqp_try_recv(state);
       if (AMQP_STATUS_TIMEOUT == res) {
         return AMQP_STATUS_HEARTBEAT_TIMEOUT;
       } else if (AMQP_STATUS_OK != res) {
