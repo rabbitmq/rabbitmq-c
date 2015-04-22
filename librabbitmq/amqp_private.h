@@ -90,7 +90,7 @@ amqp_ssl_error_string(int err);
 #endif
 
 #include "amqp_socket.h"
-#include "amqp_timer.h"
+#include "amqp_time.h"
 
 /*
  * Connection states: XXX FIX THIS

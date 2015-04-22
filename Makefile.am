@@ -35,8 +35,8 @@ librabbitmq_librabbitmq_la_SOURCES = \
 	librabbitmq/amqp_table.c \
 	librabbitmq/amqp_tcp_socket.c \
 	librabbitmq/amqp_tcp_socket.h \
-	librabbitmq/amqp_timer.c \
-	librabbitmq/amqp_timer.h \
+	librabbitmq/amqp_time.c \
+	librabbitmq/amqp_time.h \
 	librabbitmq/amqp_url.c
 
 

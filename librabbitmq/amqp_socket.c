@@ -39,7 +39,7 @@
 #endif
 
 #include "amqp_private.h"
-#include "amqp_timer.h"
+#include "amqp_time.h"
 
 #include <assert.h>
 #include <limits.h>

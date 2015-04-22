@@ -22,7 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "amqp.h"
-#include "amqp_timer.h"
+#include "amqp_time.h"
 #include <assert.h>
 #include <limits.h>
 #include <string.h>

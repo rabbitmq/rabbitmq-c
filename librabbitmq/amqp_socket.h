@@ -33,7 +33,7 @@
 #define AMQP_SOCKET_H
 
 #include "amqp_private.h"
-#include "amqp_timer.h"
+#include "amqp_time.h"
 
 AMQP_BEGIN_DECLS
 

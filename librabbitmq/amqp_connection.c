@@ -40,7 +40,7 @@
 
 #include "amqp_tcp_socket.h"
 #include "amqp_private.h"
-#include "amqp_timer.h"
+#include "amqp_time.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>

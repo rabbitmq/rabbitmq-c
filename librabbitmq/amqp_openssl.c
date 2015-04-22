@@ -33,7 +33,7 @@
 #include "amqp_socket.h"
 #include "amqp_hostcheck.h"
 #include "amqp_private.h"
-#include "amqp_timer.h"
+#include "amqp_time.h"
 #include "threads.h"
 
 #include <ctype.h>
