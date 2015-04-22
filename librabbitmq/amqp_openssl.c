@@ -302,7 +302,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   long result;
   int status;
-  amqp_timer_t timer;
+  amqp_time_t deadline;
   if (-1 != self->sockfd) {
     return AMQP_STATUS_SOCKET_INUSE;
   }
@@ -315,12 +315,12 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
     goto exit;
   }
 
-  status = amqp_timer_start(&timer, timeout);
+  status = amqp_time_from_now(&deadline, timeout);
   if (AMQP_STATUS_OK != status) {
     return status;
   }
 
-  self->sockfd = amqp_open_socket_inner(host, port, timer);
+  self->sockfd = amqp_open_socket_inner(host, port, deadline);
   if (0 > self->sockfd) {
     status = self->sockfd;
     self->internal_error = amqp_os_socket_error();
@@ -341,10 +341,10 @@ start_connect:
     self->internal_error = SSL_get_error(self->ssl, status);
     switch (self->internal_error) {
       case SSL_ERROR_WANT_READ:
-        status = amqp_poll_read(self->sockfd, timer);
+        status = amqp_poll_read(self->sockfd, deadline);
         break;
       case SSL_ERROR_WANT_WRITE:
-        status = amqp_poll_write(self->sockfd, timer);
+        status = amqp_poll_write(self->sockfd, deadline);
         break;
       default:
         status = AMQP_STATUS_SSL_CONNECTION_FAILED;
@@ -405,10 +405,10 @@ start_shutdown:
     self->internal_error = SSL_get_error(self->ssl, res);
     switch (self->internal_error) {
       case SSL_ERROR_WANT_READ:
-        res = amqp_poll_read(self->sockfd, amqp_timer_start_infinite());
+        res = amqp_poll_read(self->sockfd, amqp_time_infinite());
         break;
       case SSL_ERROR_WANT_WRITE:
-        res = amqp_poll_write(self->sockfd, amqp_timer_start_infinite());
+        res = amqp_poll_write(self->sockfd, amqp_time_infinite());
         break;
     }
     if (AMQP_STATUS_OK == res) {

@@ -106,18 +106,18 @@ amqp_get_monotonic_timestamp(void)
 }
 #endif /* AMQP_POSIX_TIMER_API */
 
-int amqp_timer_start(amqp_timer_t *timer, struct timeval *timeout) {
+int amqp_time_from_now(amqp_time_t *time, struct timeval *timeout) {
   uint64_t now_ns;
   uint64_t delta_ns;
 
-  assert(NULL != timer);
+  assert(NULL != time);
 
   if (NULL == timeout) {
-    *timer = amqp_timer_start_infinite();
+    *time = amqp_time_infinite();
     return AMQP_STATUS_OK;
   }
   if (0 == timeout->tv_sec && 0 == timeout->tv_usec) {
-    *timer = amqp_timer_start_immediate();
+    *time = amqp_time_immediate();
     return AMQP_STATUS_OK;
   }
 
@@ -133,36 +133,36 @@ int amqp_timer_start(amqp_timer_t *timer, struct timeval *timeout) {
     return AMQP_STATUS_TIMER_FAILURE;
   }
 
-  timer->expiration_ns = now_ns + delta_ns;
-  if (now_ns > timer->expiration_ns ||
-      delta_ns > timer->expiration_ns) {
+  time->time_point_ns = now_ns + delta_ns;
+  if (now_ns > time->time_point_ns ||
+      delta_ns > time->time_point_ns) {
     return AMQP_STATUS_INVALID_PARAMETER;
   }
 
   return AMQP_STATUS_OK;
 }
 
-amqp_timer_t amqp_timer_start_immediate(void) {
-  amqp_timer_t timer;
-  timer.expiration_ns = 0;
-  return timer;
+amqp_time_t amqp_time_immediate(void) {
+  amqp_time_t time;
+  time.time_point_ns = 0;
+  return time;
 }
 
-amqp_timer_t amqp_timer_start_infinite(void) {
-  amqp_timer_t timer;
-  timer.expiration_ns = UINT64_MAX;
-  return timer;
+amqp_time_t amqp_time_infinite(void) {
+  amqp_time_t time;
+  time.time_point_ns = UINT64_MAX;
+  return time;
 }
 
-int amqp_timer_ms_left(amqp_timer_t timer) {
+int amqp_time_ms_until(amqp_time_t time) {
   uint64_t now_ns;
   uint64_t delta_ns;
   int left_ms;
 
-  if (UINT64_MAX == timer.expiration_ns) {
+  if (UINT64_MAX == time.time_point_ns) {
     return -1;
   }
-  if (0 == timer.expiration_ns) {
+  if (0 == time.time_point_ns) {
     return 0;
   }
 
@@ -171,11 +171,11 @@ int amqp_timer_ms_left(amqp_timer_t timer) {
     return AMQP_STATUS_TIMER_FAILURE;
   }
 
-  if (now_ns >= timer.expiration_ns) {
+  if (now_ns >= time.time_point_ns) {
     return 0;
   }
 
-  delta_ns = timer.expiration_ns - now_ns;
+  delta_ns = time.time_point_ns - now_ns;
   left_ms = delta_ns / AMQP_NS_PER_MS;
 
   return left_ms;

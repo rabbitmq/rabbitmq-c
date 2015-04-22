@@ -44,24 +44,51 @@
 #define AMQP_NS_PER_MS 1000000
 #define AMQP_NS_PER_US 1000
 
-typedef struct amqp_timer_t_ {
-  uint64_t expiration_ns;
-} amqp_timer_t;
+/* This represents a point in time in reference to a monotonic clock.
+ *
+ * The internal representation is ns, relative to the monotonic clock.
+ *
+ * There are two 'special' values:
+ * - 0: means 'this instant', its meant for polls with a 0-timeout, or
+ *   non-blocking option
+ * - UINT64_MAX: means 'at infinity', its mean for polls with an infinite
+ *   timeout
+ */
+typedef struct amqp_time_t_ {
+  uint64_t time_point_ns;
+} amqp_time_t;
 
-/* Gets a monotonic timestamp in ns */
-uint64_t
-amqp_get_monotonic_timestamp(void);
+/* Gets a monotonic timestamp. This will return 0 if the underlying call to the
+ * system fails.
+ */
+uint64_t amqp_get_monotonic_timestamp(void);
 
-/* Start an amqp_timer_t set to expire timeout from now. */
-int amqp_timer_start(amqp_timer_t *timer, struct timeval *timeout);
+/* Get a amqp_time_t that is timeout from now.
+ * If timeout is NULL, an amqp_time_infinite() is created.
+ * If timeout = {0, 0}, an amqp_time_immediate() is created.
+ *
+ * Returns AMQP_STATUS_OK on success.
+ * AMQP_STATUS_INVALID_PARAMETER if timeout is invalid
+ * AMQP_STATUS_TIMER_FAILURE if the underlying call to get the current timestamp
+ * fails.
+ */
+int amqp_time_from_now(amqp_time_t *time, struct timeval *timeout);
 
-amqp_timer_t amqp_timer_start_immediate(void);
+/* Create an immediate amqp_time_t */
+amqp_time_t amqp_time_immediate(void);
 
-amqp_timer_t amqp_timer_start_infinite(void);
+/* Create an infinite amqp_time_t */
+amqp_time_t amqp_time_infinite(void);
 
-/* Get the (positive) number of ms left on the timer, or -1 for an infinite
- * timer, or AMQP_STATUS_TIMEOUT on time out, or AMQP_STATUS_TIMER_FAILURE on
- * failure. */
-int amqp_timer_ms_left(amqp_timer_t timer);
+/* Gets the number of ms until the amqp_time_t, suitable for the timeout
+ * parameter in poll().
+ *
+ * -1 will be returned for amqp_time_infinite values.
+ * 0 will be returned for amqp_time_immediate values.
+ * AMQP_STATUS_TIMEOUT will be returned if time was in the past.
+ * AMQP_STATUS_TIMER_FAILURE will be returned if the underlying call to get the
+ * current timestamp fails.
+ */
+int amqp_time_ms_until(amqp_time_t time);
 
 #endif /* AMQP_TIMER_H */

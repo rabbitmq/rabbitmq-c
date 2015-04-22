@@ -258,7 +258,7 @@ amqp_socket_get_sockfd(amqp_socket_t *self)
   return self->klass->get_sockfd(self);
 }
 
-static int amqp_poll(int fd, short event, amqp_timer_t timeout) {
+static int amqp_poll(int fd, short event, amqp_time_t deadline) {
   struct pollfd pfd;
   int res;
   int timeout_ms;
@@ -270,7 +270,7 @@ start_poll:
   pfd.fd = fd;
   pfd.events = event;
 
-  timeout_ms = amqp_timer_ms_left(timeout);
+  timeout_ms = amqp_time_ms_until(deadline);
   if (-1 > timeout_ms) {
     return timeout_ms;
   }
@@ -295,12 +295,12 @@ start_poll:
   return AMQP_STATUS_OK;
 }
 
-int amqp_poll_read(int fd, amqp_timer_t timeout) {
-  return amqp_poll(fd, POLLIN, timeout);
+int amqp_poll_read(int fd, amqp_time_t deadline) {
+  return amqp_poll(fd, POLLIN, deadline);
 }
 
-int amqp_poll_write(int fd, amqp_timer_t timeout) {
-  return amqp_poll(fd, POLLOUT, timeout);
+int amqp_poll_write(int fd, amqp_time_t deadline) {
+  return amqp_poll(fd, POLLOUT, deadline);
 }
 
 ssize_t amqp_try_writev(amqp_connection_state_t state, struct iovec *iov,
@@ -312,9 +312,9 @@ ssize_t amqp_try_writev(amqp_connection_state_t state, struct iovec *iov,
   int iovcnt_left = iovcnt;
   ssize_t len_left;
   /* TODO(alanxz) this should probably be a parameter */
-  amqp_timer_t timeout;
+  amqp_time_t deadline;
 
-  res = amqp_timer_start(&timeout, NULL);
+  res = amqp_time_from_now(&deadline, NULL);
   if (AMQP_STATUS_OK != res) {
     return res;
   }
@@ -354,10 +354,10 @@ start_send:
     default:
       return res;
     case AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD:
-      res = amqp_poll_read(fd, timeout);
+      res = amqp_poll_read(fd, deadline);
       break;
     case AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE:
-      res = amqp_poll_write(fd, timeout);
+      res = amqp_poll_write(fd, deadline);
       break;
   }
   if (AMQP_STATUS_OK == res) {
@@ -374,8 +374,8 @@ ssize_t amqp_try_send(amqp_connection_state_t state, const void *buf,
   /* Assume that len is going to be larger than ssize_t can hold. */
   ssize_t len_left = (size_t)len;
   /* TODO(alanxz) this should probably be a parameter */
-  amqp_timer_t timeout;
-  res = amqp_timer_start(&timeout, NULL);
+  amqp_time_t deadline;
+  res = amqp_time_from_now(&deadline, NULL);
   if (AMQP_STATUS_OK != res) {
     return res;
   }
@@ -399,10 +399,10 @@ start_send:
     default:
       return res;
     case AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD:
-      res = amqp_poll_read(fd, timeout);
+      res = amqp_poll_read(fd, deadline);
       break;
     case AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE:
-      res = amqp_poll_write(fd, timeout);
+      res = amqp_poll_write(fd, deadline);
       break;
   }
   if (AMQP_STATUS_OK == res) {
@@ -416,24 +416,24 @@ amqp_open_socket(char const *hostname,
                  int portnumber)
 {
   return amqp_open_socket_inner(hostname, portnumber,
-                                  amqp_timer_start_infinite());
+                                  amqp_time_infinite());
 }
 
 int amqp_open_socket_noblock(char const *hostname,
                      int portnumber,
                      struct timeval *timeout)
 {
-  amqp_timer_t timer;
-  int res = amqp_timer_start(&timer, timeout);
+  amqp_time_t deadline;
+  int res = amqp_time_from_now(&deadline, timeout);
   if (AMQP_STATUS_OK != res) {
     return res;
   }
-  return amqp_open_socket_inner(hostname, portnumber, timer);
+  return amqp_open_socket_inner(hostname, portnumber, deadline);
 }
 
 int amqp_open_socket_inner(char const *hostname,
                            int portnumber,
-                           amqp_timer_t timer) {
+                           amqp_time_t deadline) {
   struct addrinfo hint;
   struct addrinfo *address_list;
   struct addrinfo *addr;
@@ -498,7 +498,7 @@ int amqp_open_socket_inner(char const *hostname,
     }
 
     if (EINPROGRESS == amqp_os_socket_error()) {
-      last_error = amqp_poll_write(sockfd, timer);
+      last_error = amqp_poll_write(sockfd, deadline);
       if (AMQP_STATUS_OK == last_error) {
         int result;
         socklen_t result_len = sizeof(result);
@@ -696,7 +696,7 @@ static int consume_one_frame(amqp_connection_state_t state, amqp_frame_t *decode
 }
 
 
-static int recv_with_timeout(amqp_connection_state_t state, amqp_timer_t timeout) {
+static int recv_with_timeout(amqp_connection_state_t state, amqp_time_t timeout) {
   int res;
   int fd;
 
@@ -740,7 +740,7 @@ start_recv:
 }
 
 int amqp_try_recv(amqp_connection_state_t state) {
-  amqp_timer_t timeout;
+  amqp_time_t timeout;
 
   while (amqp_data_in_buffer(state)) {
     amqp_frame_t frame;
@@ -780,7 +780,7 @@ int amqp_try_recv(amqp_connection_state_t state) {
       state->last_queued_frame = link;
     }
   }
-  timeout = amqp_timer_start_immediate();
+  timeout = amqp_time_immediate();
 
   return recv_with_timeout(state, timeout);
 }
@@ -793,7 +793,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
   uint64_t timeout_timestamp = 0;
   uint64_t next_timestamp = 0;
   struct timeval tv;
-  amqp_timer_t timer;
+  amqp_time_t deadline;
 
   if (timeout && (timeout->tv_sec < 0 || timeout->tv_usec < 0)) {
     return AMQP_STATUS_INVALID_PARAMETER;
@@ -881,17 +881,17 @@ beginrecv:
       tv.tv_usec = (ns_until_next_timeout % AMQP_NS_PER_S) / AMQP_NS_PER_US;
 
       /* TODO: refactor the above so that this doesn't require a timer ping */
-      res = amqp_timer_start(&timer, &tv);
+      res = amqp_time_from_now(&deadline, &tv);
       if (AMQP_STATUS_OK != res) {
         return res;
       }
     } else {
-      timer = amqp_timer_start_infinite();
+      deadline = amqp_time_infinite();
     }
 
     /* TODO this needs to wait for a _frame_ and not anything written from the
      * socket */
-    res = recv_with_timeout(state, timer);
+    res = recv_with_timeout(state, deadline);
 
     if (AMQP_STATUS_TIMEOUT == res) {
       if (next_timestamp == state->next_recv_heartbeat) {
