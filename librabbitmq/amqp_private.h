@@ -156,7 +156,13 @@ struct amqp_connection_state_t_ {
 
   int channel_max;
   int frame_max;
+
+  /* Heartbeat interval in seconds. If this is <= 0, then heartbeats are not
+   * enabled, and next_recv_heartbeat and next_send_heartbeat are set to
+   * infinite */
   int heartbeat;
+  amqp_time_t next_recv_heartbeat;
+  amqp_time_t next_send_heartbeat;
 
   /* buffer for holding frame headers.  Allows us to delay allocating
    * the raw frame buffer until the type, channel, and size are all known
@@ -180,9 +186,6 @@ struct amqp_connection_state_t_ {
 
   amqp_rpc_reply_t most_recent_api_result;
 
-  uint64_t next_recv_heartbeat;
-  uint64_t next_send_heartbeat;
-
   amqp_table_t server_properties;
   amqp_pool_t properties_pool;
 };
@@ -190,19 +193,13 @@ struct amqp_connection_state_t_ {
 amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);
 amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state, amqp_channel_t channel);
 
-static inline amqp_boolean_t amqp_heartbeat_enabled(amqp_connection_state_t state)
-{
-  return (state->heartbeat > 0);
+
+static inline int amqp_heartbeat_send(amqp_connection_state_t state) {
+  return state->heartbeat;
 }
 
-static inline uint64_t amqp_calc_next_send_heartbeat(amqp_connection_state_t state, uint64_t cur)
-{
-  return cur + ((uint64_t)state->heartbeat * AMQP_NS_PER_S);
-}
-
-static inline uint64_t amqp_calc_next_recv_heartbeat(amqp_connection_state_t state, uint64_t cur)
-{
-  return cur + ((uint64_t)state->heartbeat * 2 * AMQP_NS_PER_S);
+static inline int amqp_heartbeat_recv(amqp_connection_state_t state) {
+  return 2 * state->heartbeat;
 }
 
 int amqp_try_recv(amqp_connection_state_t state);

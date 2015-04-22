@@ -74,6 +74,15 @@ uint64_t amqp_get_monotonic_timestamp(void);
  */
 int amqp_time_from_now(amqp_time_t *time, struct timeval *timeout);
 
+/* Get a amqp_time_t that is seconds from now.
+ * If seconds <= 0, then amqp_time_infinite() is created.
+ *
+ * Returns AMQP_STATUS_OK on success.
+ * AMQP_STATUS_TIMER_FAILURE if the underlying call to get the current timestamp
+ * fails.
+ */
+int amqp_time_s_from_now(amqp_time_t *time, int seconds);
+
 /* Create an immediate amqp_time_t */
 amqp_time_t amqp_time_immediate(void);
 
@@ -91,4 +100,19 @@ amqp_time_t amqp_time_infinite(void);
  */
 int amqp_time_ms_until(amqp_time_t time);
 
+/* Test whether current time is past the provided time.
+ *
+ * TODO: this isn't a great interface to use. Fix this.
+ *
+ * Return AMQP_STATUS_OK if time has not past
+ * Return AMQP_STATUS_TIMEOUT if time has past
+ * Return AMQP_STATUS_TIMER_FAILURE if the underlying call to get the current
+ * timestamp fails.
+ */
+int amqp_time_has_past(amqp_time_t time);
+
+/* Return the time value that happens first */
+amqp_time_t amqp_time_first(amqp_time_t l, amqp_time_t r);
+
+int amqp_time_equal(amqp_time_t l, amqp_time_t r);
 #endif /* AMQP_TIMER_H */

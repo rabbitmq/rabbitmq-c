@@ -728,14 +728,11 @@ start_recv:
   state->sock_inbound_limit = res;
   state->sock_inbound_offset = 0;
 
-  if (amqp_heartbeat_enabled(state)) {
-    uint64_t current_time = amqp_get_monotonic_timestamp();
-    if (0 == current_time) {
-      return AMQP_STATUS_TIMER_FAILURE;
-    }
-    state->next_recv_heartbeat = amqp_calc_next_recv_heartbeat(state, current_time);
+  res = amqp_time_s_from_now(&state->next_recv_heartbeat,
+                             amqp_heartbeat_recv(state));
+  if (AMQP_STATUS_OK != res) {
+    return res;
   }
-
   return AMQP_STATUS_OK;
 }
 
@@ -789,14 +786,13 @@ static int wait_frame_inner(amqp_connection_state_t state,
                             amqp_frame_t *decoded_frame,
                             struct timeval *timeout)
 {
-  uint64_t current_timestamp = 0;
-  uint64_t timeout_timestamp = 0;
-  uint64_t next_timestamp = 0;
-  struct timeval tv;
   amqp_time_t deadline;
+  amqp_time_t timeout_deadline;
+  int res;
 
-  if (timeout && (timeout->tv_sec < 0 || timeout->tv_usec < 0)) {
-    return AMQP_STATUS_INVALID_PARAMETER;
+  res = amqp_time_from_now(&timeout_deadline, timeout);
+  if (AMQP_STATUS_OK != res) {
+    return res;
   }
 
   while (1) {
@@ -821,85 +817,34 @@ static int wait_frame_inner(amqp_connection_state_t state,
     }
 
 beginrecv:
-    if (timeout || amqp_heartbeat_enabled(state)) {
-      uint64_t ns_until_next_timeout;
+    res = amqp_time_has_past(state->next_send_heartbeat);
+    if (AMQP_STATUS_TIMER_FAILURE == res) {
+      return res;
+    } else if (AMQP_STATUS_TIMEOUT == res) {
+      amqp_frame_t heartbeat;
+      heartbeat.channel = 0;
+      heartbeat.frame_type = AMQP_FRAME_HEARTBEAT;
 
-      current_timestamp = amqp_get_monotonic_timestamp();
-      if (0 == current_timestamp) {
-        return AMQP_STATUS_TIMER_FAILURE;
-      }
-
-      if (amqp_heartbeat_enabled(state) && current_timestamp > state->next_send_heartbeat) {
-        amqp_frame_t heartbeat;
-        heartbeat.channel = 0;
-        heartbeat.frame_type = AMQP_FRAME_HEARTBEAT;
-
-        res = amqp_send_frame(state, &heartbeat);
-        if (AMQP_STATUS_OK != res) {
-          return res;
-        }
-
-        current_timestamp = amqp_get_monotonic_timestamp();
-        if (0 == current_timestamp) {
-          return AMQP_STATUS_TIMER_FAILURE;
-        }
-      }
-
-      if (timeout) {
-        if (0 == timeout_timestamp) {
-          timeout_timestamp = current_timestamp +
-            (uint64_t)timeout->tv_sec * AMQP_NS_PER_S +
-            (uint64_t)timeout->tv_usec * AMQP_NS_PER_US;
-        }
-
-        if (current_timestamp > timeout_timestamp) {
-          return AMQP_STATUS_TIMEOUT;
-        }
-      }
-
-      if (amqp_heartbeat_enabled(state)) {
-        if (current_timestamp > state->next_recv_heartbeat) {
-          state->next_recv_heartbeat = current_timestamp;
-        }
-        next_timestamp = (state->next_recv_heartbeat < state->next_send_heartbeat ?
-            state->next_recv_heartbeat :
-            state->next_send_heartbeat);
-        if (timeout) {
-          next_timestamp = (timeout_timestamp < next_timestamp ?
-              timeout_timestamp : next_timestamp);
-        }
-      } else if (timeout) {
-        next_timestamp = timeout_timestamp;
-      } else {
-        amqp_abort("Internal error: both timeout == NULL && state->heartbeat == 0");
-      }
-
-      ns_until_next_timeout = next_timestamp - current_timestamp;
-
-      memset(&tv, 0, sizeof(struct timeval));
-      tv.tv_sec = ns_until_next_timeout / AMQP_NS_PER_S;
-      tv.tv_usec = (ns_until_next_timeout % AMQP_NS_PER_S) / AMQP_NS_PER_US;
-
-      /* TODO: refactor the above so that this doesn't require a timer ping */
-      res = amqp_time_from_now(&deadline, &tv);
+      res = amqp_send_frame(state, &heartbeat);
       if (AMQP_STATUS_OK != res) {
         return res;
       }
-    } else {
-      deadline = amqp_time_infinite();
     }
+    deadline = amqp_time_first(timeout_deadline,
+                               amqp_time_first(state->next_recv_heartbeat,
+                                               state->next_send_heartbeat));
 
     /* TODO this needs to wait for a _frame_ and not anything written from the
      * socket */
     res = recv_with_timeout(state, deadline);
 
     if (AMQP_STATUS_TIMEOUT == res) {
-      if (next_timestamp == state->next_recv_heartbeat) {
+      if (amqp_time_equal(deadline, state->next_recv_heartbeat)) {
         amqp_socket_close(state->socket);
         return AMQP_STATUS_HEARTBEAT_TIMEOUT;
-      } else if (next_timestamp == timeout_timestamp) {
+      } else if (amqp_time_equal(deadline, timeout_deadline)) {
         return AMQP_STATUS_TIMEOUT;
-      } else if (next_timestamp == state->next_send_heartbeat) {
+      } else if (amqp_time_equal(deadline, state->next_send_heartbeat)) {
         /* send heartbeat happens before we do recv_with_timeout */
         goto beginrecv;
       } else {

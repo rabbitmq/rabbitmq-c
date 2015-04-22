@@ -134,8 +134,31 @@ int amqp_time_from_now(amqp_time_t *time, struct timeval *timeout) {
   }
 
   time->time_point_ns = now_ns + delta_ns;
-  if (now_ns > time->time_point_ns ||
-      delta_ns > time->time_point_ns) {
+  if (now_ns > time->time_point_ns || delta_ns > time->time_point_ns) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
+
+  return AMQP_STATUS_OK;
+}
+
+int amqp_time_s_from_now(amqp_time_t *time, int seconds) {
+  uint64_t now_ns;
+  uint64_t delta_ns;
+  assert(NULL != time);
+
+  if (0 >= seconds) {
+    *time = amqp_time_infinite();
+    return AMQP_STATUS_OK;
+  }
+
+  now_ns = amqp_get_monotonic_timestamp();
+  if (0 == now_ns) {
+    return AMQP_STATUS_TIMER_FAILURE;
+  }
+
+  delta_ns = (uint64_t)seconds * AMQP_NS_PER_S;
+  time->time_point_ns = now_ns + delta_ns;
+  if (now_ns > time->time_point_ns || delta_ns > time->time_point_ns) {
     return AMQP_STATUS_INVALID_PARAMETER;
   }
 
@@ -179,4 +202,32 @@ int amqp_time_ms_until(amqp_time_t time) {
   left_ms = delta_ns / AMQP_NS_PER_MS;
 
   return left_ms;
+}
+
+int amqp_time_has_past(amqp_time_t time) {
+  uint64_t now_ns;
+  if (UINT64_MAX == time.time_point_ns) {
+    return AMQP_STATUS_OK;
+  }
+
+  now_ns = amqp_get_monotonic_timestamp();
+  if (0 == now_ns) {
+    return AMQP_STATUS_TIMER_FAILURE;
+  }
+
+  if (now_ns > time.time_point_ns) {
+    return AMQP_STATUS_TIMEOUT;
+  }
+  return AMQP_STATUS_OK;
+}
+
+amqp_time_t amqp_time_first(amqp_time_t l, amqp_time_t r) {
+  if (l.time_point_ns < r.time_point_ns) {
+    return l;
+  }
+  return r;
+}
+
+int amqp_time_equal(amqp_time_t l, amqp_time_t r) {
+  return l.time_point_ns == r.time_point_ns;
 }
