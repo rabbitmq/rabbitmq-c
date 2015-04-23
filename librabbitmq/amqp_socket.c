@@ -304,20 +304,13 @@ int amqp_poll_write(int fd, amqp_time_t deadline) {
 }
 
 ssize_t amqp_try_writev(amqp_connection_state_t state, struct iovec *iov,
-                        int iovcnt) {
+                        int iovcnt, amqp_time_t deadline) {
   int i;
   int fd;
   ssize_t res;
   struct iovec *iov_left = iov;
   int iovcnt_left = iovcnt;
   ssize_t len_left;
-  /* TODO(alanxz) this should probably be a parameter */
-  amqp_time_t deadline;
-
-  res = amqp_time_from_now(&deadline, NULL);
-  if (AMQP_STATUS_OK != res) {
-    return res;
-  }
 
   len_left = 0;
   for (i = 0; i < iovcnt_left; ++i) {
@@ -367,18 +360,12 @@ start_send:
 }
 
 ssize_t amqp_try_send(amqp_connection_state_t state, const void *buf,
-                      size_t len) {
+                      size_t len, amqp_time_t deadline) {
   ssize_t res;
   int fd;
   void* buf_left = (void*)buf;
   /* Assume that len is going to be larger than ssize_t can hold. */
   ssize_t len_left = (size_t)len;
-  /* TODO(alanxz) this should probably be a parameter */
-  amqp_time_t deadline;
-  res = amqp_time_from_now(&deadline, NULL);
-  if (AMQP_STATUS_OK != res) {
-    return res;
-  }
 
 start_send:
   res = amqp_socket_send(state->socket, buf_left, len_left);
@@ -543,7 +530,7 @@ int amqp_send_header(amqp_connection_state_t state)
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  return amqp_try_send(state, header, sizeof(header));
+  return amqp_try_send(state, header, sizeof(header), amqp_time_infinite());
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)

@@ -483,7 +483,7 @@ int amqp_send_frame(amqp_connection_state_t state,
     iov[2].iov_base = &frame_end_byte;
     iov[2].iov_len = FOOTER_SIZE;
 
-    res = amqp_try_writev(state, iov, 3);
+    res = amqp_try_writev(state, iov, 3, amqp_time_infinite());
   } else {
     size_t out_frame_len;
     amqp_bytes_t encoded;
@@ -532,7 +532,8 @@ int amqp_send_frame(amqp_connection_state_t state,
     amqp_e32(out_frame, 3, out_frame_len);
     amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
     res = amqp_try_send(state, out_frame,
-                        out_frame_len + HEADER_SIZE + FOOTER_SIZE);
+                        out_frame_len + HEADER_SIZE + FOOTER_SIZE,
+                        amqp_time_infinite());
   }
   if (AMQP_STATUS_OK != res) {
     return res;
