@@ -366,7 +366,7 @@ ssize_t amqp_try_send(amqp_connection_state_t state, const void *buf,
                       size_t len, amqp_time_t deadline) {
   ssize_t res;
   void* buf_left = (void*)buf;
-  /* Assume that len is going to be larger than ssize_t can hold. */
+  /* Assume that len is not going to be larger than ssize_t can hold. */
   ssize_t len_left = (size_t)len;
 
 start_send:
