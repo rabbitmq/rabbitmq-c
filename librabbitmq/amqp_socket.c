@@ -303,10 +303,26 @@ int amqp_poll_write(int fd, amqp_time_t deadline) {
   return amqp_poll(fd, POLLOUT, deadline);
 }
 
+static int do_poll(amqp_connection_state_t state, int res,
+                   amqp_time_t deadline) {
+  int fd = amqp_get_sockfd(state);
+  if (-1 == fd) {
+    return AMQP_STATUS_SOCKET_CLOSED;
+  }
+  switch (res) {
+    case AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD:
+      res = amqp_poll_read(fd, deadline);
+      break;
+    case AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE:
+      res = amqp_poll_write(fd, deadline);
+      break;
+  }
+  return res;
+}
+
 ssize_t amqp_try_writev(amqp_connection_state_t state, struct iovec *iov,
                         int iovcnt, amqp_time_t deadline) {
   int i;
-  int fd;
   ssize_t res;
   struct iovec *iov_left = iov;
   int iovcnt_left = iovcnt;
@@ -339,20 +355,7 @@ start_send:
     }
     goto start_send;
   }
-  fd = amqp_get_sockfd(state);
-  if (-1 == fd) {
-    return AMQP_STATUS_SOCKET_CLOSED;
-  }
-  switch (res) {
-    default:
-      return res;
-    case AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD:
-      res = amqp_poll_read(fd, deadline);
-      break;
-    case AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE:
-      res = amqp_poll_write(fd, deadline);
-      break;
-  }
+  res = do_poll(state, res, deadline);
   if (AMQP_STATUS_OK == res) {
     goto start_send;
   }
@@ -362,7 +365,6 @@ start_send:
 ssize_t amqp_try_send(amqp_connection_state_t state, const void *buf,
                       size_t len, amqp_time_t deadline) {
   ssize_t res;
-  int fd;
   void* buf_left = (void*)buf;
   /* Assume that len is going to be larger than ssize_t can hold. */
   ssize_t len_left = (size_t)len;
@@ -378,20 +380,7 @@ start_send:
     }
     goto start_send;
   }
-  fd = amqp_get_sockfd(state);
-  if (-1 == fd) {
-    return AMQP_STATUS_SOCKET_CLOSED;
-  }
-  switch (res) {
-    default:
-      return res;
-    case AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD:
-      res = amqp_poll_read(fd, deadline);
-      break;
-    case AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE:
-      res = amqp_poll_write(fd, deadline);
-      break;
-  }
+  res = do_poll(state, res, deadline);
   if (AMQP_STATUS_OK == res) {
     goto start_send;
   }
