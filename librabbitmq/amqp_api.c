@@ -38,6 +38,13 @@
 #include "config.h"
 #endif
 
+#ifdef _MSC_VER
+/* MSVC complains about sprintf being deprecated in favor of sprintf_s */
+# define _CRT_SECURE_NO_WARNINGS
+/* MSVC complains about strdup being deprecated in favor of _strdup */
+# define _CRT_NONSTDC_NO_DEPRECATE
+#endif
+
 #include "amqp_private.h"
 #include "amqp_time.h"
 #include <assert.h>

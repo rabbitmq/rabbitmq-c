@@ -38,6 +38,10 @@
 #include "config.h"
 #endif
 
+#ifdef _MSC_VER
+# define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "amqp_tcp_socket.h"
 #include "amqp_private.h"
 #include "amqp_time.h"
