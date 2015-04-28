@@ -458,62 +458,51 @@ void amqp_maybe_release_buffers_on_channel(amqp_connection_state_t state, amqp_c
   }
 }
 
-int amqp_send_frame(amqp_connection_state_t state,
-                    const amqp_frame_t *frame)
-{
-  void *out_frame = state->outbound_buffer.bytes;
+static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
+                               amqp_bytes_t *encoded) {
+  void *out_frame = buffer.bytes;
+  size_t out_frame_len;
   int res;
 
   amqp_e8(out_frame, 0, frame->frame_type);
   amqp_e16(out_frame, 1, frame->channel);
 
-  if (frame->frame_type == AMQP_FRAME_BODY) {
-    /* For a body frame, rather than copying data around, we use
-       writev to compose the frame */
-    struct iovec iov[3];
-    uint8_t frame_end_byte = AMQP_FRAME_END;
-    const amqp_bytes_t *body = &frame->payload.body_fragment;
+  switch (frame->frame_type) {
+    case AMQP_FRAME_BODY: {
+      const amqp_bytes_t *body = &frame->payload.body_fragment;
 
-    amqp_e32(out_frame, 3, body->len);
+      memcpy((char *)out_frame + HEADER_SIZE, body->bytes, body->len);
+      out_frame_len = body->len;
+      break;
+    }
+    case AMQP_FRAME_METHOD: {
+      amqp_bytes_t method_encoded;
 
-    iov[0].iov_base = out_frame;
-    iov[0].iov_len = HEADER_SIZE;
-    iov[1].iov_base = body->bytes;
-    iov[1].iov_len = body->len;
-    iov[2].iov_base = &frame_end_byte;
-    iov[2].iov_len = FOOTER_SIZE;
-
-    res = amqp_try_writev(state, iov, 3, amqp_time_infinite());
-  } else {
-    size_t out_frame_len;
-    amqp_bytes_t encoded;
-
-    switch (frame->frame_type) {
-    case AMQP_FRAME_METHOD:
       amqp_e32(out_frame, HEADER_SIZE, frame->payload.method.id);
 
-      encoded.bytes = amqp_offset(out_frame, HEADER_SIZE + 4);
-      encoded.len = state->outbound_buffer.len - HEADER_SIZE - 4 - FOOTER_SIZE;
+      method_encoded.bytes = amqp_offset(out_frame, HEADER_SIZE + 4);
+      method_encoded.len = buffer.len - HEADER_SIZE - 4 - FOOTER_SIZE;
 
       res = amqp_encode_method(frame->payload.method.id,
-                               frame->payload.method.decoded, encoded);
+                               frame->payload.method.decoded, method_encoded);
       if (res < 0) {
         return res;
       }
 
       out_frame_len = res + 4;
       break;
+    }
 
     case AMQP_FRAME_HEADER:
       amqp_e16(out_frame, HEADER_SIZE, frame->payload.properties.class_id);
-      amqp_e16(out_frame, HEADER_SIZE+2, 0); /* "weight" */
-      amqp_e64(out_frame, HEADER_SIZE+4, frame->payload.properties.body_size);
+      amqp_e16(out_frame, HEADER_SIZE + 2, 0); /* "weight" */
+      amqp_e64(out_frame, HEADER_SIZE + 4, frame->payload.properties.body_size);
 
-      encoded.bytes = amqp_offset(out_frame, HEADER_SIZE + 12);
-      encoded.len = state->outbound_buffer.len - HEADER_SIZE - 12 - FOOTER_SIZE;
+      encoded->bytes = amqp_offset(out_frame, HEADER_SIZE + 12);
+      encoded->len = buffer.len - HEADER_SIZE - 12 - FOOTER_SIZE;
 
       res = amqp_encode_properties(frame->payload.properties.class_id,
-                                   frame->payload.properties.decoded, encoded);
+                                   frame->payload.properties.decoded, *encoded);
       if (res < 0) {
         return res;
       }
@@ -527,14 +516,30 @@ int amqp_send_frame(amqp_connection_state_t state,
 
     default:
       return AMQP_STATUS_INVALID_PARAMETER;
-    }
-
-    amqp_e32(out_frame, 3, out_frame_len);
-    amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
-    res = amqp_try_send(state, out_frame,
-                        out_frame_len + HEADER_SIZE + FOOTER_SIZE,
-                        amqp_time_infinite());
   }
+
+  amqp_e32(out_frame, 3, out_frame_len);
+  amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
+
+  encoded->bytes = out_frame;
+  encoded->len = out_frame_len + HEADER_SIZE + FOOTER_SIZE;
+
+  return AMQP_STATUS_OK;
+}
+
+int amqp_send_frame(amqp_connection_state_t state,
+                    const amqp_frame_t *frame)
+{
+
+  int res;
+  amqp_bytes_t encoded;
+
+  res = amqp_frame_to_bytes(frame, state->outbound_buffer, &encoded);
+  if (AMQP_STATUS_OK != res) {
+    return res;
+  }
+
+  res = amqp_try_send(state, encoded.bytes, encoded.len, amqp_time_infinite());
   if (AMQP_STATUS_OK != res) {
     return res;
   }
