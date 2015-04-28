@@ -194,14 +194,6 @@ amqp_os_socket_close(int sockfd)
 }
 
 ssize_t
-amqp_socket_writev(amqp_socket_t *self, struct iovec *iov, int iovcnt)
-{
-  assert(self);
-  assert(self->klass->writev);
-  return self->klass->writev(self, iov, iovcnt);
-}
-
-ssize_t
 amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len)
 {
   assert(self);
@@ -316,48 +308,6 @@ static int do_poll(amqp_connection_state_t state, int res,
     case AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE:
       res = amqp_poll_write(fd, deadline);
       break;
-  }
-  return res;
-}
-
-ssize_t amqp_try_writev(amqp_connection_state_t state, struct iovec *iov,
-                        int iovcnt, amqp_time_t deadline) {
-  int i;
-  ssize_t res;
-  struct iovec *iov_left = iov;
-  int iovcnt_left = iovcnt;
-  ssize_t len_left;
-
-  len_left = 0;
-  for (i = 0; i < iovcnt_left; ++i) {
-    len_left += iov_left[i].iov_len;
-  }
-
-start_send:
-  res = amqp_socket_writev(state->socket, iov_left, iovcnt_left);
-
-  if (res > 0) {
-    len_left -= res;
-    if (0 == len_left) {
-      return AMQP_STATUS_OK;
-    }
-    for (i = 0; i < iovcnt_left; ++i) {
-      if (res < (ssize_t)iov_left[i].iov_len) {
-        iov_left[i].iov_base = ((char *)iov_left[i].iov_base) + res;
-        iov_left[i].iov_len -= res;
-
-        iovcnt_left -= i;
-        iov_left += i;
-        break;
-      } else {
-        res -= iov_left[i].iov_len;
-      }
-    }
-    goto start_send;
-  }
-  res = do_poll(state, res, deadline);
-  if (AMQP_STATUS_OK == res) {
-    goto start_send;
   }
   return res;
 }

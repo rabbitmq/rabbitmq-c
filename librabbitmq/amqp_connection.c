@@ -471,7 +471,8 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
     case AMQP_FRAME_BODY: {
       const amqp_bytes_t *body = &frame->payload.body_fragment;
 
-      memcpy((char *)out_frame + HEADER_SIZE, body->bytes, body->len);
+      memcpy(amqp_offset(out_frame, HEADER_SIZE), body->bytes, body->len);
+
       out_frame_len = body->len;
       break;
     }
@@ -519,7 +520,7 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
   }
 
   amqp_e32(out_frame, 3, out_frame_len);
-  amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
+  amqp_e8(out_frame, HEADER_SIZE + out_frame_len, AMQP_FRAME_END);
 
   encoded->bytes = out_frame;
   encoded->len = out_frame_len + HEADER_SIZE + FOOTER_SIZE;

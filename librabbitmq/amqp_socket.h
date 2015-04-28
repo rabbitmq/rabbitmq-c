@@ -44,7 +44,6 @@ int
 amqp_os_socket_close(int sockfd);
 
 /* Socket callbacks. */
-typedef ssize_t (*amqp_socket_writev_fn)(void *, struct iovec *, int);
 typedef ssize_t (*amqp_socket_send_fn)(void *, const void *, size_t);
 typedef ssize_t (*amqp_socket_recv_fn)(void *, void *, size_t, int);
 typedef int (*amqp_socket_open_fn)(void *, const char *, int, struct timeval *);
@@ -54,7 +53,6 @@ typedef void (*amqp_socket_delete_fn)(void *);
 
 /** V-table for amqp_socket_t */
 struct amqp_socket_class_t {
-  amqp_socket_writev_fn writev;
   amqp_socket_send_fn send;
   amqp_socket_recv_fn recv;
   amqp_socket_open_fn open;
@@ -69,17 +67,6 @@ struct amqp_socket_t_ {
 };
 
 
-#ifdef _WIN32
-/* WinSock2 calls iovec WSABUF with different parameter names.
- * this is really a WSABUF with different names
- */
-struct iovec {
-  u_long iov_len;
-  char FAR *iov_base;
-};
-#endif
-
-
 /**
  * Set set the socket object for a connection
  *
@@ -92,25 +79,6 @@ struct iovec {
 void
 amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket);
 
-/**
- * Write to a socket.
- *
- * This function wraps writev(2) functionality.
- *
- * This function will only return on error, or when all of the bytes referred
- * to in iov have been sent. NOTE: this function may modify the iov struct.
- *
- * \param [in,out] self A socket object.
- * \param [in] iov One or more data vecors.
- * \param [in] iovcnt The number of vectors in \e iov.
- *
- * \return AMQP_STATUS_OK on success. amqp_status_enum value otherwise
- */
-ssize_t
-amqp_socket_writev(amqp_socket_t *self, struct iovec *iov, int iovcnt);
-
-ssize_t amqp_try_writev(amqp_connection_state_t state, struct iovec *iov,
-                        int iovcnt, amqp_time_t deadline);
 
 /**
  * Send a message from a socket.

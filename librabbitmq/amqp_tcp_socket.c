@@ -46,10 +46,11 @@ struct amqp_tcp_socket_t {
 
 
 static ssize_t
-amqp_tcp_socket_send_inner(void *base, const void *buf, size_t len, int flags)
+amqp_tcp_socket_send(void *base, const void *buf, size_t len)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
   ssize_t res;
+  int flags = 0;
 
   if (-1 == self->sockfd) {
     return AMQP_STATUS_SOCKET_CLOSED;
@@ -81,110 +82,6 @@ start:
   }
 
   return res;
-}
-
-static ssize_t
-amqp_tcp_socket_send(void *base, const void *buf, size_t len)
-{
-  return amqp_tcp_socket_send_inner(base, buf, len, 0);
-}
-
-static ssize_t
-amqp_tcp_socket_writev(void *base, struct iovec *iov, int iovcnt)
-{
-  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-  ssize_t ret;
-  if (-1 == self->sockfd) {
-    return AMQP_STATUS_SOCKET_CLOSED;
-  }
-
-#if defined(_WIN32)
-  {
-    DWORD res;
-    /* Making the assumption here that WSAsend won't do a partial send
-     * unless an error occured, in which case we're hosed so it doesn't matter
-     */
-    if (WSASend(self->sockfd, (LPWSABUF)iov, iovcnt, &res, 0, NULL, NULL) ==
-        0) {
-      self->internal_error = 0;
-      ret = res;
-    } else {
-      self->internal_error = WSAGetLastError();
-      if (WSAEWOULDBLOCK == self->internal_error) {
-        ret = AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE;
-      } else {
-        ret = AMQP_STATUS_SOCKET_ERROR;
-      }
-    }
-    return ret;
-  }
-
-#elif defined(SO_NOSIGPIPE) || !defined(MSG_NOSIGNAL)
-  {
-    int i;
-    ssize_t len_left = 0;
-
-    struct iovec *iov_left = iov;
-    int iovcnt_left = iovcnt;
-
-    for (i = 0; i < iovcnt; ++i) {
-      len_left += iov[i].iov_len;
-    }
-
-  start:
-    ret = writev(self->sockfd, iov, iovcnt);
-
-    if (ret < 0) {
-      self->internal_error = amqp_os_socket_error();
-      switch (self->internal_error) {
-        case EINTR:
-          goto start;
-        case EWOULDBLOCK:
-#if defined(EAGAIN) && EAGAIN != EWOULDBLOCK
-        case EAGAIN:
-#endif
-          ret = AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE;
-          break;
-        default:
-          ret = AMQP_STATUS_SOCKET_ERROR;
-      }
-    }
-    return ret;
-  }
-
-#else
-  {
-    int i;
-    size_t bytes = 0;
-    void *bufferp;
-
-    for (i = 0; i < iovcnt; ++i) {
-      bytes += iov[i].iov_len;
-    }
-
-    if (self->buffer_length < bytes) {
-      self->buffer = realloc(self->buffer, bytes);
-      if (NULL == self->buffer) {
-        self->buffer_length = 0;
-        self->internal_error = 0;
-        ret = AMQP_STATUS_NO_MEMORY;
-        goto exit;
-      }
-      self->buffer_length = bytes;
-    }
-
-    bufferp = self->buffer;
-    for (i = 0; i < iovcnt; ++i) {
-      memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
-      bufferp = (char*)bufferp + iov[i].iov_len;
-    }
-
-    ret = amqp_tcp_socket_send_inner(self, self->buffer, bytes, 0);
-
-  exit:
-    return ret;
-  }
-#endif
 }
 
 static ssize_t
@@ -272,7 +169,6 @@ amqp_tcp_socket_delete(void *base)
 }
 
 static const struct amqp_socket_class_t amqp_tcp_socket_class = {
-  amqp_tcp_socket_writev, /* writev */
   amqp_tcp_socket_send, /* send */
   amqp_tcp_socket_recv, /* recv */
   amqp_tcp_socket_open, /* open */

@@ -120,43 +120,6 @@ amqp_ssl_socket_send(void *base,
 }
 
 static ssize_t
-amqp_ssl_socket_writev(void *base,
-                       struct iovec *iov,
-                       int iovcnt)
-{
-  struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  ssize_t ret = -1;
-  char *bufferp;
-  size_t bytes;
-  int i;
-  if (-1 == self->sockfd) {
-    return AMQP_STATUS_SOCKET_CLOSED;
-  }
-
-  bytes = 0;
-  for (i = 0; i < iovcnt; ++i) {
-    bytes += iov[i].iov_len;
-  }
-  if (self->length < bytes) {
-    self->buffer = realloc(self->buffer, bytes);
-    if (!self->buffer) {
-      self->length = 0;
-      ret = AMQP_STATUS_NO_MEMORY;
-      goto exit;
-    }
-    self->length = bytes;
-  }
-  bufferp = self->buffer;
-  for (i = 0; i < iovcnt; ++i) {
-    memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
-    bufferp += iov[i].iov_len;
-  }
-  ret = amqp_ssl_socket_send(self, self->buffer, bytes);
-exit:
-  return ret;
-}
-
-static ssize_t
 amqp_ssl_socket_recv(void *base,
                      void *buf,
                      size_t len,
@@ -450,7 +413,6 @@ amqp_ssl_socket_delete(void *base)
 }
 
 static const struct amqp_socket_class_t amqp_ssl_socket_class = {
-  amqp_ssl_socket_writev, /* writev */
   amqp_ssl_socket_send, /* send */
   amqp_ssl_socket_recv, /* recv */
   amqp_ssl_socket_open, /* open */
