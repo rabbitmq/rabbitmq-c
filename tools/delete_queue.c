@@ -48,9 +48,9 @@
 int main(int argc, const char **argv)
 {
   amqp_connection_state_t conn;
-  char *queue = NULL;
-  int if_unused = 0;
-  int if_empty = 0;
+  static char *queue = NULL;
+  static int if_unused = 0;
+  static int if_empty = 0;
 
   struct poptOption options[] = {
     INCLUDE_OPTIONS(connect_options),

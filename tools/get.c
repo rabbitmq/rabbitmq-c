@@ -59,7 +59,7 @@ static int do_get(amqp_connection_state_t conn, char *queue)
 int main(int argc, const char **argv)
 {
   amqp_connection_state_t conn;
-  char *queue = NULL;
+  static char *queue = NULL;
   int got_something;
 
   struct poptOption options[] = {

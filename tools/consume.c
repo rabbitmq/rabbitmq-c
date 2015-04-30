@@ -176,6 +176,7 @@ static void do_consume(amqp_connection_state_t conn, amqp_bytes_t queue,
     amqp_frame_t frame;
     struct pipeline pl;
     uint64_t delivery_tag;
+    amqp_basic_deliver_t *deliver;
     int res = amqp_simple_wait_frame(conn, &frame);
     die_amqp_error(res, "waiting for header frame");
 
@@ -184,8 +185,7 @@ static void do_consume(amqp_connection_state_t conn, amqp_bytes_t queue,
       continue;
     }
 
-    amqp_basic_deliver_t *deliver
-      = (amqp_basic_deliver_t *)frame.payload.method.decoded;
+    deliver = (amqp_basic_deliver_t *)frame.payload.method.decoded;
     delivery_tag = deliver->delivery_tag;
 
     pipeline(argv, &pl);
@@ -205,14 +205,14 @@ int main(int argc, const char **argv)
   poptContext opts;
   amqp_connection_state_t conn;
   const char *const *cmd_argv;
-  char *queue = NULL;
-  char *exchange = NULL;
-  char *routing_key = NULL;
-  int declare = 0;
-  int exclusive = 0;
-  int no_ack = 0;
-  int count = -1;
-  int prefetch_count = -1;
+  static char *queue = NULL;
+  static char *exchange = NULL;
+  static char *routing_key = NULL;
+  static int declare = 0;
+  static int exclusive = 0;
+  static int no_ack = 0;
+  static int count = -1;
+  static int prefetch_count = -1;
   amqp_bytes_t queue_bytes;
 
   struct poptOption options[] = {

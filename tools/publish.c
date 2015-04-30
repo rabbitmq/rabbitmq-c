@@ -60,16 +60,16 @@ static void do_publish(amqp_connection_state_t conn,
 int main(int argc, const char **argv)
 {
   amqp_connection_state_t conn;
-  char *exchange = NULL;
-  char *routing_key = NULL;
-  char *content_type = NULL;
-  char *content_encoding = NULL;
-  char *reply_to = NULL;
-  char *body = NULL;
+  static char *exchange = NULL;
+  static char *routing_key = NULL;
+  static char *content_type = NULL;
+  static char *content_encoding = NULL;
+  static char *reply_to = NULL;
+  static char *body = NULL;
   amqp_basic_properties_t props;
   amqp_bytes_t body_bytes;
-  int delivery = 1; /* non-persistent by default */
-  int line_buffered = 0;
+  static int delivery = 1; /* non-persistent by default */
+  static int line_buffered = 0;
 
   struct poptOption options[] = {
     INCLUDE_OPTIONS(connect_options),
