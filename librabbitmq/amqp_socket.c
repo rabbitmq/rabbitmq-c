@@ -385,7 +385,7 @@ start_send:
 
   if (res > 0) {
     len_left -= res;
-    buf_left = (char*)buf_left - res;
+    buf_left = (char*)buf_left + res;
     if (0 == len_left) {
       return AMQP_STATUS_OK;
     }
