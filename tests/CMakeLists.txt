@@ -17,7 +17,7 @@ add_test(parse_url test_parse_url)
 add_executable(test_tables test_tables.c)
 target_link_libraries(test_tables rabbitmq-static)
 add_test(tables test_tables)
-configure_file(test_tables.expected ${CMAKE_CURRENT_BINARY_DIR}/tests/test_tables.expected COPY_ONLY)
+configure_file(test_tables.expected ${CMAKE_CURRENT_BINARY_DIR}/tests/test_tables.expected COPYONLY)
 
 add_executable(test_hostcheck
                test_hostcheck.c
