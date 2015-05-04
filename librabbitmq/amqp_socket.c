@@ -326,13 +326,16 @@ start_send:
     len_left -= res;
     buf_left = (char*)buf_left + res;
     if (0 == len_left) {
-      return AMQP_STATUS_OK;
+      return (ssize_t)len;
     }
     goto start_send;
   }
   res = do_poll(state, res, deadline);
   if (AMQP_STATUS_OK == res) {
     goto start_send;
+  }
+  if (AMQP_STATUS_TIMEOUT == res) {
+    return (ssize_t)len - len_left;
   }
   return res;
 }
@@ -464,12 +467,17 @@ int amqp_open_socket_inner(char const *hostname,
 
 int amqp_send_header(amqp_connection_state_t state)
 {
+  int res;
   static const uint8_t header[8] = { 'A', 'M', 'Q', 'P', 0,
                                      AMQP_PROTOCOL_VERSION_MAJOR,
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  return amqp_try_send(state, header, sizeof(header), amqp_time_infinite());
+  res = amqp_try_send(state, header, sizeof(header), amqp_time_infinite());
+  if (sizeof(header) == res) {
+    return AMQP_STATUS_OK;
+  }
+  return res;
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
