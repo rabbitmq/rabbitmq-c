@@ -75,7 +75,6 @@
 
 #ifdef _WIN32
 # define poll(fdarray, nfds, timeout) WSAPoll(fdarray, nfds, timeout)
-# define EINPROGRESS WSAEWOULDBLOCK
 #endif
 
 static int
@@ -434,7 +433,11 @@ int amqp_open_socket_inner(char const *hostname,
       break;
     }
 
+#ifdef _WIN32
+    if (WSAEWOULDBLOCK == amqp_os_socket_error()) {
+#else
     if (EINPROGRESS == amqp_os_socket_error()) {
+#endif
       last_error = amqp_poll_write(sockfd, deadline);
       if (AMQP_STATUS_OK == last_error) {
         int result;

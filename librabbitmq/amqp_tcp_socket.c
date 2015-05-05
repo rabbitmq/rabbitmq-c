@@ -32,10 +32,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef _WIN32
-# define EWOULDBLOCK WSAEWOULDBLOCK
-#endif
-
 struct amqp_tcp_socket_t {
   const struct amqp_socket_class_t *klass;
   int sockfd;
