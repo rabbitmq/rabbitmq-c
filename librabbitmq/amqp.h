@@ -2128,7 +2128,7 @@ AMQP_CALL amqp_encode_table(amqp_bytes_t encoded, amqp_table_t *input, size_t *o
  */
 AMQP_PUBLIC_FUNCTION
 int
-AMQP_CALL amqp_table_clone(amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool);
+AMQP_CALL amqp_table_clone(const amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool);
 
 /**
  * A message object

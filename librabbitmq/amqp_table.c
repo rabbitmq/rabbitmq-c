@@ -465,7 +465,7 @@ int amqp_table_entry_cmp(void const *entry1, void const *entry2)
 }
 
 static int
-amqp_field_value_clone(amqp_field_value_t *original, amqp_field_value_t *clone, amqp_pool_t *pool)
+amqp_field_value_clone(const amqp_field_value_t *original, amqp_field_value_t *clone, amqp_pool_t *pool)
 {
   int i;
   int res;
@@ -568,7 +568,7 @@ amqp_field_value_clone(amqp_field_value_t *original, amqp_field_value_t *clone, 
 
 
 static int
-amqp_table_entry_clone(amqp_table_entry_t *original, amqp_table_entry_t *clone, amqp_pool_t *pool)
+amqp_table_entry_clone(const amqp_table_entry_t *original, amqp_table_entry_t *clone, amqp_pool_t *pool)
 {
   if (0 == original->key.len) {
     return AMQP_STATUS_INVALID_PARAMETER;
@@ -585,7 +585,7 @@ amqp_table_entry_clone(amqp_table_entry_t *original, amqp_table_entry_t *clone, 
 }
 
 int
-amqp_table_clone(amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool)
+amqp_table_clone(const amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool)
 {
   int i;
   int res;
