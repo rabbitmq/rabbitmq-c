@@ -2388,6 +2388,22 @@ AMQP_PUBLIC_FUNCTION
 amqp_table_t *
 amqp_get_server_properties(amqp_connection_state_t state);
 
+/**
+ * Get the client properties table
+ *
+ * Get the properties that were passed to the broker on connection.
+ *
+ * \param [in] state the connection object
+ * \return a pointer to an amqp_table_t containing the properties advertised
+ *  by the client on connection. The connection object owns the table, it
+ *  should not be modified.
+ *
+ * \since v0.7.0
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_table_t *
+amqp_get_client_properties(amqp_connection_state_t state);
+
 AMQP_END_DECLS
 
 

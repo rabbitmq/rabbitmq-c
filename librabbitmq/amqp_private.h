@@ -187,6 +187,7 @@ struct amqp_connection_state_t_ {
   amqp_rpc_reply_t most_recent_api_result;
 
   amqp_table_t server_properties;
+  amqp_table_t client_properties;
   amqp_pool_t properties_pool;
 };
 

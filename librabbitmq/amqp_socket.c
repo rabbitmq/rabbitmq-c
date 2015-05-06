@@ -1257,11 +1257,12 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
         sizeof(default_properties) / sizeof(amqp_table_entry_t);
 
     res = amqp_merge_capabilities(&default_table, client_properties,
-                            &s.client_properties, channel_pool);
-    if (AMQP_STATUS_OK == res) {
+                                  &state->client_properties, channel_pool);
+    if (AMQP_STATUS_OK != res) {
       goto error_res;
     }
 
+    s.client_properties = state->client_properties;
     s.mechanism = sasl_method_name(sasl_method);
     s.response = response_bytes;
     s.locale = amqp_cstring_bytes("en_US");
