@@ -79,6 +79,8 @@
 # define poll(fdarray, nfds, timeout) WSAPoll(fdarray, nfds, timeout)
 #endif
 
+static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list );
+
 static int
 amqp_os_socket_init(void)
 {
@@ -934,25 +936,33 @@ int amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
   }
 }
 
-int amqp_simple_wait_method(amqp_connection_state_t state,
-                            amqp_channel_t expected_channel,
-                            amqp_method_number_t expected_method,
-                            amqp_method_t *output)
-{
+static int amqp_simple_wait_method_list(amqp_connection_state_t state,
+                                        amqp_channel_t expected_channel,
+                                        amqp_method_number_t *expected_methods,
+                                        amqp_method_t *output) {
   amqp_frame_t frame;
   int res = amqp_simple_wait_frame(state, &frame);
   if (AMQP_STATUS_OK != res) {
     return res;
   }
 
-  if (frame.channel != expected_channel
-      || frame.frame_type != AMQP_FRAME_METHOD
-      || frame.payload.method.id != expected_method) {
-    amqp_socket_close(state->socket);
+  if (AMQP_FRAME_METHOD != frame.frame_type ||
+      expected_channel != frame.channel ||
+      !amqp_id_in_reply_list(frame.payload.method.id, expected_methods)) {
     return AMQP_STATUS_WRONG_METHOD;
   }
   *output = frame.payload.method;
   return AMQP_STATUS_OK;
+}
+
+int amqp_simple_wait_method(amqp_connection_state_t state,
+                            amqp_channel_t expected_channel,
+                            amqp_method_number_t expected_method,
+                            amqp_method_t *output)
+{
+  amqp_method_number_t expected_methods[] = { expected_method, 0 };
+  return amqp_simple_wait_method_list(state, expected_channel, expected_methods,
+                                      output);
 }
 
 int amqp_send_method(amqp_connection_state_t state,
@@ -1275,10 +1285,20 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
 
   amqp_release_buffers(state);
 
-  res = amqp_simple_wait_method(state, 0, AMQP_CONNECTION_TUNE_METHOD,
-                                &method);
-  if (res < 0) {
-    goto error_res;
+  {
+    amqp_method_number_t expected[] = { AMQP_CONNECTION_TUNE_METHOD,
+                                      AMQP_CONNECTION_CLOSE_METHOD, 0 };
+    res = amqp_simple_wait_method_list(state, 0, expected, &method);
+    if (AMQP_STATUS_OK != res) {
+      goto error_res;
+    }
+  }
+
+  if (AMQP_CONNECTION_CLOSE_METHOD == method.id) {
+    result.reply_type = AMQP_RESPONSE_SERVER_EXCEPTION;
+    result.reply = method;
+    result.library_error = 0;
+    goto out;
   }
 
   {
@@ -1343,9 +1363,9 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   result.reply.id = 0;
   result.reply.decoded = NULL;
   result.library_error = 0;
+  amqp_maybe_release_buffers(state);
 
 out:
-  amqp_maybe_release_buffers(state);
   return result;
 
 error_res:
