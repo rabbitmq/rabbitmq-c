@@ -369,4 +369,6 @@ amqp_abort(const char *fmt, ...);
 
 int amqp_bytes_equal(amqp_bytes_t r, amqp_bytes_t l);
 
+int amqp_send_frame_inner(amqp_connection_state_t state,
+                          const amqp_frame_t *frame, int flags);
 #endif

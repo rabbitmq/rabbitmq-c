@@ -533,13 +533,21 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
 }
 
 int amqp_send_frame(amqp_connection_state_t state,
-                    const amqp_frame_t *frame)
-{
+                    const amqp_frame_t *frame) {
+  return amqp_send_frame_inner(state, frame, AMQP_SF_NONE);
+}
 
+int amqp_send_frame_inner(amqp_connection_state_t state,
+                          const amqp_frame_t *frame, int flags) {
   int res;
   ssize_t sent;
   amqp_bytes_t encoded;
 
+  /* TODO: if the AMQP_SF_MORE socket optimization can be shown to work
+   * correctly, then this could be un-done so that body-frames are sent as 3
+   * send calls, getting rid of the copy of the body content, some testing
+   * would need to be done to see if this would actually a win for performance.
+   * */
   res = amqp_frame_to_bytes(frame, state->outbound_buffer, &encoded);
   if (AMQP_STATUS_OK != res) {
     return res;
@@ -547,7 +555,7 @@ int amqp_send_frame(amqp_connection_state_t state,
 
 start_send:
   sent = amqp_try_send(state, encoded.bytes, encoded.len,
-                       state->next_recv_heartbeat);
+                       state->next_recv_heartbeat, flags);
   if (0 > sent) {
     return (int)sent;
   }

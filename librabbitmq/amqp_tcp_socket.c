@@ -42,25 +42,31 @@ struct amqp_tcp_socket_t {
 
 
 static ssize_t
-amqp_tcp_socket_send(void *base, const void *buf, size_t len)
+amqp_tcp_socket_send(void *base, const void *buf, size_t len, int flags)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
   ssize_t res;
-  int flags = 0;
+  int flagz = 0;
 
   if (-1 == self->sockfd) {
     return AMQP_STATUS_SOCKET_CLOSED;
   }
 
 #ifdef MSG_NOSIGNAL
-  flags |= MSG_NOSIGNAL;
+  flagz |= MSG_NOSIGNAL;
+#endif
+
+#if defined(MSG_MORE)
+  if (flags & AMQP_SF_MORE) {
+    flagz |= MSG_MORE;
+  }
 #endif
 
 start:
 #ifdef _WIN32
-  res = send(self->sockfd, buf, (int)len, flags);
+  res = send(self->sockfd, buf, (int)len, flagz);
 #else
-  res = send(self->sockfd, buf, len, flags);
+  res = send(self->sockfd, buf, len, flagz);
 #endif
 
   if (res < 0) {
