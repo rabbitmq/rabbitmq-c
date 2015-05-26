@@ -38,8 +38,6 @@
 struct amqp_tcp_socket_t {
   const struct amqp_socket_class_t *klass;
   int sockfd;
-  void *buffer;
-  size_t buffer_length;
   int internal_error;
   int state;
 };
@@ -196,7 +194,6 @@ amqp_tcp_socket_delete(void *base)
 
   if (self) {
     amqp_tcp_socket_close(self);
-    free(self->buffer);
     free(self);
   }
 }
