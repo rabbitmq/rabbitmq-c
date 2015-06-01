@@ -288,10 +288,6 @@ if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
 endif()
 
-if (WIN32 AND BUILD_STATIC_LIBS)
-  message(FATAL_ERROR "The rabbitmq-c library cannot be built as a static library on Win32. Set BUILD_STATIC_LIBS=OFF to get around this.")
-endif()
-
 add_subdirectory(librabbitmq)
 
 if (BUILD_EXAMPLES)

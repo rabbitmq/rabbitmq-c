@@ -9,6 +9,7 @@ if (MSVC)
 endif (MSVC)
 
 add_definitions(-DHAVE_CONFIG_H)
+add_definitions(-DAMQP_STATIC)
 
 add_executable(test_parse_url test_parse_url.c)
 target_link_libraries(test_parse_url rabbitmq-static)
