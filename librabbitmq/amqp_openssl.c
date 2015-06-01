@@ -70,8 +70,6 @@ struct amqp_ssl_socket_t {
   SSL_CTX *ctx;
   int sockfd;
   SSL *ssl;
-  char *buffer;
-  size_t length;
   amqp_boolean_t verify;
   int internal_error;
 };
@@ -402,7 +400,6 @@ amqp_ssl_socket_delete(void *base)
     amqp_ssl_socket_close(self);
 
     SSL_CTX_free(self->ctx);
-    free(self->buffer);
     free(self);
   }
   destroy_openssl();
