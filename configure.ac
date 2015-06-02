@@ -124,6 +124,11 @@ AC_LINK_IFELSE(
   ]
 )
 
+# Need poll() or select()
+AX_HAVE_POLL([AC_DEFINE([HAVE_POLL], [], ["Have poll()"])],
+  AX_HAVE_SELECT([AC_DEFINE([HAVE_SELECT], [], ["Have select()"])],
+        [AC_MSG_ERROR([rabbitmq-c needs poll() or select()])]))
+
 # Configure SSL/TLS
 AC_ARG_WITH([ssl],
 	    [AS_HELP_STRING([--with-ssl=@<:@cyassl/gnutls/no/openssl/polarssl/yes@:>@],

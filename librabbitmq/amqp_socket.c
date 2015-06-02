@@ -67,16 +67,17 @@
 # include <sys/types.h>      /* On older BSD this must come before net includes */
 # include <netinet/in.h>
 # include <netinet/tcp.h>
+# ifdef HAVE_SELECT
+#  include <sys/select.h>
+# endif
 # include <sys/socket.h>
 # include <netdb.h>
 # include <sys/uio.h>
 # include <fcntl.h>
-# include <poll.h>
+# ifdef HAVE_POLL
+#  include <poll.h>
+# endif
 # include <unistd.h>
-#endif
-
-#ifdef _WIN32
-# define poll(fdarray, nfds, timeout) WSAPoll(fdarray, nfds, timeout)
 #endif
 
 static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list );
@@ -258,6 +259,7 @@ amqp_socket_get_sockfd(amqp_socket_t *self)
 }
 
 int amqp_poll(int fd, int event, amqp_time_t deadline) {
+#ifdef HAVE_POLL
   struct pollfd pfd;
   int res;
   int timeout_ms;
@@ -299,6 +301,47 @@ start_poll:
     }
   }
   return AMQP_STATUS_OK;
+#elif defined(HAVE_SELECT)
+  fd_set fds;
+  int res;
+  struct timeval tv;
+  struct timeval *tvp;
+
+  assert(event == AMQP_SF_POLLIN || event == AMQP_SF_POLLOUT);
+
+start_select:
+  FD_ZERO(&fds);
+  FD_SET(fd, &fds);
+
+  res = amqp_time_tv_until(deadline, &tv, &tvp);
+  if (res != AMQP_STATUS_OK) {
+    return res;
+  }
+
+  switch (event) {
+    case AMQP_SF_POLLIN:
+      res = select(fd + 1, &fds, NULL, NULL, tvp);
+      break;
+    case AMQP_SF_POLLOUT:
+      res = select(fd + 1, NULL, &fds, NULL, tvp);
+  }
+
+  if (0 < res) {
+    return AMQP_STATUS_OK;
+  } else if (0 == res) {
+    return AMQP_STATUS_TIMEOUT;
+  } else {
+    switch (amqp_os_socket_error()) {
+      case EINTR:
+        goto start_select;
+      default:
+        return AMQP_STATUS_SOCKET_ERROR;
+    }
+  }
+  return AMQP_STATUS_OK;
+#else
+# error "poll() or select() is needed to compile rabbitmq-c"
+#endif
 }
 
 static ssize_t do_poll(amqp_connection_state_t state, ssize_t res,

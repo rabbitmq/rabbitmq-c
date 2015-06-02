@@ -8,6 +8,10 @@
 
 #cmakedefine HAVE_HTONLL
 
+#cmakedefine HAVE_SELECT
+
+#cmakedefine HAVE_POLL
+
 #define AMQ_PLATFORM "@CMAKE_SYSTEM@"
 
 #endif /* CONFIG_H */
