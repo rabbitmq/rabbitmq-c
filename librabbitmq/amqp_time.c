@@ -204,6 +204,43 @@ int amqp_time_ms_until(amqp_time_t time) {
   return left_ms;
 }
 
+int amqp_time_tv_until(amqp_time_t time, struct timeval *in,
+                       struct timeval **out) {
+  uint64_t now_ns;
+  uint64_t delta_ns;
+
+  assert(in != NULL);
+  if (UINT64_MAX == time.time_point_ns) {
+    *out = NULL;
+    return AMQP_STATUS_OK;
+  }
+  if (0 == time.time_point_ns) {
+    in->tv_sec = 0;
+    in->tv_usec = 0;
+    *out = in;
+    return AMQP_STATUS_OK;
+  }
+
+  now_ns = amqp_get_monotonic_timestamp();
+  if (0 == now_ns) {
+    return AMQP_STATUS_TIMER_FAILURE;
+  }
+
+  if (now_ns >= time.time_point_ns) {
+    in->tv_sec = 0;
+    in->tv_usec = 0;
+    *out = in;
+    return AMQP_STATUS_OK;
+  }
+
+  delta_ns = time.time_point_ns - now_ns;
+  in->tv_sec = (int)(delta_ns / AMQP_NS_PER_S);
+  in->tv_usec = (int)((delta_ns % AMQP_NS_PER_S) / AMQP_NS_PER_US);
+  *out = in;
+
+  return AMQP_STATUS_OK;
+}
+
 int amqp_time_has_past(amqp_time_t time) {
   uint64_t now_ns;
   if (UINT64_MAX == time.time_point_ns) {

@@ -100,6 +100,21 @@ amqp_time_t amqp_time_infinite(void);
  */
 int amqp_time_ms_until(amqp_time_t time);
 
+/* Gets a timeval filled in with the time until amqp_time_t. Suitable for the
+ * parameter in select().
+ *
+ * The in parameter specifies a storage location for *out.
+ * If time is an inf timeout, then *out = NULL.
+ * If time is a 0-timeout or the timer has expired, then *out = {0, 0}
+ * Otherwise *out is set to the time left on the time.
+ *
+ * AMQP_STATUS_OK will be returned if successfully filled.
+ * AMQP_STATUS_TIMER_FAILURE is returned when the underlying call to get the
+ * current timestamp fails.
+ */
+int amqp_time_tv_until(amqp_time_t time, struct timeval *in,
+                       struct timeval **out);
+
 /* Test whether current time is past the provided time.
  *
  * TODO: this isn't a great interface to use. Fix this.
