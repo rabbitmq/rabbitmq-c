@@ -75,7 +75,7 @@ struct amqp_ssl_socket_t {
 };
 
 static ssize_t amqp_ssl_socket_send(void *base, const void *buf, size_t len,
-                                    int flags) {
+                                    AMQP_UNUSED int flags) {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   ssize_t res;
   if (-1 == self->sockfd) {
