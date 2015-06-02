@@ -257,17 +257,24 @@ amqp_socket_get_sockfd(amqp_socket_t *self)
   return self->klass->get_sockfd(self);
 }
 
-static int amqp_poll(int fd, short event, amqp_time_t deadline) {
+int amqp_poll(int fd, int event, amqp_time_t deadline) {
   struct pollfd pfd;
   int res;
   int timeout_ms;
 
   /* Function should only ever be called with one of these two */
-  assert(event == POLLIN || event == POLLOUT);
+  assert(event == AMQP_SF_POLLIN || event == AMQP_SF_POLLOUT);
 
 start_poll:
   pfd.fd = fd;
-  pfd.events = event;
+  switch (event) {
+    case AMQP_SF_POLLIN:
+      pfd.events = POLLIN;
+      break;
+    case AMQP_SF_POLLOUT:
+      pfd.events = POLLOUT;
+      break;
+  }
 
   timeout_ms = amqp_time_ms_until(deadline);
   if (-1 > timeout_ms) {
@@ -294,14 +301,6 @@ start_poll:
   return AMQP_STATUS_OK;
 }
 
-int amqp_poll_read(int fd, amqp_time_t deadline) {
-  return amqp_poll(fd, POLLIN, deadline);
-}
-
-int amqp_poll_write(int fd, amqp_time_t deadline) {
-  return amqp_poll(fd, POLLOUT, deadline);
-}
-
 static ssize_t do_poll(amqp_connection_state_t state, ssize_t res,
                    amqp_time_t deadline) {
   int fd = amqp_get_sockfd(state);
@@ -310,10 +309,10 @@ static ssize_t do_poll(amqp_connection_state_t state, ssize_t res,
   }
   switch (res) {
     case AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD:
-      res = amqp_poll_read(fd, deadline);
+      res = amqp_poll(fd, AMQP_SF_POLLIN, deadline);
       break;
     case AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE:
-      res = amqp_poll_write(fd, deadline);
+      res = amqp_poll(fd, AMQP_SF_POLLOUT, deadline);
       break;
   }
   return res;
@@ -442,7 +441,7 @@ int amqp_open_socket_inner(char const *hostname,
 #else
     if (EINPROGRESS == amqp_os_socket_error()) {
 #endif
-      last_error = amqp_poll_write(sockfd, deadline);
+      last_error = amqp_poll(sockfd, AMQP_SF_POLLOUT, deadline);
       if (AMQP_STATUS_OK == last_error) {
         int result;
         socklen_t result_len = sizeof(result);
@@ -668,10 +667,10 @@ start_recv:
       default:
         return (int)res;
       case AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD:
-        res = amqp_poll_read(fd, timeout);
+        res = amqp_poll(fd, AMQP_SF_POLLIN, timeout);
         break;
       case AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE:
-        res = amqp_poll_write(fd, timeout);
+        res = amqp_poll(fd, AMQP_SF_POLLOUT, timeout);
         break;
     }
     if (AMQP_STATUS_OK == res) {

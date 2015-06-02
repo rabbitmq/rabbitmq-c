@@ -298,10 +298,10 @@ start_connect:
     self->internal_error = SSL_get_error(self->ssl, status);
     switch (self->internal_error) {
       case SSL_ERROR_WANT_READ:
-        status = amqp_poll_read(self->sockfd, deadline);
+        status = amqp_poll(self->sockfd, AMQP_SF_POLLIN, deadline);
         break;
       case SSL_ERROR_WANT_WRITE:
-        status = amqp_poll_write(self->sockfd, deadline);
+        status = amqp_poll(self->sockfd, AMQP_SF_POLLOUT, deadline);
         break;
       default:
         status = AMQP_STATUS_SSL_CONNECTION_FAILED;
@@ -362,10 +362,10 @@ start_shutdown:
     self->internal_error = SSL_get_error(self->ssl, res);
     switch (self->internal_error) {
       case SSL_ERROR_WANT_READ:
-        res = amqp_poll_read(self->sockfd, amqp_time_infinite());
+        res = amqp_poll(self->sockfd, AMQP_SF_POLLIN, amqp_time_infinite());
         break;
       case SSL_ERROR_WANT_WRITE:
-        res = amqp_poll_write(self->sockfd, amqp_time_infinite());
+        res = amqp_poll(self->sockfd, AMQP_SF_POLLOUT, amqp_time_infinite());
         break;
     }
     if (AMQP_STATUS_OK == res) {

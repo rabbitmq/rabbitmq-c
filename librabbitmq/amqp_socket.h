@@ -39,7 +39,9 @@ AMQP_BEGIN_DECLS
 
 typedef enum {
   AMQP_SF_NONE = 0,
-  AMQP_SF_MORE = 1
+  AMQP_SF_MORE = 1,
+  AMQP_SF_POLLIN = 2,
+  AMQP_SF_POLLOUT = 4
 } amqp_socket_flag_enum;
 
 int
@@ -163,11 +165,9 @@ amqp_open_socket_noblock(char const *hostname, int portnumber, struct timeval *t
 int amqp_open_socket_inner(char const *hostname, int portnumber,
                            amqp_time_t deadline);
 
-/* Wait up to deadline for fd to become readable */
-int amqp_poll_read(int fd, amqp_time_t deadline);
-
-/* Wait up to deadline for fd to become writeable */
-int amqp_poll_write(int fd, amqp_time_t deadline);
+/* Wait up to dealline for fd to become readable or writeable depending on
+ * event (AMQP_SF_POLLIN, AMQP_SF_POLLOUT) */
+int amqp_poll(int fd, int event, amqp_time_t deadline);
 
 int amqp_send_method_inner(amqp_connection_state_t state,
                            amqp_channel_t channel, amqp_method_number_t id,
