@@ -36,6 +36,11 @@
 
 #include "config.h"
 
+#ifdef _MSC_VER
+/* MSVC complains about strdup being deprecated in favor of _strdup */
+# define _CRT_NONSTDC_NO_DEPRECATE
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

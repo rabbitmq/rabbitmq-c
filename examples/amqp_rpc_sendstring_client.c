@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
         }
         printf("----\n");
 
-        body_target = frame.payload.properties.body_size;
+        body_target = (size_t)frame.payload.properties.body_size;
         body_received = 0;
 
         while (body_received < body_target) {

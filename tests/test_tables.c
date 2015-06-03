@@ -34,6 +34,11 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#ifdef _MSC_VER
+# define _USE_MATH_DEFINES
+# define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -44,9 +49,6 @@
 
 #include <amqp.h>
 
-#ifdef _MSC_VER
-#define _USE_MATH_DEFINES
-#endif
 #include <math.h>
 
 void die(const char *fmt, ...)
@@ -339,7 +341,7 @@ static void test_table_codec(FILE *out)
 
   entries[12].key = amqp_cstring_bytes("float");
   entries[12].value.kind = AMQP_FIELD_KIND_F32;
-  entries[12].value.value.f32 = M_PI;
+  entries[12].value.value.f32 = (float)M_PI;
 
   entries[13].key = amqp_cstring_bytes("double");
   entries[13].value.kind = AMQP_FIELD_KIND_F64;
