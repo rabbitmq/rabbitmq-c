@@ -475,8 +475,9 @@ int main(void)
     die("output file did not have expected contents");
   }
 
-  fclose(out);
   fclose(expected);
+  free(expected_path);
+  fclose(out);
 
   return 0;
 }
