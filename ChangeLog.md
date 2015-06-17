@@ -1,4 +1,26 @@
 # Change Log
+## Changes since v0.6.0 (a.k.a., v0.7.0)
+- `3379812` Tools: Add support for heartbeats
+- `d7029db` CI: Add continuous integration on Win32 using Appveyor
+- `a5f7ffb` Tests: only link against static libraries
+- `a16ad45...9cf7a3b`  Lib: add support for EXTERNAL SASL method
+- `038a9ed` Lib: fix incorrect parameters to WSAPoll on Win32
+- `a240c69...14ae307` Lib: use non-blocking sockets internally
+- `8d1d5cc`, `5498dc6` Lib: simplify timer/timeout logic
+- `61fc4e1` Lib: add support for heartbeat checks in blocking send calls
+- `f462c0f...3546a70` Lib: Fix warnings on Win32
+- `ba9d8ba...112a54d` Lib: Add support for RabbitMQ auth failure extension
+- `fb8e318` Lib: allow calling functions to override client-properties
+- `3ef3f5f` examples: replace usleep() with nanosleep()
+- `9027a94` Lib: add AMQP_VERSION code
+- `9ee1718` Lib: fix res maybe returned uninitialized in amqp_merge_capbilities
+- `22a36db` Lib: Fix SSL_connection status check
+- `abbefd4` Lib: Fix issues with c89 compatiblity
+- `2bc1f9b...816cbfc` Lib: perf improvements when sending small messages by
+  hinting to the OS message boundaries.
+- `be2e6dd...784a0e9` Lib: add select()-based timeout implementation
+- `91db548...8d77b4c` CI: add ubsan, asan, and tsan CI builds
+
 ## Changes since v0.5.2 (a.k.a., v0.6.0)
 - `e1746f9` Tools: Enable support for SSL in tools.
 - `9626dd5` Lib: ABI CHANGE: enable support for auto_delete, internal flags to
