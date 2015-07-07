@@ -29,7 +29,12 @@
 #include "amqp_tcp_socket.h"
 
 #include <errno.h>
-#ifndef _WIN32
+#ifdef _WIN32
+# ifndef WIN32_LEAN_AND_MEAN
+#  define WIN32_LEAN_AND_MEAN
+# endif
+# include <WinSock2.h>
+#else
 # include <netinet/tcp.h>
 #endif
 #include <stdio.h>
@@ -95,7 +100,11 @@ start:
     switch (self->internal_error) {
       case EINTR:
         goto start;
+#ifdef _WIN32
+      case WSAEWOULDBLOCK:
+#else
       case EWOULDBLOCK:
+#endif
 #if defined(EAGAIN) && EAGAIN != EWOULDBLOCK
       case EAGAIN:
 #endif
@@ -132,7 +141,11 @@ start:
     switch (self->internal_error) {
       case EINTR:
         goto start;
+#ifdef _WIN32
+      case WSAEWOULDBLOCK:
+#else
       case EWOULDBLOCK:
+#endif
 #if defined(EAGAIN) && EAGAIN != EWOULDBLOCK
       case EAGAIN:
 #endif
