@@ -3,18 +3,12 @@
 
 language: c
 
-# Need to install libpopt-dev for tools build. Can use the container-based
-# builds on travis once https://github.com/travis-ci/travis-ci/issues/3887 has
-# been resolved.
-sudo: required
-
 # OSX isn't actually enabled at this point as we missed the boat. Hopefully
 # they re-open sign-ups for OSS projects sometime soon.
 os:
   - linux
   - osx
 
-# Settings to try
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -34,16 +28,15 @@ matrix:
     - compiler: clang
       env: CONFIG=tsan
 
-# Make sure CMake is installed
-install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libpopt-dev
-
 # Run the Build script
 script:
   - ./travis.sh $CONFIG
 
 addons:
+  apt:
+    packages:
+      - libpopt-dev
+
   coverity_scan:
     project:
       name: "alanxz/rabbitmq-c"
