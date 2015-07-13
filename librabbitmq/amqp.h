@@ -1749,7 +1749,9 @@ AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
  * \param [in] channel_max the limit for number of channels for the connection.
  *              0 means no limit, and is a good default (AMQP_DEFAULT_MAX_CHANNELS)
  *              Note that the maximum number of channels the protocol supports
- *              is 65535 (2^16, with the 0-channel reserved)
+ *              is 65535 (2^16, with the 0-channel reserved). The server can
+ *              set a lower channel_max and then the client will use the lowest
+ *              of the two
  * \param [in] frame_max the maximum size of an AMQP frame on the wire to
  *              request of the broker for this connection. 4096 is the minimum
  *              size, 2^31-1 is the maximum, a good default is 131072 (128KB), or
@@ -1806,7 +1808,9 @@ AMQP_CALL amqp_login(amqp_connection_state_t state, char const *vhost,
  * \param [in] channel_max the limit for the number of channels for the connection.
  *             0 means no limit, and is a good default (AMQP_DEFAULT_MAX_CHANNELS)
  *             Note that the maximum number of channels the protocol supports
- *             is 65535 (2^16, with the 0-channel reserved)
+ *             is 65535 (2^16, with the 0-channel reserved). The server can
+ *             set a lower channel_max and then the client will use the lowest
+ *             of the two
  * \param [in] frame_max the maximum size of an AMQP frame ont he wire to
  *              request of the broker for this connection. 4096 is the minimum
  *              size, 2^31-1 is the maximum, a good default is 131072 (128KB), or

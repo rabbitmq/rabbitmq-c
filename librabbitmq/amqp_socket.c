@@ -1354,7 +1354,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     server_heartbeat = s->heartbeat;
   }
 
-  if (server_channel_max != 0 && server_channel_max < channel_max) {
+  if (server_channel_max != 0 &&
+      (server_channel_max < channel_max || channel_max == 0)) {
     channel_max = server_channel_max;
   } else if (server_channel_max == 0 && channel_max == 0) {
     channel_max = UINT16_MAX;
