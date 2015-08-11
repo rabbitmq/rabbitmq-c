@@ -43,6 +43,8 @@ AC_C_INLINE
 # Set compiler flags
 AX_TRY_CFLAGS([-Wall], [AX_CFLAGS([-Wall])])
 AX_TRY_CFLAGS([-Wextra], [AX_CFLAGS([-Wextra])])
+AX_TRY_CFLAGS([-Wstrict-prototypes], [AX_CFLAGS([-Wstrict-prototypes])])
+AX_TRY_CFLAGS([-Wno-unused-function], [AX_CFLAGS([-Wno-unused-function])])
 AX_TRY_CFLAGS([-fno-common], [AX_CFLAGS([-fno-common])])
 AX_TRY_CFLAGS([-fvisibility=hidden], [AX_CFLAGS([-fvisibility=hidden])])
 AX_TRY_LDFLAGS([-no-undefined], [NO_UNDEFINED=-no-undefined])
