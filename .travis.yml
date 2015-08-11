@@ -3,12 +3,6 @@
 
 language: c
 
-# OSX isn't actually enabled at this point as we missed the boat. Hopefully
-# they re-open sign-ups for OSS projects sometime soon.
-os:
-  - linux
-  - osx
-
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -18,15 +12,23 @@ env:
 matrix:
   include:
     - compiler: gcc
+      os: linux
       env: CONFIG=autotools
     - compiler: gcc
+      os: linux
       env: CONFIG=cmake
     - compiler: clang
+      os: linux
       env: CONFIG=cmake
     - compiler: clang
+      os: linux
       env: CONFIG=asan
     - compiler: clang
+      os: linux
       env: CONFIG=tsan
+    - compiler: clang
+      os: osx
+      env: CONFIG=cmake
 
 # Run the Build script
 script:
