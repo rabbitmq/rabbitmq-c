@@ -13,7 +13,7 @@ m4_define([micro_version], [1])
 # 3. If any interfaces have been added since the last public release, then increment age.
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 m4_define([soversion_current],   [5])
-m4_define([soversion_revision],  [2])
+m4_define([soversion_revision],  [3])
 m4_define([soversion_age],       [1])
 
 AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
