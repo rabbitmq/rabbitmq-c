@@ -130,30 +130,19 @@ AX_HAVE_POLL([AC_DEFINE([HAVE_POLL], [], ["Have poll()"])],
 
 # Configure SSL/TLS
 AC_ARG_WITH([ssl],
-	    [AS_HELP_STRING([--with-ssl=@<:@cyassl/gnutls/no/openssl/polarssl/yes@:>@],
-			    [enable SSL/TLS support @<:@default=openssl@:>@])],
-	    [AS_CASE([$withval],
-		     [yes], [with_ssl=openssl],
-		     [*], [with_ssl=$withval])],
-	    [with_ssl=openssl])
+    [AS_HELP_STRING([--with-ssl=@<:@no/openssl/yes@:>@],
+                    [enable SSL/TLS support @<:@default=openssl@:>@])],
+    [AS_CASE([$withval],
+        [yes], [with_ssl=openssl],
+        [*], [with_ssl=$withval])],
+    [with_ssl=openssl])
 
-AS_IF([test "x$with_ssl" = "xcyassl"],
-      [PKG_CHECK_MODULES([SSL], [libcyassl],, [with_ssl=no])],
-      [test "x$with_ssl" = "xgnutls"],
-      [PKG_CHECK_MODULES([SSL], [gnutls],, [with_ssl=no])],
-      [test "x$with_ssl" = "xopenssl"],
+AS_IF([test "x$with_ssl" = "xopenssl"],
       [PKG_CHECK_MODULES([SSL], [openssl >= 0.9.8], [ssl_pkg_required=openssl],
                          [with_ssl=no])],
-      [test "x$with_ssl" = "xpolarssl"],
-      [AX_LIB_POLARSSL([SSL_CFLAGS=$POLARSSL_CFLAGS
-			SSL_LIBS=$POLARSSL_LIBS],
-		       [with_ssl=no])],
       [test "x$with_ssl" = "xno"],,
       [AC_MSG_ERROR([unknown SSL/TLS implementation: $with_ssl])])
-AM_CONDITIONAL([SSL_CYASSL], [test "x$with_ssl" = "xcyassl"])
-AM_CONDITIONAL([SSL_GNUTLS], [test "x$with_ssl" = "xgnutls"])
 AM_CONDITIONAL([SSL_OPENSSL], [test "x$with_ssl" = "xopenssl"])
-AM_CONDITIONAL([SSL_POLARSSL], [test "x$with_ssl" = "xpolarssl"])
 AM_CONDITIONAL([SSL], [test "x$with_ssl" != "xno"])
 AS_IF([test "x$with_ssl" != "xno"],
       [AC_DEFINE([WITH_SSL], [1], [Define to 1 if SSL/TLS is enabled.])])
