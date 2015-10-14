@@ -41,7 +41,8 @@ typedef enum {
   AMQP_SF_NONE = 0,
   AMQP_SF_MORE = 1,
   AMQP_SF_POLLIN = 2,
-  AMQP_SF_POLLOUT = 4
+  AMQP_SF_POLLOUT = 4,
+  AMQP_SF_POLLERR = 8
 } amqp_socket_flag_enum;
 
 int

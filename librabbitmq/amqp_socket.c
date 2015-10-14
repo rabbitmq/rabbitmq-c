@@ -303,27 +303,40 @@ start_poll:
   return AMQP_STATUS_OK;
 #elif defined(HAVE_SELECT)
   fd_set fds;
+  fd_set exceptfds;
+  fd_set *exceptfdsp;
   int res;
   struct timeval tv;
   struct timeval *tvp;
 
-  assert(event == AMQP_SF_POLLIN || event == AMQP_SF_POLLOUT);
+  assert((0 != (event & AMQP_SF_POLLIN)) || (0 != (event & AMQP_SF_POLLOUT)));
+#ifndef _WIN32
+  /* On Win32 connect() failure is indicated through the exceptfds, it does not
+   * make any sense to allow POLLERR on any other platform or condition */
+  assert(0 == event & AMQP_SF_POLLERR);
+#endif
 
 start_select:
   FD_ZERO(&fds);
   FD_SET(fd, &fds);
+
+  if (event & AMQP_SF_POLLERR) {
+    FD_ZERO(&exceptfds);
+    FD_SET(fd, &exceptfds);
+    exceptfdsp = &exceptfds;
+  } else {
+    exceptfdsp = NULL;
+  }
 
   res = amqp_time_tv_until(deadline, &tv, &tvp);
   if (res != AMQP_STATUS_OK) {
     return res;
   }
 
-  switch (event) {
-    case AMQP_SF_POLLIN:
-      res = select(fd + 1, &fds, NULL, NULL, tvp);
-      break;
-    case AMQP_SF_POLLOUT:
-      res = select(fd + 1, NULL, &fds, NULL, tvp);
+  if (event & AMQP_SF_POLLIN) {
+      res = select(fd + 1, &fds, NULL, exceptfdsp, tvp);
+  } else if (event & AMQP_SF_POLLOUT) {
+      res = select(fd + 1, NULL, &fds, exceptfdsp, tvp);
   }
 
   if (0 < res) {
@@ -481,10 +494,12 @@ int amqp_open_socket_inner(char const *hostname,
 
 #ifdef _WIN32
     if (WSAEWOULDBLOCK == amqp_os_socket_error()) {
+      int event = AMQP_SF_POLLOUT | AMQP_SF_POLLERR;
 #else
     if (EINPROGRESS == amqp_os_socket_error()) {
+      int event = AMQP_SF_POLLOUT;
 #endif
-      last_error = amqp_poll(sockfd, AMQP_SF_POLLOUT, deadline);
+      last_error = amqp_poll(sockfd, event, deadline);
       if (AMQP_STATUS_OK == last_error) {
         int result;
         socklen_t result_len = sizeof(result);
