@@ -70,7 +70,8 @@ struct amqp_ssl_socket_t {
   SSL_CTX *ctx;
   int sockfd;
   SSL *ssl;
-  amqp_boolean_t verify;
+  amqp_boolean_t verify_peer;
+  amqp_boolean_t verify_hostname;
   int internal_error;
 };
 
@@ -312,13 +313,15 @@ start_connect:
     goto error_out2;
   }
 
-  result = SSL_get_verify_result(self->ssl);
-  if (X509_V_OK != result) {
-    self->internal_error = result;
-    status = AMQP_STATUS_SSL_PEER_VERIFY_FAILED;
-    goto error_out3;
+  if (self->verify_peer) {
+    result = SSL_get_verify_result(self->ssl);
+    if (X509_V_OK != result) {
+      self->internal_error = result;
+      status = AMQP_STATUS_SSL_PEER_VERIFY_FAILED;
+      goto error_out3;
+    }
   }
-  if (self->verify) {
+  if (self->verify_hostname) {
     int verify_status = amqp_ssl_socket_verify_hostname(self, host);
     if (verify_status) {
       self->internal_error = 0;
@@ -425,7 +428,8 @@ amqp_ssl_socket_new(amqp_connection_state_t state)
 
   self->sockfd = -1;
   self->klass = &amqp_ssl_socket_class;
-  self->verify = 1;
+  self->verify_peer = 1;
+  self->verify_hostname = 1;
 
   status = initialize_openssl();
   if (status) {
@@ -555,12 +559,28 @@ void
 amqp_ssl_socket_set_verify(amqp_socket_t *base,
                            amqp_boolean_t verify)
 {
+  amqp_ssl_socket_set_verify_peer(base, verify);
+  amqp_ssl_socket_set_verify_hostname(base, verify);
+}
+
+void amqp_ssl_socket_set_verify_peer(amqp_socket_t *base,
+                                     amqp_boolean_t verify) {
   struct amqp_ssl_socket_t *self;
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
   self = (struct amqp_ssl_socket_t *)base;
-  self->verify = verify;
+  self->verify_peer = verify;
+}
+
+void amqp_ssl_socket_set_verify_hostname(amqp_socket_t *base,
+                                         amqp_boolean_t verify) {
+  struct amqp_ssl_socket_t *self;
+  if (base->klass != &amqp_ssl_socket_class) {
+    amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+  }
+  self = (struct amqp_ssl_socket_t *)base;
+  self->verify_hostname = verify;
 }
 
 void

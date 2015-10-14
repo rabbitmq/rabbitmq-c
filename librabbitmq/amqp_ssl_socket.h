@@ -119,6 +119,9 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
 /**
  * Enable or disable peer verification.
  *
+ * \deprecated use \amqp_ssl_socket_set_verify_peer and
+ * \amqp_ssl_socket_set_verify_hostname instead.
+ *
  * If peer verification is enabled then the common name in the server
  * certificate must match the server name. Peer verification is enabled by
  * default.
@@ -128,11 +131,42 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
+AMQP_DEPRECATED(
+    AMQP_PUBLIC_FUNCTION
+    void
+    AMQP_CALL
+    amqp_ssl_socket_set_verify(amqp_socket_t *self, amqp_boolean_t verify)
+);
+
+/**
+ * Enable or disable peer verification.
+ *
+ * Peer verification validates the certificate chain that is sent by the broker.
+ * Hostname validation is controlled by \amqp_ssl_socket_set_verify_peer.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] verify enable or disable peer validation
+ *
+ * \since v0.8.0
+ */
 AMQP_PUBLIC_FUNCTION
 void
 AMQP_CALL
-amqp_ssl_socket_set_verify(amqp_socket_t *self,
-                           amqp_boolean_t verify);
+amqp_ssl_socket_set_verify_peer(amqp_socket_t *self, amqp_boolean_t verify);
+
+/**
+ * Enable or disable hostname verification.
+ *
+ * Hostname verification checks the broker cert for a CN or SAN that matches the
+ * hostname that amqp_socket_open() is presented. Peer verification is
+ * controlled by \amqp_ssl_socket_set_verify_peer
+ *
+ * \since v0.8.0
+ */
+AMQP_PUBLIC_FUNCTION
+void
+AMQP_CALL
+amqp_ssl_socket_set_verify_hostname(amqp_socket_t *self, amqp_boolean_t verify);
 
 /**
  * Sets whether rabbitmq-c initializes the underlying SSL library.
