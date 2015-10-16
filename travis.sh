@@ -38,4 +38,11 @@ fi
 set -e  # exit on error.
 set -x  # echo commands.
 
+case $TRAVIS_OS_NAME in
+osx)
+  brew update -quiet
+  brew install popt
+  ;;
+esac
+
 eval "build_$1"
