@@ -430,7 +430,7 @@ int amqp_open_socket_inner(char const *hostname,
   struct addrinfo *addr;
   char portnumber_string[33];
   int sockfd = -1;
-  int last_error = AMQP_STATUS_OK;
+  int last_error;
   int one = 1; /* for setsockopt */
   int res;
 
