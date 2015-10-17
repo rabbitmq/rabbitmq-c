@@ -170,11 +170,6 @@ const amqp_bytes_t amqp_empty_bytes = { 0, NULL };
 const amqp_table_t amqp_empty_table = { 0, NULL };
 const amqp_array_t amqp_empty_array = { 0, NULL };
 
-#define RPC_REPLY(replytype)\
-  (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL\
-   ? (replytype *) state->most_recent_api_result.reply.decoded\
-   : NULL)
-
 int amqp_basic_publish(amqp_connection_state_t state,
                        amqp_channel_t channel,
                        amqp_bytes_t exchange,
