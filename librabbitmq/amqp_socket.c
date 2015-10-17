@@ -1414,7 +1414,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     result = amqp_simple_rpc(state,
                              0,
                              AMQP_CONNECTION_OPEN_METHOD,
-                             (amqp_method_number_t *) &replies,
+                             replies,
                              &s);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
       goto out;
