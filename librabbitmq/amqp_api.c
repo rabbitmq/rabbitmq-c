@@ -47,7 +47,6 @@
 
 #include "amqp_private.h"
 #include "amqp_time.h"
-#include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
