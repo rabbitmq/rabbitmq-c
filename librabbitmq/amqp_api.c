@@ -82,7 +82,8 @@ static const char *base_error_strings[] = {
   "unexpected protocol state",          /* AMQP_STATUS_UNEXPECTED STATE         -0x0010 */
   "socket is closed",                   /* AMQP_STATUS_SOCKET_CLOSED            -0x0011 */
   "socket already open",                /* AMQP_STATUS_SOCKET_INUSE             -0x0012 */
-  "unsupported sasl method requested"   /* AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD -0x0013 */
+  "unsupported sasl method requested",  /* AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD -0x0013 */
+  "parameter value is unsupported"      /* AMQP_STATUS_UNSUPPORTED -0x0014 */
 };
 
 static const char *tcp_error_strings[] = {

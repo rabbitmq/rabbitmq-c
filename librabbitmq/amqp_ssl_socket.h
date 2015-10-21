@@ -168,6 +168,36 @@ void
 AMQP_CALL
 amqp_ssl_socket_set_verify_hostname(amqp_socket_t *self, amqp_boolean_t verify);
 
+typedef enum {
+  AMQP_TLSv1 = 1,
+  AMQP_TLSv1_1 = 2,
+  AMQP_TLSv1_2 = 3,
+  AMQP_TLSvLATEST = 0xFFFF
+} amqp_tls_version_t;
+
+/**
+ * Set min and max TLS versions.
+ *
+ * Set the oldest and newest acceptable TLS versions that are acceptable when
+ * connecting to the broker. Set min == max to restrict to just that
+ * version.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] min the minimum acceptable TLS version
+ * \param [in] max the maxmium acceptable TLS version
+ * \returns AMQP_STATUS_OK on success, AMQP_STATUS_UNSUPPORTED if OpenSSL does
+ * not support the requested TLS version, AMQP_STATUS_INVALID_PARAMETER if an
+ * invalid combination of parameters is passed.
+ *
+ * \since v0.8.0
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
+                                 amqp_tls_version_t min,
+                                 amqp_tls_version_t max);
+
 /**
  * Sets whether rabbitmq-c initializes the underlying SSL library.
  *

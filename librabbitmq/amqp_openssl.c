@@ -570,6 +570,66 @@ void amqp_ssl_socket_set_verify_hostname(amqp_socket_t *base,
   self->verify_hostname = verify;
 }
 
+int amqp_ssl_socket_set_ssl_versions(amqp_socket_t *base,
+                                     amqp_tls_version_t min,
+                                     amqp_tls_version_t max) {
+  struct amqp_ssl_socket_t *self;
+  if (base->klass != &amqp_ssl_socket_class) {
+    amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+  }
+  self = (struct amqp_ssl_socket_t *)base;
+
+  {
+    long clear_options;
+    long set_options = 0;
+#if defined(SSL_OP_NO_TLSv1_2)
+    amqp_tls_version_t max_supported = AMQP_TLSv1_2;
+    clear_options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2;
+#elif defined(SSL_OP_NO_TLSv1_1)
+    amqp_tls_version_t max_supported = AMQP_TLSv1_1;
+    clear_options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
+#elif defined(SSL_OP_NO_TLSv1)
+    amqp_tls_version_t max_supported = AMQP_TLSv1;
+    clear_options = SSL_OP_NO_TLSv1;
+#else
+# error "Need a version of OpenSSL that can support TLSv1 or greater."
+#endif
+
+    if (AMQP_TLSvLATEST == max) {
+      max = max_supported;
+    }
+    if (AMQP_TLSvLATEST == min) {
+      min = max_supported;
+    }
+
+    if (min > max) {
+      return AMQP_STATUS_INVALID_PARAMETER;
+    }
+
+    if (max > max_supported || min > max_supported) {
+      return AMQP_STATUS_UNSUPPORTED;
+    }
+
+    if (min > AMQP_TLSv1) {
+      set_options |= SSL_OP_NO_TLSv1;
+    }
+#ifdef SSL_OP_NO_TLSv1_1
+    if (min > AMQP_TLSv1_1 || max < AMQP_TLSv1_1) {
+      set_options |= SSL_OP_NO_TLSv1_1;
+    }
+#endif
+#ifdef SSL_OP_NO_TLSv1_2
+    if (max < AMQP_TLSv1_2) {
+      set_options |= SSL_OP_NO_TLSv1_2;
+    }
+#endif
+    SSL_CTX_clear_options(self->ctx, clear_options);
+    SSL_CTX_set_options(self->ctx, set_options);
+  }
+
+  return AMQP_STATUS_OK;
+}
+
 void
 amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize)
 {

@@ -726,7 +726,9 @@ typedef enum amqp_status_enum_
   AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD = -0x0013, /**< Broker does not
                                                           support the requested
                                                           SASL mechanism */
-  _AMQP_STATUS_NEXT_VALUE =               -0x0014, /**< Internal value */
+  AMQP_STATUS_UNSUPPORTED =               -0x0014, /**< Parameter is unsupported
+                                                     in this version */
+  _AMQP_STATUS_NEXT_VALUE =               -0x0015, /**< Internal value */
 
   AMQP_STATUS_TCP_ERROR =                 -0x0100, /**< A generic TCP error
                                                         occurred */
