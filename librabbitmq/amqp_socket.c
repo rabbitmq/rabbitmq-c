@@ -313,7 +313,7 @@ start_poll:
 #ifndef _WIN32
   /* On Win32 connect() failure is indicated through the exceptfds, it does not
    * make any sense to allow POLLERR on any other platform or condition */
-  assert(0 == event & AMQP_SF_POLLERR);
+  assert(0 == (event & AMQP_SF_POLLERR));
 #endif
 
 start_select:
