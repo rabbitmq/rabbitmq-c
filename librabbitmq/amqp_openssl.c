@@ -425,6 +425,8 @@ amqp_ssl_socket_new(amqp_connection_state_t state)
   if (!self->ctx) {
     goto error;
   }
+  /* Disable SSLv2 and SSLv3 */
+  SSL_CTX_set_options(self->ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 
   amqp_set_socket(state, (amqp_socket_t *)self);
 
