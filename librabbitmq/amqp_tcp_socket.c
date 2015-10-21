@@ -180,7 +180,7 @@ amqp_tcp_socket_open(void *base, const char *host, int port, struct timeval *tim
 }
 
 static int
-amqp_tcp_socket_close(void *base)
+amqp_tcp_socket_close(void *base, AMQP_UNUSED amqp_socket_close_enum force)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
   if (-1 == self->sockfd) {
@@ -208,7 +208,7 @@ amqp_tcp_socket_delete(void *base)
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
 
   if (self) {
-    amqp_tcp_socket_close(self);
+    amqp_tcp_socket_close(self, AMQP_SC_NONE);
     free(self);
   }
 }

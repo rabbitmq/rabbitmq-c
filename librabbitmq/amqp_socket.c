@@ -234,11 +234,11 @@ amqp_socket_open_noblock(amqp_socket_t *self, const char *host, int port, struct
 }
 
 int
-amqp_socket_close(amqp_socket_t *self)
+amqp_socket_close(amqp_socket_t *self, amqp_socket_close_enum force)
 {
   assert(self);
   assert(self->klass->close);
-  return self->klass->close(self);
+  return self->klass->close(self, force);
 }
 
 void
@@ -852,7 +852,7 @@ beginrecv:
 
     if (AMQP_STATUS_TIMEOUT == res) {
       if (amqp_time_equal(deadline, state->next_recv_heartbeat)) {
-        amqp_socket_close(state->socket);
+        amqp_socket_close(state->socket, AMQP_SC_FORCE);
         return AMQP_STATUS_HEARTBEAT_TIMEOUT;
       } else if (amqp_time_equal(deadline, timeout_deadline)) {
         return AMQP_STATUS_TIMEOUT;

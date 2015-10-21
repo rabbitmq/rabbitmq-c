@@ -348,34 +348,19 @@ error_out1:
 }
 
 static int
-amqp_ssl_socket_close(void *base)
+amqp_ssl_socket_close(void *base, amqp_socket_close_enum force)
 {
-  int res;
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 
   if (-1 == self->sockfd) {
     return AMQP_STATUS_SOCKET_CLOSED;
   }
 
-start_shutdown:
-  res = SSL_shutdown(self->ssl);
-  if (0 == res) {
-    goto start_shutdown;
-  } else if (-1 == res) {
-    self->internal_error = SSL_get_error(self->ssl, res);
-    switch (self->internal_error) {
-      case SSL_ERROR_WANT_READ:
-        res = amqp_poll(self->sockfd, AMQP_SF_POLLIN, amqp_time_infinite());
-        break;
-      case SSL_ERROR_WANT_WRITE:
-        res = amqp_poll(self->sockfd, AMQP_SF_POLLOUT, amqp_time_infinite());
-        break;
-    }
-    if (AMQP_STATUS_OK == res) {
-      goto start_shutdown;
-    }
-    /* Swallow errors in poll, just consider the connection dead */
+  if (AMQP_SC_NONE == force) {
+    /* don't try too hard to shutdown the connection */
+    SSL_shutdown(self->ssl);
   }
+
   SSL_free(self->ssl);
   self->ssl = NULL;
 
@@ -400,7 +385,7 @@ amqp_ssl_socket_delete(void *base)
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 
   if (self) {
-    amqp_ssl_socket_close(self);
+    amqp_ssl_socket_close(self, AMQP_SC_NONE);
 
     SSL_CTX_free(self->ctx);
     free(self);

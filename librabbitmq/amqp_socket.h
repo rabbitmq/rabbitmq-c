@@ -45,6 +45,11 @@ typedef enum {
   AMQP_SF_POLLERR = 8
 } amqp_socket_flag_enum;
 
+typedef enum {
+  AMQP_SC_NONE = 0,
+  AMQP_SC_FORCE = 1
+} amqp_socket_close_enum;
+
 int
 amqp_os_socket_error(void);
 
@@ -55,7 +60,7 @@ amqp_os_socket_close(int sockfd);
 typedef ssize_t (*amqp_socket_send_fn)(void *, const void *, size_t, int);
 typedef ssize_t (*amqp_socket_recv_fn)(void *, void *, size_t, int);
 typedef int (*amqp_socket_open_fn)(void *, const char *, int, struct timeval *);
-typedef int (*amqp_socket_close_fn)(void *);
+typedef int (*amqp_socket_close_fn)(void *, amqp_socket_close_enum);
 typedef int (*amqp_socket_get_sockfd_fn)(void *);
 typedef void (*amqp_socket_delete_fn)(void *);
 
@@ -132,11 +137,13 @@ amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags);
  * longer be referenced.
  *
  * \param [in,out] self A socket object.
+ * \param [in] force, if set, just close the socket, don't attempt a TLS
+ * shutdown.
  *
  * \return Zero upon success, non-zero otherwise.
  */
 int
-amqp_socket_close(amqp_socket_t *self);
+amqp_socket_close(amqp_socket_t *self, amqp_socket_close_enum force);
 
 /**
  * Destroy a socket object
