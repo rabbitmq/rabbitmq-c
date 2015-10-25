@@ -2306,6 +2306,10 @@ AMQP_CALL amqp_default_connection_info(struct amqp_connection_info *parsed);
  *  amqp://guest:guest\@localhost:5672//
  *  amqp://guest:guest\@localhost/myvhost
  *
+ *  Any missing parts of the URL will be set to the defaults specified in
+ *  amqp_default_connection_info. For amqps: URLs the default port will be set
+ *  to 5671 instead of 5672 for non-SSL URLs.
+ *
  * \note This function modifies url parameter.
  *
  * \param [in] url URI to parse, note that this parameter is modified by the
