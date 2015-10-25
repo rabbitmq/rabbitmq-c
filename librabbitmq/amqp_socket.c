@@ -1253,7 +1253,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
 
   res = amqp_simple_wait_method(state, 0, AMQP_CONNECTION_START_METHOD,
                                 &method);
-  if (res < 0) {
+  if (res != AMQP_STATUS_OK) {
     goto error_res;
   }
 
