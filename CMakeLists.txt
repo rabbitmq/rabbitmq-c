@@ -144,7 +144,8 @@ endif()
 cmake_pop_check_state()
 
 check_library_exists(rt clock_gettime "time.h" CLOCK_GETTIME_NEEDS_LIBRT)
-if (CLOCK_GETTIME_NEEDS_LIBRT)
+check_library_exists(rt posix_spawnp "spawn.h" POSIX_SPAWNP_NEEDS_LIBRT)
+if (CLOCK_GETTIME_NEEDS_LIBRT OR POSIX_SPAWNP_NEEDS_LIBRT)
   set(LIBRT rt)
 endif()
 
