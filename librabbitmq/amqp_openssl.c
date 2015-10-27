@@ -201,8 +201,9 @@ static int hostname_matches_subject_alt_name(const char *hostname, X509 *cert)
     if (namePart->type == GEN_DNS) {
       found_any_entries = 1;
       found_match = match(namePart->d.uniformResourceIdentifier, hostname);
-      if (found_match)
+      if (found_match) {
         return 1;
+      }
     }
   }
 
@@ -220,12 +221,14 @@ static int hostname_matches_subject_common_name(const char *hostname, X509 *cert
   position = -1;
   for (;;) {
     position = X509_NAME_get_index_by_NID(name, NID_commonName, position);
-    if (position == -1)
+    if (position == -1) {
       break;
+    }
     name_entry = X509_NAME_get_entry(name, position);
     entry_string = X509_NAME_ENTRY_get_data(name_entry);
-    if (match(entry_string, hostname))
+    if (match(entry_string, hostname)) {
       return 1;
+    }
   }
   return 0;
 }
@@ -244,8 +247,9 @@ amqp_ssl_socket_verify_hostname(void *base, const char *host)
   res = hostname_matches_subject_alt_name(host, cert);
   if (res != 1) {
     res = hostname_matches_subject_common_name(host, cert);
-    if (!res)
+    if (!res) {
       goto error;
+    }
   }
 exit:
   X509_free(cert);
