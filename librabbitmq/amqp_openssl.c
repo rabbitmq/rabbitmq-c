@@ -248,8 +248,12 @@ amqp_ssl_socket_verify_hostname(void *base, const char *host)
       goto error;
   }
 exit:
+  X509_free(cert);
   return status;
 error:
+  if (cert) {
+      X509_free(cert);
+  }
   status = -1;
   goto exit;
 }
