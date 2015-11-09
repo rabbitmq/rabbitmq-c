@@ -26,6 +26,11 @@
  * copyright holder.
  */
 
+typedef enum {
+  AMQP_HCR_NO_MATCH = 0,
+  AMQP_HCR_MATCH = 1
+} amqp_hostcheck_result;
+
 /**
  * Determine whether hostname matches match_pattern.
  *
@@ -35,10 +40,10 @@
  * http://tools.ietf.org/html/rfc6125#section-6.4.3
  *
  * \param match_pattern RFC6125 compliant pattern
- * \param hostname hostname to match against
- * \returns 1 if hostname matches, 0 otherwise.
+ * \param hostname to match against
+ * \returns AMQP_HCR_MATCH if its a match, AMQP_HCR_NO_MATCH otherwise.
  */
-int
-amqp_hostcheck(const char *match_pattern, const char *hostname);
+amqp_hostcheck_result amqp_hostcheck(const char *match_pattern,
+                                     const char *hostname);
 
 #endif
