@@ -23,7 +23,7 @@
  * copyright holder.
  */
 
-#include "amqp_private.h"
+#include "amqp_hostcheck.h"
 
 #include <string.h>
 

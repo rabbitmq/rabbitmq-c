@@ -26,10 +26,18 @@
  * copyright holder.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
+/**
+ * Determine whether hostname matches match_pattern.
+ *
+ * match_pattern may include wildcards.
+ *
+ * Match is performed based on the rules set forth in RFC6125 section 6.4.3.
+ * http://tools.ietf.org/html/rfc6125#section-6.4.3
+ *
+ * \param match_pattern RFC6125 compliant pattern
+ * \param hostname hostname to match against
+ * \returns 1 if hostname matches, 0 otherwise.
+ */
 int
 amqp_hostcheck(const char *match_pattern, const char *hostname);
 
