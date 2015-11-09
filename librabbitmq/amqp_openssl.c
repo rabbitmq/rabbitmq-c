@@ -29,9 +29,9 @@
 #include "config.h"
 #endif
 
+#include "amqp_openssl_hostname_validation.h"
 #include "amqp_ssl_socket.h"
 #include "amqp_socket.h"
-#include "amqp_hostcheck.h"
 #include "amqp_private.h"
 #include "amqp_time.h"
 #include "threads.h"
@@ -150,106 +150,20 @@ amqp_ssl_socket_recv(void *base,
   return received;
 }
 
-static int match(ASN1_STRING *entry_string, const char *string)
-{
-  unsigned char *utf8_value = NULL, *cp, ch;
-  int utf8_length, status = 1;
-  utf8_length = ASN1_STRING_to_UTF8(&utf8_value, entry_string);
-  if (0 > utf8_length) {
-    goto error;
-  }
-  while (utf8_length > 0 && utf8_value[utf8_length - 1] == 0) {
-    --utf8_length;
-  }
-  if (utf8_length >= 256) {
-    goto error;
-  }
-  if ((size_t)utf8_length != strlen((char *)utf8_value)) {
-    goto error;
-  }
-  for (cp = utf8_value; (ch = *cp) != '\0'; ++cp) {
-    if (isascii(ch) && !isprint(ch)) {
-      goto error;
-    }
-  }
-  if (!amqp_hostcheck((char *)utf8_value, string)) {
-    goto error;
-  }
-exit:
-  OPENSSL_free(utf8_value);
-  return status;
-error:
-  status = 0;
-  goto exit;
-}
-
-/* Does this hostname match an entry in the subjectAltName extension?
- * returns: 0 if no, 1 if yes, -1 if no subjectAltName entries were found.
- */
-static int hostname_matches_subject_alt_name(const char *hostname, X509 *cert)
-{
-  int found_any_entries = 0;
-  int found_match;
-  GENERAL_NAME *namePart = NULL;
-  STACK_OF(GENERAL_NAME) *san =
-    (STACK_OF(GENERAL_NAME)*) X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
-
-  while (sk_GENERAL_NAME_num(san) > 0)
-  {
-    namePart = sk_GENERAL_NAME_pop(san);
-
-    if (namePart->type == GEN_DNS) {
-      found_any_entries = 1;
-      found_match = match(namePart->d.uniformResourceIdentifier, hostname);
-      if (found_match) {
-        return 1;
-      }
-    }
-  }
-
-  return (found_any_entries ? 0 : -1);
-}
-
-static int hostname_matches_subject_common_name(const char *hostname, X509 *cert)
-{
-  X509_NAME *name;
-  X509_NAME_ENTRY *name_entry;
-  int position;
-  ASN1_STRING *entry_string;
-
-  name = X509_get_subject_name(cert);
-  position = -1;
-  for (;;) {
-    position = X509_NAME_get_index_by_NID(name, NID_commonName, position);
-    if (position == -1) {
-      break;
-    }
-    name_entry = X509_NAME_get_entry(name, position);
-    entry_string = X509_NAME_ENTRY_get_data(name_entry);
-    if (match(entry_string, hostname)) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
 static int
 amqp_ssl_socket_verify_hostname(void *base, const char *host)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   int status = 0;
   X509 *cert;
-  int res;
   cert = SSL_get_peer_certificate(self->ssl);
   if (!cert) {
     goto error;
   }
-  res = hostname_matches_subject_alt_name(host, cert);
-  if (res != 1) {
-    res = hostname_matches_subject_common_name(host, cert);
-    if (!res) {
-      goto error;
-    }
+  if (AMQP_HVR_MATCH_FOUND == amqp_ssl_validate_hostname(host, cert)) {
+    status = 1;
+  } else {
+    status = 0;
   }
 exit:
   X509_free(cert);
