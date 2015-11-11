@@ -79,7 +79,7 @@ static amqp_hostname_validation_result amqp_matches_common_name(
   }
 
   // Compare expected hostname with the CN
-  if (strcasecmp(hostname, common_name_str) == 0) {
+  if (amqp_hostcheck(common_name_str, hostname) == AMQP_HCR_MATCH) {
     return AMQP_HVR_MATCH_FOUND;
   } else {
     return AMQP_HVR_MATCH_NOT_FOUND;
@@ -126,7 +126,7 @@ static amqp_hostname_validation_result amqp_matches_subject_alternative_name(
         result = AMQP_HVR_MALFORMED_CERTIFICATE;
         break;
       } else {  // Compare expected hostname with the DNS name
-        if (amqp_hostcheck(hostname, dns_name) == 0) {
+        if (amqp_hostcheck(dns_name, hostname) == AMQP_HCR_MATCH) {
           result = AMQP_HVR_MATCH_FOUND;
           break;
         }
