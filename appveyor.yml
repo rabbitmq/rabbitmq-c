@@ -4,10 +4,16 @@ version: '{build}'
 environment:
   matrix:
     - GENERATOR: Visual Studio 12 Win64
+      BITS: 64
     - GENERATOR: Visual Studio 12
+      BITS: 32
+
+install:
+  - ps: Start-FileDownload "http://slproweb.com/download/Win${env:BITS}OpenSSL-1_0_2d.exe"
+  - Win%BITS%OpenSSL-1_0_2d.exe /silent /verysilent /sp- /suppressmsgboxes /dir="c:\OpenSSL"
 
 before_build:
-  - cmake -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DBUILD_TESTS=ON -DENABLE_SSL_SUPPORT=False -G"%GENERATOR%" .
+  - cmake -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DBUILD_TESTS=ON -DENABLE_SSL_SUPPORT=True -G"%GENERATOR%" .
 
 build:
   project: ALL_BUILD.vcxproj
