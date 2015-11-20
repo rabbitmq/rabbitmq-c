@@ -236,6 +236,16 @@ start_connect:
   }
 
   if (self->verify_peer) {
+    X509 *cert;
+    cert = SSL_get_peer_certificate(self->ssl);
+    if (!cert) {
+      self->internal_error = 0;
+      status = AMQP_STATUS_SSL_PEER_VERIFY_FAILED;
+      goto error_out3;
+    }
+
+    X509_free(cert);
+
     result = SSL_get_verify_result(self->ssl);
     if (X509_V_OK != result) {
       self->internal_error = result;
