@@ -1,6 +1,9 @@
 # appveyor configuration
 version: '{build}'
 
+# Limit history cloned. This matches what travis-CI currently does.
+clone_depth: 50
+
 environment:
   matrix:
     - GENERATOR: Visual Studio 12 Win64
