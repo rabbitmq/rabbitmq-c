@@ -40,7 +40,8 @@ set -x  # echo commands.
 
 case $TRAVIS_OS_NAME in
 osx)
-  brew update -quiet
+  # This prints out a long list of updated packages, which isn't useful.
+  brew update > /dev/null
   brew install popt
   ;;
 esac
