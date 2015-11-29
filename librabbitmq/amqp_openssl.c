@@ -37,6 +37,7 @@
 #include "threads.h"
 
 #include <ctype.h>
+#include <limits.h>
 #include <openssl/conf.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
@@ -78,9 +79,15 @@ struct amqp_ssl_socket_t {
 static ssize_t amqp_ssl_socket_send(void *base, const void *buf, size_t len,
                                     AMQP_UNUSED int flags) {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  ssize_t res;
+  int res;
   if (-1 == self->sockfd) {
     return AMQP_STATUS_SOCKET_CLOSED;
+  }
+
+  /* SSL_write takes an int for length of buffer, protect against len being
+   * larger than larger than what SSL_write can take */
+  if (len > INT_MAX) {
+    return AMQP_STATUS_INVALID_PARAMETER;
   }
 
   ERR_clear_error();
@@ -88,7 +95,7 @@ static ssize_t amqp_ssl_socket_send(void *base, const void *buf, size_t len,
 
   /* This will only return on error, or once the whole buffer has been
    * written to the SSL stream. See SSL_MODE_ENABLE_PARTIAL_WRITE */
-  res = SSL_write(self->ssl, buf, len);
+  res = SSL_write(self->ssl, buf, (int)len);
   if (0 >= res) {
     self->internal_error = SSL_get_error(self->ssl, res);
     /* TODO: Close connection if it isn't already? */
@@ -111,7 +118,7 @@ static ssize_t amqp_ssl_socket_send(void *base, const void *buf, size_t len,
     self->internal_error = 0;
   }
 
-  return res;
+  return (ssize_t)res;
 }
 
 static ssize_t
@@ -121,14 +128,21 @@ amqp_ssl_socket_recv(void *base,
                      AMQP_UNUSED int flags)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  ssize_t received;
+  int received;
   if (-1 == self->sockfd) {
     return AMQP_STATUS_SOCKET_CLOSED;
   }
+
+  /* SSL_read takes an int for length of buffer, protect against len being
+   * larger than larger than what SSL_read can take */
+  if (len > INT_MAX) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
+
   ERR_clear_error();
   self->internal_error = 0;
 
-  received = SSL_read(self->ssl, buf, len);
+  received = SSL_read(self->ssl, buf, (int)len);
   if (0 >= received) {
     self->internal_error = SSL_get_error(self->ssl, received);
     switch (self->internal_error) {
@@ -147,7 +161,7 @@ amqp_ssl_socket_recv(void *base,
     }
   }
 
-  return received;
+  return (ssize_t)received;
 }
 
 static int
@@ -431,12 +445,15 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *base,
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
+  if (n > INT_MAX) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
   self = (struct amqp_ssl_socket_t *)base;
   status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
   if (1 != status) {
     return AMQP_STATUS_SSL_ERROR;
   }
-  buf = BIO_new_mem_buf((void *)key, n);
+  buf = BIO_new_mem_buf((void *)key, (int)n);
   if (!buf) {
     goto error;
   }
