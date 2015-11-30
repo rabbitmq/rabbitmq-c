@@ -149,7 +149,12 @@ if (BUILD_STATIC_LIBS)
 
     set_target_properties(rabbitmq-static PROPERTIES COMPILE_DEFINITIONS AMQP_STATIC)
     if (WIN32)
-        set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
+        set_target_properties(rabbitmq-static PROPERTIES
+          # Embed debugging info in the library itself instead of generating
+          # a .pdb file.
+          COMPILE_OPTIONS "/Z7"
+          VERSION ${RMQ_VERSION}
+          OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
     else (WIN32)
         set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
     endif (WIN32)
@@ -157,7 +162,6 @@ if (BUILD_STATIC_LIBS)
     install(TARGETS rabbitmq-static
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
-    install_pdb(rabbitmq-static)
 
     if (NOT DEFINED RMQ_LIBRARY_TARGET)
         set(RMQ_LIBRARY_TARGET rabbitmq-static)
