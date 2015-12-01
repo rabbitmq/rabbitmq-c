@@ -165,38 +165,13 @@ amqp_ssl_socket_recv(void *base,
 }
 
 static int
-amqp_ssl_socket_verify_hostname(void *base, const char *host)
-{
-  struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  int status = 0;
-  X509 *cert;
-  cert = SSL_get_peer_certificate(self->ssl);
-  if (!cert) {
-    goto error;
-  }
-  if (AMQP_HVR_MATCH_FOUND == amqp_ssl_validate_hostname(host, cert)) {
-    status = 1;
-  } else {
-    status = 0;
-  }
-exit:
-  X509_free(cert);
-  return status;
-error:
-  if (cert) {
-      X509_free(cert);
-  }
-  status = -1;
-  goto exit;
-}
-
-static int
 amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *timeout)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   long result;
   int status;
   amqp_time_t deadline;
+  X509 *cert;
   if (-1 != self->sockfd) {
     return AMQP_STATUS_SOCKET_INUSE;
   }
@@ -249,39 +224,45 @@ start_connect:
     goto error_out2;
   }
 
+  cert = SSL_get_peer_certificate(self->ssl);
+
   if (self->verify_peer) {
-    X509 *cert;
-    cert = SSL_get_peer_certificate(self->ssl);
     if (!cert) {
       self->internal_error = 0;
       status = AMQP_STATUS_SSL_PEER_VERIFY_FAILED;
       goto error_out3;
     }
 
-    X509_free(cert);
-
     result = SSL_get_verify_result(self->ssl);
     if (X509_V_OK != result) {
       self->internal_error = result;
       status = AMQP_STATUS_SSL_PEER_VERIFY_FAILED;
-      goto error_out3;
+      goto error_out4;
     }
   }
   if (self->verify_hostname) {
-    int verify_status = amqp_ssl_socket_verify_hostname(self, host);
-    if (verify_status) {
+    if (!cert) {
       self->internal_error = 0;
       status = AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED;
       goto error_out3;
     }
+
+    if (AMQP_HVR_MATCH_FOUND != amqp_ssl_validate_hostname(host, cert)) {
+      self->internal_error = 0;
+      status = AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED;
+      goto error_out4;
+    }
   }
 
+  X509_free(cert);
   self->internal_error = 0;
   status = AMQP_STATUS_OK;
 
 exit:
   return status;
 
+error_out4:
+  X509_free(cert);
 error_out3:
   SSL_shutdown(self->ssl);
 error_out2:
