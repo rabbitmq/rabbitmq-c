@@ -163,7 +163,7 @@ void amqp_dump(void const *buffer, size_t len)
     int ch = buf[i];
 
     if (numinrow == 16) {
-      int i;
+      int j;
 
       if (rows_eq(oldchs, chs)) {
         if (!showed_dots) {
@@ -175,8 +175,8 @@ void amqp_dump(void const *buffer, size_t len)
         dump_row(count, numinrow, chs);
       }
 
-      for (i=0; i<16; i++) {
-        oldchs[i] = chs[i];
+      for (j=0; j<16; j++) {
+        oldchs[j] = chs[j];
       }
 
       numinrow = 0;
