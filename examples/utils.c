@@ -82,7 +82,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context)
     switch (x.reply.id) {
     case AMQP_CONNECTION_CLOSE_METHOD: {
       amqp_connection_close_t *m = (amqp_connection_close_t *) x.reply.decoded;
-      fprintf(stderr, "%s: server connection error %d, message: %.*s\n",
+      fprintf(stderr, "%s: server connection error %uh, message: %.*s\n",
               context,
               m->reply_code,
               (int) m->reply_text.len, (char *) m->reply_text.bytes);
@@ -90,7 +90,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context)
     }
     case AMQP_CHANNEL_CLOSE_METHOD: {
       amqp_channel_close_t *m = (amqp_channel_close_t *) x.reply.decoded;
-      fprintf(stderr, "%s: server channel error %d, message: %.*s\n",
+      fprintf(stderr, "%s: server channel error %uh, message: %.*s\n",
               context,
               m->reply_code,
               (int) m->reply_text.len, (char *) m->reply_text.bytes);
