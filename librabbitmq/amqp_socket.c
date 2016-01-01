@@ -805,7 +805,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
     return res;
   }
 
-  while (1) {
+  for (;;) {
     int res;
 
     while (amqp_data_in_buffer(state)) {
@@ -951,7 +951,7 @@ int amqp_simple_wait_frame_on_channel(amqp_connection_state_t state,
     }
   }
 
-  while (1) {
+  for (;;) {
     res = wait_frame_inner(state, decoded_frame, NULL);
 
     if (AMQP_STATUS_OK != res) {

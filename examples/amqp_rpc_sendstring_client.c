@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
       size_t body_target;
       size_t body_received;
 
-      while (1) {
+      for (;;) {
         amqp_maybe_release_buffers(conn);
         result = amqp_simple_wait_frame(conn, &frame);
         printf("Result: %d\n", result);
