@@ -86,7 +86,7 @@ static int
 amqp_os_socket_init(void)
 {
 #ifdef _WIN32
-  static called_wsastartup = 0;
+  static int called_wsastartup = 0;
   if (!called_wsastartup) {
     WSADATA data;
     int res = WSAStartup(0x0202, &data);
