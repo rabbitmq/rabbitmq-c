@@ -153,7 +153,7 @@ amqp_os_socket_setsockblock(int sock, int block)
 {
 
 #ifdef _WIN32
-  int nonblock = !block;
+  u_long nonblock = !block;
   if (NO_ERROR != ioctlsocket(sock, FIONBIO, &nonblock)) {
     return AMQP_STATUS_SOCKET_ERROR;
   } else {
