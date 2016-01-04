@@ -806,8 +806,6 @@ static int wait_frame_inner(amqp_connection_state_t state,
   }
 
   for (;;) {
-    int res;
-
     while (amqp_data_in_buffer(state)) {
       res = consume_one_frame(state, decoded_frame);
 
