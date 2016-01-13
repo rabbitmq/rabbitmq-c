@@ -29,8 +29,16 @@ build_tsan() {
   ctest -V .
 }
 
+build_scan-build() {
+  mkdir $PWD/_build && cd $PWD/_build
+  scan-build-3.7 cmake .. -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
+    -DCMAKE_C_FLAGS="-Werror"
+  scan-build-3.7 make install
+}
+
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 {autotools|cmake|asan|tsan}"
+  echo "Usage: $0 {autotools|cmake|asan|tsan|scan-build}"
   exit 1
 fi
 
