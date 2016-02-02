@@ -1875,10 +1875,10 @@ struct amqp_basic_properties_t_;
  * \param [in] routing_key the routing key to use when publishing the message
  * \param [in] mandatory indicate to the broker that the message MUST be routed
  *              to a queue. If the broker cannot do this it should respond with
- *              a basic.reject method.
+ *              a basic.return method.
  * \param [in] immediate indicate to the broker that the message MUST be delivered
  *              to a consumer immediately. If the broker cannot do this it should
- *              response with a basic.reject method.
+ *              response with a basic.return method.
  * \param [in] properties the properties associated with the message
  * \param [in] body the message body
  * \return AMQP_STATUS_OK on success, amqp_status_enum value on failure. Note
