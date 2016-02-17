@@ -159,7 +159,7 @@ int main(int argc, char const *const *argv)
 
   if (argc < 3) {
     fprintf(stderr, "Usage: amqps_consumer host port "
-            "[cacert.pem [key.pem cert.pem]]\n");
+            "[cacert.pem [verifypeer] [verifyhostname] [key.pem cert.pem]]\n");
     return 1;
   }
 
@@ -175,17 +175,29 @@ int main(int argc, char const *const *argv)
     die("creating SSL/TLS socket");
   }
 
+  amqp_ssl_socket_set_verify_peer(socket, 0);
+  amqp_ssl_socket_set_verify_hostname(socket, 0);
+
   if (argc > 3) {
+    int nextarg = 4;
     status = amqp_ssl_socket_set_cacert(socket, argv[3]);
     if (status) {
       die("setting CA certificate");
     }
-  }
-
-  if (argc > 5) {
-    status = amqp_ssl_socket_set_key(socket, argv[5], argv[4]);
-    if (status) {
-      die("setting client key");
+    if (argc > nextarg && !strcmp("verifypeer", argv[nextarg])) {
+      amqp_ssl_socket_set_verify_peer(socket, 1);
+      nextarg++;
+    }
+    if (argc > nextarg && !strcmp("verifyhostname", argv[nextarg])) {
+      amqp_ssl_socket_set_verify_hostname(socket, 1);
+      nextarg++;
+    }
+    if (argc > nextarg + 1) {
+      status =
+          amqp_ssl_socket_set_key(socket, argv[nextarg + 1], argv[nextarg]);
+      if (status) {
+        die("setting client key");
+      }
     }
   }
 
