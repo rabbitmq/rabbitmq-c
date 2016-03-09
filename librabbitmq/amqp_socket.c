@@ -1237,10 +1237,31 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
 {
   int res;
   amqp_method_t method;
-  int server_frame_max;
+
+  uint16_t client_channel_max;
+  uint32_t client_frame_max;
+  uint16_t client_heartbeat;
+
   uint16_t server_channel_max;
+  uint32_t server_frame_max;
   uint16_t server_heartbeat;
+
   amqp_rpc_reply_t result;
+
+  if (channel_max < 0 || channel_max > UINT16_MAX) {
+    return amqp_rpc_reply_error(AMQP_STATUS_INVALID_PARAMETER);
+  }
+  client_channel_max = (uint16_t)channel_max;
+
+  if (frame_max < 0) {
+    return amqp_rpc_reply_error(AMQP_STATUS_INVALID_PARAMETER);
+  }
+  client_frame_max = (uint32_t)frame_max;
+
+  if (heartbeat < 0 || heartbeat > UINT16_MAX) {
+    return amqp_rpc_reply_error(AMQP_STATUS_INVALID_PARAMETER);
+  }
+  client_heartbeat = (uint16_t)heartbeat;
 
   res = amqp_send_header(state);
   if (AMQP_STATUS_OK != res) {
@@ -1366,30 +1387,31 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   }
 
   if (server_channel_max != 0 &&
-      (server_channel_max < channel_max || channel_max == 0)) {
-    channel_max = server_channel_max;
-  } else if (server_channel_max == 0 && channel_max == 0) {
-    channel_max = UINT16_MAX;
+      (server_channel_max < client_channel_max || client_channel_max == 0)) {
+    client_channel_max = server_channel_max;
+  } else if (server_channel_max == 0 && client_channel_max == 0) {
+    client_channel_max = UINT16_MAX;
   }
 
-  if (server_frame_max != 0 && server_frame_max < frame_max) {
-    frame_max = server_frame_max;
+  if (server_frame_max != 0 && server_frame_max < client_frame_max) {
+    client_frame_max = server_frame_max;
   }
 
-  if (server_heartbeat != 0 && server_heartbeat < heartbeat) {
-    heartbeat = server_heartbeat;
+  if (server_heartbeat != 0 && server_heartbeat < client_heartbeat) {
+    client_heartbeat = server_heartbeat;
   }
 
-  res = amqp_tune_connection(state, channel_max, frame_max, heartbeat);
+  res = amqp_tune_connection(state, client_channel_max, client_frame_max,
+                             client_heartbeat);
   if (res < 0) {
     goto error_res;
   }
 
   {
     amqp_connection_tune_ok_t s;
-    s.frame_max = frame_max;
-    s.channel_max = channel_max;
-    s.heartbeat = heartbeat;
+    s.frame_max = client_frame_max;
+    s.channel_max = client_channel_max;
+    s.heartbeat = client_heartbeat;
 
     res = amqp_send_method(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD, &s);
     if (res < 0) {
