@@ -369,6 +369,13 @@ amqp_abort(const char *fmt, ...);
 
 int amqp_bytes_equal(amqp_bytes_t r, amqp_bytes_t l);
 
+static inline amqp_rpc_reply_t amqp_rpc_reply_error(amqp_status_enum status) {
+  amqp_rpc_reply_t reply;
+  reply.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+  reply.library_error = status;
+  return reply;
+}
+
 int amqp_send_frame_inner(amqp_connection_state_t state,
                           const amqp_frame_t *frame, int flags);
 #endif
