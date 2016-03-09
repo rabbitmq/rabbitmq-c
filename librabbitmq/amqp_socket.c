@@ -351,7 +351,6 @@ start_select:
         return AMQP_STATUS_SOCKET_ERROR;
     }
   }
-  return AMQP_STATUS_OK;
 #else
 # error "poll() or select() is needed to compile rabbitmq-c"
 #endif
