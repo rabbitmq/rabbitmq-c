@@ -130,7 +130,7 @@ static void run(amqp_connection_state_t conn)
               return;
 
             default:
-              fprintf(stderr ,"An unexpected method was received %d\n", frame.payload.method.id);
+              fprintf(stderr ,"An unexpected method was received %u\n", frame.payload.method.id);
               return;
           }
         }
