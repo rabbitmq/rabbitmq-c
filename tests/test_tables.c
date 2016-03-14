@@ -465,6 +465,9 @@ int main(void)
   }
 
   expected_path = malloc(strlen(srcdir) + strlen(expected_file_name) + 2);
+  if (!expected_path) {
+    die("out of memory");
+  }
   sprintf(expected_path, "%s/%s", srcdir, expected_file_name);
   expected = fopen(expected_path, "r");
   if (!expected) {

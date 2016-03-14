@@ -68,6 +68,7 @@ int main(int argc, char const *const *argv)
   int timeout;
   amqp_socket_t *socket;
   amqp_connection_state_t conn;
+  struct timeval tval;
   struct timeval *tv;
 
   if (argc < 3) {
@@ -83,10 +84,7 @@ int main(int argc, char const *const *argv)
 
   timeout = atoi(argv[3]);
   if (timeout > 0) {
-    tv = malloc(sizeof(struct timeval));
-    if (tv == NULL) {
-      die("failed to malloc struct timeval");
-    }
+    tv = &tval;
 
     tv->tv_sec = timeout;
     tv->tv_usec = 0;

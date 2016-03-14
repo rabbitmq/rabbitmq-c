@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
           break;
         }
 
-        printf("Frame type: %d channel: %d\n", frame.frame_type, frame.channel);
+        printf("Frame type: %u channel: %u\n", frame.frame_type, frame.channel);
         if (frame.frame_type != AMQP_FRAME_METHOD) {
           continue;
         }
