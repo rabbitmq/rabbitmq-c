@@ -22,9 +22,9 @@ The latest stable release of rabbitmq-c can be found at:
 
 ## Documentation
 
-API documentation for v0.5.0+ can viewed from:
+API documentation for v0.8.0+ can viewed from:
 
-<http://alanxz.github.io/rabbitmq-c/docs/0.5.0/>
+<http://alanxz.github.io/rabbitmq-c/docs/0.8.0/>
 
 ## Getting started
 
