@@ -1424,8 +1424,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     amqp_method_number_t replies[] = { AMQP_CONNECTION_OPEN_OK_METHOD, 0 };
     amqp_connection_open_t s;
     s.virtual_host = amqp_cstring_bytes(vhost);
-    s.capabilities.len = 0;
-    s.capabilities.bytes = NULL;
+    s.capabilities = amqp_empty_bytes;
     s.insist = 1;
 
     result = amqp_simple_rpc(state,
