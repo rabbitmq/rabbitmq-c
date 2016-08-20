@@ -346,6 +346,13 @@ static inline int amqp_encode_bytes(amqp_bytes_t encoded, size_t *offset,
                                     amqp_bytes_t input)
 {
   size_t o = *offset;
+  /* The memcpy below has undefined behavior if the input is NULL. It is valid
+   * for a 0-length amqp_bytes_t to have .bytes == NULL. Thus we should check
+   * before encoding.
+   */
+  if (input.len == 0) {
+    return 1;
+  }
   if ((*offset = o + input.len) <= encoded.len) {
     memcpy(amqp_offset(encoded.bytes, o), input.bytes, input.len);
     return 1;
