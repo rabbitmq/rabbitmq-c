@@ -2443,6 +2443,56 @@ amqp_table_t *
 AMQP_CALL
 amqp_get_client_properties(amqp_connection_state_t state);
 
+/**
+ * Get the login handshake timeout.
+ *
+ * amqp_login and amqp_login_with_properties perform the login handshake with
+ * the broker.  This function returns the timeout associated with completing
+ * this operation from the client side. This value can be set by using the
+ * amqp_set_handshake_timeout.
+ *
+ * Note that the RabbitMQ broker has configurable timeout for completing the
+ * login handshake, the default is 10 seconds.  rabbitmq-c has a default of 12
+ * seconds.
+ *
+ * \param [in] state the connection object
+ * \return a struct timeval representing the current login timeout for the state
+ *  object. A NULL value represents an infinite timeout. The memory returned is
+ *  owned by the connection object.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+struct timeval *AMQP_CALL
+    amqp_get_handshake_timeout(amqp_connection_state_t state);
+
+/**
+ * Set the login handshake timeout.
+ *
+ * amqp_login and amqp_login_with_properties perform the login handshake with
+ * the broker. This function sets the timeout associated with completing this
+ * operation from the client side.
+ *
+ * The timeout must be set before amqp_login or amqp_login_with_properties is
+ * called to change from the default timeout.
+ *
+ * Note that the RabbitMQ broker has a configurable timeout for completing the
+ * login handshake, the default is 10 seconds. rabbitmq-c has a default of 12
+ * seconds.
+ *
+ * \param [in] state the connection object
+ * \param [in] timeout a struct timetval* representing new login timeout for the
+ *  state object. NULL represents an infinite timeout. The value of timeout is
+ *  copied internally, the caller is responsible for ownership of the passed in
+ *  pointer, it does not need to remain valid after this function is called.
+ * \return AMQP_STATUS_OK on success.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+int AMQP_CALL amqp_set_handshake_timeout(amqp_connection_state_t state,
+                                         struct timeval *timeout);
+
 AMQP_END_DECLS
 
 

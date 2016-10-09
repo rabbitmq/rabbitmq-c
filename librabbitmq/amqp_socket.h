@@ -179,7 +179,8 @@ int amqp_poll(int fd, int event, amqp_time_t deadline);
 
 int amqp_send_method_inner(amqp_connection_state_t state,
                            amqp_channel_t channel, amqp_method_number_t id,
-                           void *decoded, int flags);
+                           void *decoded, int flags, amqp_time_t deadline);
+
 int
 amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame);
 
