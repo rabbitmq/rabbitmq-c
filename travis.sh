@@ -4,6 +4,7 @@ build_autotools() {
   autoreconf -i
   ./configure --prefix=$PWD/_install
   make install
+  make dist
 }
 
 build_cmake() {
