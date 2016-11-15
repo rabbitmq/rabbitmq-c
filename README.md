@@ -12,7 +12,7 @@ This is a C-language AMQP client library for use with v2.0+ of the
 Announcements regarding the library are periodically made on the
 rabbitmq-c-users and cross-posted to rabbitmq-users.
 
- - <https://groups.google.com/forum/#!focum/rabbitmq-c-users>
+ - <https://groups.google.com/forum/#!forum/rabbitmq-c-users>
  - <https://groups.google.com/forum/#!forum/rabbitmq-users>
 
 ## Latest Stable Version
