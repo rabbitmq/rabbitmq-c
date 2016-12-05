@@ -75,10 +75,10 @@ static void empty_blocklist(amqp_pool_blocklist_t *x)
 {
   int i;
 
-  for (i = 0; i < x->num_blocks; i++) {
-    free(x->blocklist[i]);
-  }
   if (x->blocklist != NULL) {
+    for (i = 0; i < x->num_blocks; i++) {
+      free(x->blocklist[i]);
+    }
     free(x->blocklist);
   }
   x->num_blocks = 0;
