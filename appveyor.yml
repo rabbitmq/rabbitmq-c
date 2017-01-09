@@ -14,21 +14,6 @@ environment:
 cache:
   - c:\deps -> appveyor.yml
 
-install:
-  - ps: $file = "Win${env:BITS}OpenSSL-1_0_2k.exe"
-  - ps: $dir = "c:\deps"
-  - ps: $exists = Test-Path "$dir\$file"
-  - ps: >-
-      If ($exists -ne $True) {
-        Write-Host "Downloading: $dir\$file."
-        New-Item -Path $dir -type directory -force
-        Start-FileDownload "http://slproweb.com/download/$file" -FileName "$dir\$file"
-      } Else {
-        Write-Host "Reusing cached: $dir\$file."
-      }
-  - ps: >-
-      & "$dir\$file" /silent /verysilent /sp- /suppressmsgboxes /dir="c:\OpenSSL"
-
 before_build:
   - cmake -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DBUILD_TESTS=ON -DENABLE_SSL_SUPPORT=True -G"%GENERATOR%" .
 
