@@ -51,6 +51,7 @@ flags = [
 '-x',
 'c',
 '-I', './librabbitmq',
+'-I', './librabbitmq/unix',
 '-D', 'HAVE_POLL',
 ]
 
