@@ -59,12 +59,8 @@ static amqp_boolean_t openssl_initialized = 0;
 static unsigned long amqp_ssl_threadid_callback(void);
 static void amqp_ssl_locking_callback(int mode, int n, const char *file, int line);
 
-#ifdef _WIN32
-static long win32_create_mutex = 0;
-static pthread_mutex_t openssl_init_mutex = NULL;
-#else
 static pthread_mutex_t openssl_init_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
+
 static pthread_mutex_t *amqp_openssl_lockarray = NULL;
 #endif /* ENABLE_THREAD_SAFETY */
 
@@ -600,21 +596,6 @@ static int
 initialize_openssl(void)
 {
 #ifdef ENABLE_THREAD_SAFETY
-#ifdef _WIN32
-  /* No such thing as PTHREAD_INITIALIZE_MUTEX macro on Win32, so we use this */
-  if (NULL == openssl_init_mutex) {
-    while (InterlockedExchange(&win32_create_mutex, 1) == 1)
-      /* Loop, someone else is holding this lock */ ;
-
-    if (NULL == openssl_init_mutex) {
-      if (pthread_mutex_init(&openssl_init_mutex, NULL)) {
-        return -1;
-      }
-    }
-    InterlockedExchange(&win32_create_mutex, 0);
-  }
-#endif /* _WIN32 */
-
   if (pthread_mutex_lock(&openssl_init_mutex)) {
     return -1;
   }
