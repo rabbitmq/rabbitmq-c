@@ -86,6 +86,8 @@ if (ENABLE_SSL_SUPPORT)
       amqp_openssl_hostname_validation.h
       amqp_hostcheck.c
       amqp_hostcheck.h
+      amqp_openssl_bio.c
+      amqp_openssl_bio.h
   )
   include_directories(${OPENSSL_INCLUDE_DIR})
   set(AMQP_SSL_LIBS ${OPENSSL_LIBRARIES})

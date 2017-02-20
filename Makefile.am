@@ -45,6 +45,8 @@ librabbitmq_librabbitmq_la_SOURCES += \
   librabbitmq/amqp_hostcheck.c \
   librabbitmq/amqp_hostcheck.h \
   librabbitmq/amqp_openssl.c \
+  librabbitmq/amqp_openssl_bio.c \
+  librabbitmq/amqp_openssl_bio.h \
   librabbitmq/amqp_openssl_hostname_validation.c \
   librabbitmq/amqp_openssl_hostname_validation.h
 if OS_APPLE

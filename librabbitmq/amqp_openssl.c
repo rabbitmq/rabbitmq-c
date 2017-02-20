@@ -29,6 +29,7 @@
 #include "config.h"
 #endif
 
+#include "amqp_openssl_bio.h"
 #include "amqp_openssl_hostname_validation.h"
 #include "amqp_ssl_socket.h"
 #include "amqp_socket.h"
@@ -38,6 +39,7 @@
 
 #include <ctype.h>
 #include <limits.h>
+#include <openssl/bio.h>
 #include <openssl/conf.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
@@ -172,6 +174,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
   int status;
   amqp_time_t deadline;
   X509 *cert;
+  BIO *bio;
   if (-1 != self->sockfd) {
     return AMQP_STATUS_SOCKET_INUSE;
   }
@@ -197,12 +200,14 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
     goto error_out1;
   }
 
-  status = SSL_set_fd(self->ssl, self->sockfd);
-  if (!status) {
-    self->internal_error = SSL_get_error(self->ssl, status);
-    status = AMQP_STATUS_SSL_ERROR;
+  bio = BIO_new(amqp_openssl_bio());
+  if (!bio) {
+    status = AMQP_STATUS_NO_MEMORY;
     goto error_out2;
   }
+
+  BIO_set_fd(bio, self->sockfd, BIO_NOCLOSE);
+  SSL_set_bio(self->ssl, bio, bio);
 
 start_connect:
   status = SSL_connect(self->ssl);
