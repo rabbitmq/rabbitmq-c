@@ -196,6 +196,8 @@ struct amqp_connection_state_t_ {
 
   struct timeval *handshake_timeout;
   struct timeval internal_handshake_timeout;
+  struct timeval *rpc_timeout;
+  struct timeval internal_rpc_timeout;
 };
 
 amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);

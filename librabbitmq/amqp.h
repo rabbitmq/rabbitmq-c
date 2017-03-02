@@ -2493,6 +2493,64 @@ AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_set_handshake_timeout(amqp_connection_state_t state,
                                          struct timeval *timeout);
 
+/**
+ * Get the RPC timeout
+ *
+ * Gets the timeout for any RPC-style AMQP command (e.g., amqp_queue_declare).
+ * This timeout may be changed at any time by calling \amqp_set_rpc_timeout
+ * function with a new timeout. The timeout applies individually to each RPC
+ * that is made.
+ *
+ * The default value is NULL, or an infinite timeout.
+ *
+ * When an RPC times out, the function will return an error AMQP_STATUS_TIMEOUT,
+ * and the connection will be closed.
+ *
+ *\warning RPC-timeouts are an advanced feature intended to be used to detect
+ * dead connections quickly when the rabbitmq-c implementation of heartbeats
+ * does not work. Do not use RPC timeouts unless you understand the implications
+ * of doing so.
+ *
+ * \param [in] state the connection object
+ * \return a struct timeval representing the current RPC timeout for the state
+ * object. A NULL value represents an infinite timeout. The memory returned is
+ * owned by the connection object.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+struct timeval *AMQP_CALL amqp_get_rpc_timeout(amqp_connection_state_t state);
+
+/**
+ * Set the RPC timeout
+ *
+ * Sets the timeout for any RPC-style AMQP command (e.g., amqp_queue_declare).
+ * This timeout may be changed at any time by calling this function with a new
+ * timeout. The timeout applies individually to each RPC that is made.
+ *
+ * The default value is NULL, or an infinite timeout.
+ *
+ * When an RPC times out, the function will return an error AMQP_STATUS_TIMEOUT,
+ * and the connection will be closed.
+ *
+ *\warning RPC-timeouts are an advanced feature intended to be used to detect
+ * dead connections quickly when the rabbitmq-c implementation of heartbeats
+ * does not work. Do not use RPC timeouts unless you understand the implications
+ * of doing so.
+ *
+ * \param [in] state the connection object
+ * \param [in] timeout a struct timeval* representing new RPC timeout for the
+ * state object. NULL represents an infinite timeout. The value of timeout is
+ * copied internally, the caller is responsible for ownership of the passed
+ * pointer, it does not need to remain valid after this function is called.
+ * \return AMQP_STATUS_SUCCESS on success.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+int AMQP_CALL amqp_set_rpc_timeout(amqp_connection_state_t state,
+                                   struct timeval *timeout);
+
 AMQP_END_DECLS
 
 

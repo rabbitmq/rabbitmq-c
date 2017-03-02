@@ -373,3 +373,21 @@ int amqp_set_handshake_timeout(amqp_connection_state_t state,
 
   return AMQP_STATUS_OK;
 }
+
+struct timeval * amqp_get_rpc_timeout(amqp_connection_state_t state) {
+  return state->rpc_timeout;
+}
+
+int amqp_set_rpc_timeout(amqp_connection_state_t state,
+                         struct timeval *timeout) {
+  if (timeout) {
+    if (timeout->tv_sec < 0 || timeout->tv_usec < 0) {
+      return AMQP_STATUS_INVALID_PARAMETER;
+    }
+    state->rpc_timeout = &state->internal_rpc_timeout;
+    *state->rpc_timeout = *timeout;
+  } else {
+    state->rpc_timeout = NULL;
+  }
+  return AMQP_STATUS_OK;
+}
