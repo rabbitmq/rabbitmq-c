@@ -2481,7 +2481,7 @@ struct timeval *AMQP_CALL
  * seconds.
  *
  * \param [in] state the connection object
- * \param [in] timeout a struct timetval* representing new login timeout for the
+ * \param [in] timeout a struct timeval* representing new login timeout for the
  *  state object. NULL represents an infinite timeout. The value of timeout is
  *  copied internally, the caller is responsible for ownership of the passed in
  *  pointer, it does not need to remain valid after this function is called.
