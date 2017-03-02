@@ -1479,10 +1479,8 @@ out:
   return result;
 
 error_res:
-  result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
-  result.reply.id = 0;
-  result.reply.decoded = NULL;
-  result.library_error = res;
+  amqp_socket_close(state->socket, AMQP_SC_FORCE);
+  result = amqp_rpc_reply_error(res);
 
   goto out;
 }
