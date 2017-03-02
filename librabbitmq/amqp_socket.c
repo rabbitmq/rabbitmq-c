@@ -1079,9 +1079,7 @@ static amqp_rpc_reply_t simple_rpc_inner(
 
   status = amqp_send_method(state, channel, request_id, decoded_request_method);
   if (status < 0) {
-    result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
-    result.library_error = status;
-    return result;
+    return amqp_rpc_reply_error(status);
   }
 
   {
@@ -1119,18 +1117,14 @@ retry:
 
       channel_pool = amqp_get_or_create_channel_pool(state, frame.channel);
       if (NULL == channel_pool) {
-        result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
-        result.library_error = AMQP_STATUS_NO_MEMORY;
-        return result;
+        return amqp_rpc_reply_error(AMQP_STATUS_NO_MEMORY);
       }
 
       frame_copy = amqp_pool_alloc(channel_pool, sizeof(amqp_frame_t));
       link = amqp_pool_alloc(channel_pool, sizeof(amqp_link_t));
 
       if (frame_copy == NULL || link == NULL) {
-        result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
-        result.library_error = AMQP_STATUS_NO_MEMORY;
-        return result;
+        return amqp_rpc_reply_error(AMQP_STATUS_NO_MEMORY);
       }
 
       *frame_copy = frame;
