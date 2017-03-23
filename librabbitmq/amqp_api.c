@@ -183,6 +183,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
   size_t body_offset;
   size_t usable_body_payload_size = state->frame_max - (HEADER_SIZE + FOOTER_SIZE);
   int res;
+  int flagz;
 
   amqp_basic_publish_t m;
   amqp_basic_properties_t default_properties;
@@ -224,7 +225,12 @@ int amqp_basic_publish(amqp_connection_state_t state,
   f.payload.properties.body_size = body.len;
   f.payload.properties.decoded = (void *) properties;
 
-  res = amqp_send_frame_inner(state, &f, AMQP_SF_MORE, amqp_time_infinite());
+  if (body.len > 0) {
+    flagz = AMQP_SF_MORE;
+  } else {
+    flagz = AMQP_SF_NONE;
+  }
+  res = amqp_send_frame_inner(state, &f, flagz, amqp_time_infinite());
   if (res < 0) {
     return res;
   }
@@ -232,7 +238,6 @@ int amqp_basic_publish(amqp_connection_state_t state,
   body_offset = 0;
   while (body_offset < body.len) {
     size_t remaining = body.len - body_offset;
-    int flagz;
 
     if (remaining == 0) {
       break;
