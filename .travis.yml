@@ -3,8 +3,9 @@
 
 language: c
 
-# Use the faster container-based infrastructure.
-sudo: false
+dist: trusty
+# Currently libpopt-dev is not on the list of whitelisted apt-packages.
+sudo: true
 
 env:
   global:
@@ -43,6 +44,13 @@ matrix:
       env: CONFIG=tsan
 
 before_install:
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+      sudo apt-add-repository "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main"
+      sudo apt-get -q update;
+      sudo apt-get install -y clang-3.9 libpopt-dev;
+    fi
   # ugly hack; if running a coverity scan abort all except the 1st build
   # see note re gcc compiler above needing to be 1st
   # also note that branch_pattern & the TRAVIS_BRANCH check must match
@@ -50,23 +58,12 @@ before_install:
   # build process
   - if ([[ "${TRAVIS_JOB_NUMBER##*.}" != "1" ]] && [[ "${TRAVIS_BRANCH}" == "coverity_scan" ]]); then false ; fi
 
+
 script:
   # Don't bother building if this is being done in the coverity_scan branch.
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./travis.sh $CONFIG ; fi
 
 addons:
-  apt:
-    # List of whitelisted in travis packages for ubuntu-precise can be found here:
-    #   https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
-    # List of whitelisted in travis apt-sources:
-    #   https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
-    sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise-3.7
-    packages:
-      - libpopt-dev
-      - clang-3.7
-
   coverity_scan:
     project:
       name: "alanxz/rabbitmq-c"

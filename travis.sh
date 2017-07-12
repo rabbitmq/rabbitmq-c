@@ -33,10 +33,10 @@ build_tsan() {
 
 build_scan-build() {
   mkdir $PWD/_build && cd $PWD/_build
-  scan-build-3.7 cmake .. -DCMAKE_BUILD_TYPE=Debug \
+  scan-build-3.9 cmake .. -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
     -DCMAKE_C_FLAGS="-Werror"
-  scan-build-3.7 make install
+  scan-build-3.9 make install
 }
 
 if [ "$#" -ne 1 ]; then
