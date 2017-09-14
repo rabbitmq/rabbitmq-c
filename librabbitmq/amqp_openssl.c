@@ -623,7 +623,10 @@ static int initialize_ssl_and_increment_connections() {
   }
 
   if (!openssl_bio_initialized) {
-    amqp_openssl_bio_init();
+    status = amqp_openssl_bio_init();
+    if (status) {
+      goto exit;
+    }
     openssl_bio_initialized = 1;
   }
 
@@ -653,6 +656,9 @@ int amqp_uninitialize_ssl_library(void) {
     status = AMQP_STATUS_SOCKET_INUSE;
     goto out;
   }
+
+  amqp_openssl_bio_destroy();
+  openssl_bio_initialized = 0;
 
   ERR_remove_state(0);
   FIPS_mode_set(0);
