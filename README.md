@@ -44,8 +44,8 @@ API documentation for v0.8.0+ can viewed from:
 - *Optionally* [Doxygen](http://www.stack.nl/~dimitri/doxygen/) to build
   developer API documentation.
 
-After downloading and extracting the source from a tarball to a directory.
-([see above][Latest Stable Version]), the commands to build rabbitmq-c on most
+After downloading and extracting the source from a tarball to a directory
+([see above](#latest-stable-version)), the commands to build rabbitmq-c on most
 systems are:
 
     mkdir build && cd build
