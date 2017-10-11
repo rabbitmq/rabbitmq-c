@@ -19,9 +19,6 @@ matrix:
     # coverity_scan branch hack below works correctly.
     - compiler: gcc
       os: linux
-      env: CONFIG=autotools
-    - compiler: gcc
-      os: linux
       env: CONFIG=cmake
     - compiler: clang
       os: linux

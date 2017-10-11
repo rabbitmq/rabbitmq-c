@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-build_autotools() {
-  autoreconf -i
-  ./configure --prefix=$PWD/_install
-  make install
-  make dist
-}
-
 build_cmake() {
   mkdir $PWD/_build && cd $PWD/_build
   cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror" \
@@ -40,7 +33,7 @@ build_scan-build() {
 }
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 {autotools|cmake|asan|tsan|scan-build}"
+  echo "Usage: $0 {cmake|asan|tsan|scan-build}"
   exit 1
 fi
 
