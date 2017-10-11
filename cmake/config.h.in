@@ -6,8 +6,6 @@
 # define inline ${C_INLINE_KEYWORD}
 #endif
 
-#cmakedefine HAVE_HTONLL
-
 #cmakedefine HAVE_SELECT
 
 #cmakedefine HAVE_POLL
