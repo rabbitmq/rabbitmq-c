@@ -111,7 +111,7 @@ char *basic_get(amqp_connection_state_t connection_state_,
                 const char *queue_name_, uint64_t *out_body_size_) {
   amqp_rpc_reply_t rpc_reply;
   amqp_time_t deadline;
-  struct timeval timeout = { 0, 500 };
+  struct timeval timeout = { 5, 0 };
   int time_rc = amqp_time_from_now(&deadline, &timeout);
   assert(time_rc == AMQP_STATUS_OK);
 
@@ -164,7 +164,7 @@ char *consume_message(amqp_connection_state_t connection_state_,
   assert(result != NULL);
 
   amqp_envelope_t envelope;
-  struct timeval timeout = {0, 500};
+  struct timeval timeout = { 5, 0 };
   amqp_rpc_reply_t rpc_reply =
       amqp_consume_message(connection_state_, &envelope, &timeout, 0);
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
