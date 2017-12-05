@@ -8,6 +8,12 @@ build_cmake() {
   ctest -V .
 }
 
+build_format() {
+  ./travis/run-clang-format/run-clang-format.py \
+    --clang-format-executable="${PWD}/travis/clang-format.sh" \
+    --recursive examples librabbitmq tests tools
+}
+
 build_coverage() {
   mkdir $PWD/_build && cd $PWD/_build
   cmake .. -DCMAKE_BUILD_TYPE=Coverage -DCMAKE_INSTALL_PREFIX=$PWD/../_install \

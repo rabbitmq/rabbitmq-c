@@ -25,6 +25,9 @@ matrix:
       env: CONFIG=cmake
     - compiler: gcc
       os: linux
+      env: CONFIG=format
+    - compiler: gcc
+      os: linux
       env: CONFIG=coverage
     - compiler: clang
       os: linux
@@ -52,7 +55,7 @@ before_install:
       wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
       sudo apt-add-repository "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main"
       sudo apt-get -q update;
-      sudo apt-get install -y clang-3.9 libpopt-dev;
+      sudo apt-get install -y clang-3.9 clang-format-3.9 libpopt-dev;
     fi
   # ugly hack; if running a coverity scan abort all except the 1st build
   # see note re gcc compiler above needing to be 1st
