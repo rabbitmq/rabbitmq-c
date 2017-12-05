@@ -1,4 +1,3 @@
-/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
  * Copyright 1996-2014 Daniel Stenberg <daniel@haxx.se>.
  * Copyright 2014 Michael Steinert

@@ -1,4 +1,3 @@
-/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 #ifndef librabbitmq_amqp_hostcheck_h
 #define librabbitmq_amqp_hostcheck_h
 

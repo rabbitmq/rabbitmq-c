@@ -1,4 +1,3 @@
-# vim:set ts=2 sw=2 sts=2 et:
 # - Try to find the popt options processing library
 # The module will set the following variables
 #

@@ -1,4 +1,3 @@
-# vim:set ts=2 sw=2 sts=2 et:
 # - Convert XML docBook files to various formats
 # This will convert XML docBook files to various formats like:
 # man html txt dvi ps pdf

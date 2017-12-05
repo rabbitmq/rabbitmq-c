@@ -1,4 +1,3 @@
-/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
  * Portions created by Alan Antonuk are Copyright (c) 2013-2014 Alan Antonuk.
  * All Rights Reserved.
