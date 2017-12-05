@@ -37,15 +37,11 @@
 
 #include <windows.h>
 
-uint64_t now_microseconds(void)
-{
+uint64_t now_microseconds(void) {
   FILETIME ft;
   GetSystemTimeAsFileTime(&ft);
-  return (((uint64_t)ft.dwHighDateTime << 32) | (uint64_t)ft.dwLowDateTime)
-         / 10;
+  return (((uint64_t)ft.dwHighDateTime << 32) | (uint64_t)ft.dwLowDateTime) /
+         10;
 }
 
-void microsleep(int usec)
-{
-  Sleep(usec / 1000);
-}
+void microsleep(int usec) { Sleep(usec / 1000); }

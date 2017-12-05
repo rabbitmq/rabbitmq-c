@@ -26,20 +26,20 @@
 #include <stdint.h>
 
 #if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
-# ifndef WINVER
-#  define WINVER 0x0502
-# endif
-# ifndef WIN32_LEAN_AND_MEAN
-#  define WIN32_LEAN_AND_MEAN
-# endif
-# include <winsock2.h>
+#ifndef WINVER
+#define WINVER 0x0502
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
 #else
-# include <sys/time.h>
+#include <sys/time.h>
 #endif
 
-#define AMQP_MS_PER_S  1000
+#define AMQP_MS_PER_S 1000
 #define AMQP_US_PER_MS 1000
-#define AMQP_NS_PER_S  1000000000
+#define AMQP_NS_PER_S 1000000000
 #define AMQP_NS_PER_MS 1000000
 #define AMQP_NS_PER_US 1000
 
@@ -53,9 +53,7 @@
  * - UINT64_MAX: means 'at infinity', its mean for polls with an infinite
  *   timeout
  */
-typedef struct amqp_time_t_ {
-  uint64_t time_point_ns;
-} amqp_time_t;
+typedef struct amqp_time_t_ { uint64_t time_point_ns; } amqp_time_t;
 
 /* Gets a monotonic timestamp. This will return 0 if the underlying call to the
  * system fails.

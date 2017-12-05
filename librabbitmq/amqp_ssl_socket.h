@@ -35,9 +35,9 @@ AMQP_BEGIN_DECLS
 /**
  * Create a new SSL/TLS socket object.
  *
- * The returned socket object is owned by the \ref amqp_connection_state_t object
- * and will be destroyed when the state object is destroyed or a new socket
- * object is created.
+ * The returned socket object is owned by the \ref amqp_connection_state_t
+ * object and will be destroyed when the state object is destroyed or a new
+ * socket object is created.
  *
  * If the socket object creation fails, the \ref amqp_connection_state_t object
  * will not be changed.
@@ -45,7 +45,8 @@ AMQP_BEGIN_DECLS
  * The object returned by this function can be retrieved from the
  * amqp_connection_state_t object later using the amqp_get_socket() function.
  *
- * Calling this function may result in the underlying SSL library being initialized.
+ * Calling this function may result in the underlying SSL library being
+ * initialized.
  * \sa amqp_set_initialize_ssl_library()
  *
  * \param [in,out] state The connection object that owns the SSL/TLS socket
@@ -54,9 +55,7 @@ AMQP_BEGIN_DECLS
  * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
-amqp_socket_t *
-AMQP_CALL
-amqp_ssl_socket_new(amqp_connection_state_t state);
+amqp_socket_t *AMQP_CALL amqp_ssl_socket_new(amqp_connection_state_t state);
 
 /**
  * Set the CA certificate.
@@ -70,10 +69,8 @@ amqp_ssl_socket_new(amqp_connection_state_t state);
  * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
-int
-AMQP_CALL
-amqp_ssl_socket_set_cacert(amqp_socket_t *self,
-                           const char *cacert);
+int AMQP_CALL amqp_ssl_socket_set_cacert(amqp_socket_t *self,
+                                         const char *cacert);
 
 /**
  * Set the client key.
@@ -88,11 +85,8 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *self,
  * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
-int
-AMQP_CALL
-amqp_ssl_socket_set_key(amqp_socket_t *self,
-                        const char *cert,
-                        const char *key);
+int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
+                                      const char *key);
 
 /**
  * Set the client key from a buffer.
@@ -108,12 +102,9 @@ amqp_ssl_socket_set_key(amqp_socket_t *self,
  * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
-int
-AMQP_CALL
-amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
-                               const char *cert,
-                               const void *key,
-                               size_t n);
+int AMQP_CALL amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
+                                             const char *cert, const void *key,
+                                             size_t n);
 
 /**
  * Enable or disable peer verification.
@@ -130,12 +121,8 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_DEPRECATED(
-    AMQP_PUBLIC_FUNCTION
-    void
-    AMQP_CALL
-    amqp_ssl_socket_set_verify(amqp_socket_t *self, amqp_boolean_t verify)
-);
+AMQP_DEPRECATED(AMQP_PUBLIC_FUNCTION void AMQP_CALL amqp_ssl_socket_set_verify(
+    amqp_socket_t *self, amqp_boolean_t verify));
 
 /**
  * Enable or disable peer verification.
@@ -149,9 +136,8 @@ AMQP_DEPRECATED(
  * \since v0.8.0
  */
 AMQP_PUBLIC_FUNCTION
-void
-AMQP_CALL
-amqp_ssl_socket_set_verify_peer(amqp_socket_t *self, amqp_boolean_t verify);
+void AMQP_CALL amqp_ssl_socket_set_verify_peer(amqp_socket_t *self,
+                                               amqp_boolean_t verify);
 
 /**
  * Enable or disable hostname verification.
@@ -163,9 +149,8 @@ amqp_ssl_socket_set_verify_peer(amqp_socket_t *self, amqp_boolean_t verify);
  * \since v0.8.0
  */
 AMQP_PUBLIC_FUNCTION
-void
-AMQP_CALL
-amqp_ssl_socket_set_verify_hostname(amqp_socket_t *self, amqp_boolean_t verify);
+void AMQP_CALL amqp_ssl_socket_set_verify_hostname(amqp_socket_t *self,
+                                                   amqp_boolean_t verify);
 
 typedef enum {
   AMQP_TLSv1 = 1,
@@ -191,11 +176,9 @@ typedef enum {
  * \since v0.8.0
  */
 AMQP_PUBLIC_FUNCTION
-int
-AMQP_CALL
-amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
-                                 amqp_tls_version_t min,
-                                 amqp_tls_version_t max);
+int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
+                                               amqp_tls_version_t min,
+                                               amqp_tls_version_t max);
 
 /**
  * Sets whether rabbitmq-c initializes the underlying SSL library.
@@ -222,9 +205,7 @@ amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
  * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
-void
-AMQP_CALL
-amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
+void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
 
 AMQP_END_DECLS
 

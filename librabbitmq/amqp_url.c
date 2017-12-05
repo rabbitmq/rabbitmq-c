@@ -38,7 +38,7 @@
 #endif
 
 #ifdef _MSC_VER
-# define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "amqp_private.h"
@@ -48,8 +48,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void amqp_default_connection_info(struct amqp_connection_info *ci)
-{
+void amqp_default_connection_info(struct amqp_connection_info *ci) {
   /* Apply defaults */
   ci->user = "guest";
   ci->password = "guest";
@@ -60,8 +59,7 @@ void amqp_default_connection_info(struct amqp_connection_info *ci)
 }
 
 /* Scan for the next delimiter, handling percent-encodings on the way. */
-static char find_delim(char **pp, int colon_and_at_sign_are_delims)
-{
+static char find_delim(char **pp, int colon_and_at_sign_are_delims) {
   char *from = *pp;
   char *to = from;
 
@@ -69,51 +67,50 @@ static char find_delim(char **pp, int colon_and_at_sign_are_delims)
     char ch = *from++;
 
     switch (ch) {
-    case ':':
-    case '@':
-      if (!colon_and_at_sign_are_delims) {
-        *to++ = ch;
+      case ':':
+      case '@':
+        if (!colon_and_at_sign_are_delims) {
+          *to++ = ch;
+          break;
+        }
+
+      /* fall through */
+      case 0:
+      case '/':
+      case '?':
+      case '#':
+      case '[':
+      case ']':
+        *to = 0;
+        *pp = from;
+        return ch;
+
+      case '%': {
+        unsigned int val;
+        int chars;
+        int res = sscanf(from, "%2x%n", &val, &chars);
+
+        if (res == EOF || res < 1 || chars != 2 || val > CHAR_MAX)
+        /* Return a surprising delimiter to
+           force an error. */
+        {
+          return '%';
+        }
+
+        *to++ = (char)val;
+        from += 2;
         break;
       }
 
-      /* fall through */
-    case 0:
-    case '/':
-    case '?':
-    case '#':
-    case '[':
-    case ']':
-      *to = 0;
-      *pp = from;
-      return ch;
-
-    case '%': {
-      unsigned int val;
-      int chars;
-      int res = sscanf(from, "%2x%n", &val, &chars);
-
-      if (res == EOF || res < 1 || chars != 2 || val > CHAR_MAX)
-        /* Return a surprising delimiter to
-           force an error. */
-      {
-        return '%';
-      }
-
-      *to++ = (char)val;
-      from += 2;
-      break;
-    }
-
-    default:
-      *to++ = ch;
-      break;
+      default:
+        *to++ = ch;
+        break;
     }
   }
 }
 
 /* Parse an AMQP URL into its component parts. */
-int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
-{
+int amqp_parse_url(char *url, struct amqp_connection_info *parsed) {
   int res = AMQP_STATUS_BAD_URL;
   char delim;
   char *start;
@@ -216,8 +213,7 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
     res = AMQP_STATUS_OK;
   }
 
-  /* Any other delimiter is bad, and we will return
-     AMQP_STATUS_BAD_AMQP_URL. */
+/* Any other delimiter is bad, and we will return AMQP_STATUS_BAD_AMQP_URL. */
 
 out:
   return res;

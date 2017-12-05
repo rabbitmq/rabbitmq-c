@@ -45,19 +45,15 @@
 
 #define MAX_LINE_LENGTH 1024 * 32
 
-static void do_publish(amqp_connection_state_t conn,
-                       char *exchange, char *routing_key,
-                       amqp_basic_properties_t *props, amqp_bytes_t body)
-{
-  int res = amqp_basic_publish(conn, 1,
-                               cstring_bytes(exchange),
-                               cstring_bytes(routing_key),
-                               0, 0, props, body);
+static void do_publish(amqp_connection_state_t conn, char *exchange,
+                       char *routing_key, amqp_basic_properties_t *props,
+                       amqp_bytes_t body) {
+  int res = amqp_basic_publish(conn, 1, cstring_bytes(exchange),
+                               cstring_bytes(routing_key), 0, 0, props, body);
   die_amqp_error(res, "basic.publish");
 }
 
-int main(int argc, const char **argv)
-{
+int main(int argc, const char **argv) {
   amqp_connection_state_t conn;
   static char *exchange = NULL;
   static char *routing_key = NULL;
@@ -73,53 +69,32 @@ int main(int argc, const char **argv)
   static char **pos;
 
   struct poptOption options[] = {
-    INCLUDE_OPTIONS(connect_options),
-    {
-      "exchange", 'e', POPT_ARG_STRING, &exchange, 0,
-      "the exchange to publish to", "exchange"
-    },
-    {
-      "routing-key", 'r', POPT_ARG_STRING, &routing_key, 0,
-      "the routing key to publish with", "routing key"
-    },
-    {
-      "persistent", 'p', POPT_ARG_VAL, &delivery, 2,
-      "use the persistent delivery mode", NULL
-    },
-    {
-      "content-type", 'C', POPT_ARG_STRING, &content_type, 0,
-      "the content-type for the message", "content type"
-    },
-    {
-      "reply-to", 't', POPT_ARG_STRING, &reply_to, 0,
-      "the replyTo to use for the message", "reply to"
-    },
-    {
-      "line-buffered", 'l', POPT_ARG_VAL, &line_buffered, 2,
-      "treat each line from standard in as a separate message", NULL
-    },
-    {
-      "content-encoding", 'E', POPT_ARG_STRING,
-      &content_encoding, 0,
-      "the content-encoding for the message", "content encoding"
-    },
-    {
-      "header", 'H', POPT_ARG_ARGV, &headers, 0,
-      "set a message header (may be specified multiple times)", "\"key: value\""
-    },
-    {
-      "body", 'b', POPT_ARG_STRING, &body, 0,
-      "specify the message body", "body"
-    },
-    POPT_AUTOHELP
-    { NULL, '\0', 0, NULL, 0, NULL, NULL }
-  };
+      INCLUDE_OPTIONS(connect_options),
+      {"exchange", 'e', POPT_ARG_STRING, &exchange, 0,
+       "the exchange to publish to", "exchange"},
+      {"routing-key", 'r', POPT_ARG_STRING, &routing_key, 0,
+       "the routing key to publish with", "routing key"},
+      {"persistent", 'p', POPT_ARG_VAL, &delivery, 2,
+       "use the persistent delivery mode", NULL},
+      {"content-type", 'C', POPT_ARG_STRING, &content_type, 0,
+       "the content-type for the message", "content type"},
+      {"reply-to", 't', POPT_ARG_STRING, &reply_to, 0,
+       "the replyTo to use for the message", "reply to"},
+      {"line-buffered", 'l', POPT_ARG_VAL, &line_buffered, 2,
+       "treat each line from standard in as a separate message", NULL},
+      {"content-encoding", 'E', POPT_ARG_STRING, &content_encoding, 0,
+       "the content-encoding for the message", "content encoding"},
+      {"header", 'H', POPT_ARG_ARGV, &headers, 0,
+       "set a message header (may be specified multiple times)",
+       "\"key: value\""},
+      {"body", 'b', POPT_ARG_STRING, &body, 0, "specify the message body",
+       "body"},
+      POPT_AUTOHELP{NULL, '\0', 0, NULL, 0, NULL, NULL}};
 
   process_all_options(argc, argv, options);
 
   if (!exchange && !routing_key) {
-    fprintf(stderr,
-            "neither exchange nor routing key specified\n");
+    fprintf(stderr, "neither exchange nor routing key specified\n");
     return 1;
   }
 
@@ -162,9 +137,10 @@ int main(int argc, const char **argv)
           table->entries[i].value.kind = AMQP_FIELD_KIND_UTF8;
           table->entries[i].value.value.bytes = amqp_cstring_bytes(colon);
           i++;
-        }
-        else {
-          fprintf(stderr, "Ignored header definition missing ':' delimiter in \"%s\"\n", *pos);
+        } else {
+          fprintf(stderr,
+                  "Ignored header definition missing ':' delimiter in \"%s\"\n",
+                  *pos);
         }
       }
       props._flags |= AMQP_BASIC_HEADERS_FLAG;
@@ -176,10 +152,10 @@ int main(int argc, const char **argv)
   if (body) {
     body_bytes = amqp_cstring_bytes(body);
   } else {
-    if ( line_buffered ) {
-      body_bytes.bytes = ( char * ) malloc( MAX_LINE_LENGTH );
-      while ( fgets( body_bytes.bytes, MAX_LINE_LENGTH, stdin ) ) {
-        body_bytes.len = strlen( body_bytes.bytes );
+    if (line_buffered) {
+      body_bytes.bytes = (char *)malloc(MAX_LINE_LENGTH);
+      while (fgets(body_bytes.bytes, MAX_LINE_LENGTH, stdin)) {
+        body_bytes.len = strlen(body_bytes.bytes);
         do_publish(conn, exchange, routing_key, &props, body_bytes);
       }
     } else {
@@ -187,7 +163,7 @@ int main(int argc, const char **argv)
     }
   }
 
-  if ( !line_buffered ) {
+  if (!line_buffered) {
     do_publish(conn, exchange, routing_key, &props, body_bytes);
   }
 

@@ -20,30 +20,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include "amqp.h"
 #include "amqp_time.h"
+#include "amqp.h"
 #include <assert.h>
 #include <limits.h>
 #include <string.h>
 
-#if (defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__))
-# define AMQP_WIN_TIMER_API
+#if (defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || \
+     defined(__MINGW32__) || defined(__MINGW64__))
+#define AMQP_WIN_TIMER_API
 #elif (defined(machintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
-# define AMQP_MAC_TIMER_API
+#define AMQP_MAC_TIMER_API
 #else
-# define AMQP_POSIX_TIMER_API
+#define AMQP_POSIX_TIMER_API
 #endif
-
 
 #ifdef AMQP_WIN_TIMER_API
 #ifndef WIN32_LEAN_AND_MEAN
-# define WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
 
-uint64_t
-amqp_get_monotonic_timestamp(void)
-{
+uint64_t amqp_get_monotonic_timestamp(void) {
   static double NS_PER_COUNT = 0;
   LARGE_INTEGER perf_count;
 
@@ -64,11 +62,9 @@ amqp_get_monotonic_timestamp(void)
 #endif /* AMQP_WIN_TIMER_API */
 
 #ifdef AMQP_MAC_TIMER_API
-# include <mach/mach_time.h>
+#include <mach/mach_time.h>
 
-uint64_t
-amqp_get_monotonic_timestamp(void)
-{
+uint64_t amqp_get_monotonic_timestamp(void) {
   static mach_timebase_info_data_t s_timebase = {0, 0};
   uint64_t timestamp;
 
@@ -91,9 +87,7 @@ amqp_get_monotonic_timestamp(void)
 #ifdef AMQP_POSIX_TIMER_API
 #include <time.h>
 
-uint64_t
-amqp_get_monotonic_timestamp(void)
-{
+uint64_t amqp_get_monotonic_timestamp(void) {
 #ifdef __hpux
   return (uint64_t)gethrtime();
 #else

@@ -34,8 +34,8 @@
  */
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <amqp.h>
@@ -45,8 +45,7 @@
 
 #include "utils.h"
 
-int main(int argc, char const *const *argv)
-{
+int main(int argc, char const *const *argv) {
   char const *hostname;
   int port, status;
   char const *queuename;
@@ -74,12 +73,14 @@ int main(int argc, char const *const *argv)
     die("opening TCP socket");
   }
 
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN,
+                               "guest", "guest"),
                     "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
-  amqp_basic_consume(conn, 1, amqp_cstring_bytes(queuename), amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
+  amqp_basic_consume(conn, 1, amqp_cstring_bytes(queuename), amqp_empty_bytes,
+                     0, 0, 0, amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
 
   for (;;) {
@@ -95,14 +96,14 @@ int main(int argc, char const *const *argv)
     }
 
     printf("Delivery %u, exchange %.*s routingkey %.*s\n",
-           (unsigned) envelope.delivery_tag,
-           (int) envelope.exchange.len, (char *) envelope.exchange.bytes,
-           (int) envelope.routing_key.len, (char *) envelope.routing_key.bytes);
+           (unsigned)envelope.delivery_tag, (int)envelope.exchange.len,
+           (char *)envelope.exchange.bytes, (int)envelope.routing_key.len,
+           (char *)envelope.routing_key.bytes);
 
     if (envelope.message.properties._flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
       printf("Content-type: %.*s\n",
-             (int) envelope.message.properties.content_type.len,
-             (char *) envelope.message.properties.content_type.bytes);
+             (int)envelope.message.properties.content_type.len,
+             (char *)envelope.message.properties.content_type.bytes);
     }
     printf("----\n");
 
@@ -111,8 +112,10 @@ int main(int argc, char const *const *argv)
     amqp_destroy_envelope(&envelope);
   }
 
-  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
-  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
+  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
+                    "Closing channel");
+  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
+                    "Closing connection");
   die_on_error(amqp_destroy_connection(conn), "Ending connection");
 
   return 0;

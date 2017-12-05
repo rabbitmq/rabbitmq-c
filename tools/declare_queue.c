@@ -44,25 +44,18 @@
 
 #include "common.h"
 
-int main(int argc, const char **argv)
-{
+int main(int argc, const char **argv) {
   amqp_connection_state_t conn;
   static char *queue = NULL;
   static int durable = 0;
 
   struct poptOption options[] = {
-    INCLUDE_OPTIONS(connect_options),
-    {
-      "queue", 'q', POPT_ARG_STRING, &queue, 0,
-      "the queue name to declare, or the empty string", "queue"
-    },
-    {
-      "durable", 'd', POPT_ARG_VAL, &durable, 1,
-      "declare a durable queue", NULL
-    },
-    POPT_AUTOHELP
-    { NULL, '\0', 0, NULL, 0, NULL, NULL }
-  };
+      INCLUDE_OPTIONS(connect_options),
+      {"queue", 'q', POPT_ARG_STRING, &queue, 0,
+       "the queue name to declare, or the empty string", "queue"},
+      {"durable", 'd', POPT_ARG_VAL, &durable, 1, "declare a durable queue",
+       NULL},
+      POPT_AUTOHELP{NULL, '\0', 0, NULL, 0, NULL, NULL}};
 
   process_all_options(argc, argv, options);
 
@@ -73,13 +66,8 @@ int main(int argc, const char **argv)
 
   conn = make_connection();
   {
-    amqp_queue_declare_ok_t *reply = amqp_queue_declare(conn, 1,
-                                     cstring_bytes(queue),
-                                     0,
-                                     durable,
-                                     0,
-                                     0,
-                                     amqp_empty_table);
+    amqp_queue_declare_ok_t *reply = amqp_queue_declare(
+        conn, 1, cstring_bytes(queue), 0, durable, 0, 0, amqp_empty_table);
     if (reply == NULL) {
       die_rpc(amqp_get_rpc_reply(conn), "queue.declare");
     }

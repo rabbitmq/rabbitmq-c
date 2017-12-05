@@ -40,37 +40,37 @@
 #include "config.h"
 #endif
 
-#define AMQ_COPYRIGHT "Copyright (c) 2007-2014 VMWare Inc, Tony Garnock-Jones," \
-                      " and Alan Antonuk."
+#define AMQ_COPYRIGHT                                       \
+  "Copyright (c) 2007-2014 VMWare Inc, Tony Garnock-Jones," \
+  " and Alan Antonuk."
 
 #include "amqp.h"
 #include "amqp_framing.h"
 #include <string.h>
 
 #if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
-# ifndef WINVER
+#ifndef WINVER
 /* WINVER 0x0502 is WinXP SP2+, Windows Server 2003 SP1+
- * See: http://msdn.microsoft.com/en-us/library/windows/desktop/aa383745(v=vs.85).aspx#macros_for_conditional_declarations */
-#  define WINVER 0x0502
-# endif
-# ifndef WIN32_LEAN_AND_MEAN
-#  define WIN32_LEAN_AND_MEAN
-# endif
-# include <winsock2.h>
+ * See:
+ * http://msdn.microsoft.com/en-us/library/windows/desktop/aa383745(v=vs.85).aspx#macros_for_conditional_declarations
+ */
+#define WINVER 0x0502
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
 #else
-# include <arpa/inet.h>
-# include <sys/uio.h>
+#include <arpa/inet.h>
+#include <sys/uio.h>
 #endif
 
 /* GCC attributes */
 #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
-#define AMQP_NORETURN \
-  __attribute__ ((__noreturn__))
-#define AMQP_UNUSED \
-  __attribute__ ((__unused__))
+#define AMQP_NORETURN __attribute__((__noreturn__))
+#define AMQP_UNUSED __attribute__((__unused__))
 #elif defined(_MSC_VER)
-#define AMQP_NORETURN \
-  __declspec(noreturn)
+#define AMQP_NORETURN __declspec(noreturn)
 #define AMQP_UNUSED
 #else
 #define AMQP_NORETURN
@@ -78,18 +78,15 @@
 #endif
 
 #if __GNUC__ >= 4
-#define AMQP_PRIVATE \
-  __attribute__ ((visibility ("hidden")))
+#define AMQP_PRIVATE __attribute__((visibility("hidden")))
 #else
 #define AMQP_PRIVATE
 #endif
 
-char *
-amqp_os_error_string(int err);
+char *amqp_os_error_string(int err);
 
 #ifdef WITH_SSL
-char *
-amqp_ssl_error_string(int err);
+char *amqp_ssl_error_string(int err);
 #endif
 
 #include "amqp_socket.h"
@@ -124,12 +121,11 @@ typedef enum amqp_connection_state_enum_ {
   CONNECTION_STATE_BODY
 } amqp_connection_state_enum;
 
-typedef enum amqp_status_private_enum_
-{
+typedef enum amqp_status_private_enum_ {
   /* 0x00xx -> AMQP_STATUS_*/
   /* 0x01xx -> AMQP_STATUS_TCP_* */
   /* 0x02xx -> AMQP_STATUS_SSL_* */
-  AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD =  -0x1301,
+  AMQP_PRIVATE_STATUS_SOCKET_NEEDREAD = -0x1301,
   AMQP_PRIVATE_STATUS_SOCKET_NEEDWRITE = -0x1302
 } amqp_status_private_enum;
 
@@ -199,9 +195,10 @@ struct amqp_connection_state_t_ {
   struct timeval internal_rpc_timeout;
 };
 
-amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);
-amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state, amqp_channel_t channel);
-
+amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection,
+                                             amqp_channel_t channel);
+amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state,
+                                   amqp_channel_t channel);
 
 static inline int amqp_heartbeat_send(amqp_connection_state_t state) {
   return state->heartbeat;
@@ -213,8 +210,7 @@ static inline int amqp_heartbeat_recv(amqp_connection_state_t state) {
 
 int amqp_try_recv(amqp_connection_state_t state);
 
-static inline void *amqp_offset(void *data, size_t offset)
-{
+static inline void *amqp_offset(void *data, size_t offset) {
   return (char *)data + offset;
 }
 
@@ -277,7 +273,7 @@ static inline uint16_t amqp_d16(void *data) {
   return val;
 }
 
-static inline void amqp_e32(uint32_t val, void* data) {
+static inline void amqp_e32(uint32_t val, void *data) {
   if (!is_bigendian()) {
     val = ((val & 0xFF000000u) >> 24u) | ((val & 0x00FF0000u) >> 8u) |
           ((val & 0x0000FF00u) << 8u) | ((val & 0x000000FFu) << 24u);
@@ -331,8 +327,7 @@ DECLARE_CODEC_BASE_TYPE(32)
 DECLARE_CODEC_BASE_TYPE(64)
 
 static inline int amqp_encode_bytes(amqp_bytes_t encoded, size_t *offset,
-                                    amqp_bytes_t input)
-{
+                                    amqp_bytes_t input) {
   size_t o = *offset;
   /* The memcpy below has undefined behavior if the input is NULL. It is valid
    * for a 0-length amqp_bytes_t to have .bytes == NULL. Thus we should check
@@ -350,8 +345,7 @@ static inline int amqp_encode_bytes(amqp_bytes_t encoded, size_t *offset,
 }
 
 static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
-                                    amqp_bytes_t *output, size_t len)
-{
+                                    amqp_bytes_t *output, size_t len) {
   size_t o = *offset;
   if ((*offset = o + len) <= encoded.len) {
     output->bytes = amqp_offset(encoded.bytes, o);
@@ -363,8 +357,7 @@ static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
 }
 
 AMQP_NORETURN
-void
-amqp_abort(const char *fmt, ...);
+void amqp_abort(const char *fmt, ...);
 
 int amqp_bytes_equal(amqp_bytes_t r, amqp_bytes_t l);
 

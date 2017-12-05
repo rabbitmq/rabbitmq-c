@@ -41,10 +41,8 @@
 
 #include "common.h"
 
-static int do_get(amqp_connection_state_t conn, char *queue)
-{
-  amqp_rpc_reply_t r
-    = amqp_basic_get(conn, 1, cstring_bytes(queue), 1);
+static int do_get(amqp_connection_state_t conn, char *queue) {
+  amqp_rpc_reply_t r = amqp_basic_get(conn, 1, cstring_bytes(queue), 1);
   die_rpc(r, "basic.get");
 
   if (r.reply.id == AMQP_BASIC_GET_EMPTY_METHOD) {
@@ -55,21 +53,16 @@ static int do_get(amqp_connection_state_t conn, char *queue)
   return 1;
 }
 
-int main(int argc, const char **argv)
-{
+int main(int argc, const char **argv) {
   amqp_connection_state_t conn;
   static char *queue = NULL;
   int got_something;
 
   struct poptOption options[] = {
-    INCLUDE_OPTIONS(connect_options),
-    {
-      "queue", 'q', POPT_ARG_STRING, &queue, 0,
-      "the queue to consume from", "queue"
-    },
-    POPT_AUTOHELP
-    { NULL, '\0', 0, NULL, 0, NULL, NULL }
-  };
+      INCLUDE_OPTIONS(connect_options),
+      {"queue", 'q', POPT_ARG_STRING, &queue, 0, "the queue to consume from",
+       "queue"},
+      POPT_AUTOHELP{NULL, '\0', 0, NULL, 0, NULL, NULL}};
 
   process_all_options(argc, argv, options);
 

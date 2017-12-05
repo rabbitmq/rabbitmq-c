@@ -37,15 +37,14 @@
 #include "config.h"
 #endif
 
-#include <stdio.h>
 #include <io.h>
+#include <stdio.h>
 #include <windows.h>
 
 #include "common.h"
 #include "process.h"
 
-void die_windows_error(const char *fmt, ...)
-{
+void die_windows_error(const char *fmt, ...) {
   char *msg;
 
   va_list ap;
@@ -53,11 +52,10 @@ void die_windows_error(const char *fmt, ...)
   vfprintf(stderr, fmt, ap);
   va_end(ap);
 
-  if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
-                     | FORMAT_MESSAGE_ALLOCATE_BUFFER,
-                     NULL, GetLastError(),
-                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                     (LPSTR)&msg, 0, NULL)) {
+  if (!FormatMessage(
+          FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL,
+          GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+          (LPSTR)&msg, 0, NULL)) {
     msg = "(failed to retrieve Windows error message)";
   }
 
@@ -65,8 +63,7 @@ void die_windows_error(const char *fmt, ...)
   exit(1);
 }
 
-static char *make_command_line(const char *const *argv)
-{
+static char *make_command_line(const char *const *argv) {
   int i;
   size_t len = 1; /* initial quotes */
   char *buf;
@@ -106,32 +103,32 @@ static char *make_command_line(const char *const *argv)
 
     for (;;) {
       switch (*src) {
-      case 0:
-        goto done;
+        case 0:
+          goto done;
 
-      case '\"':
-        for (; backslashes; backslashes--) {
+        case '\"':
+          for (; backslashes; backslashes--) {
+            *dest++ = '\\';
+          }
+
           *dest++ = '\\';
-        }
+          *dest++ = '\"';
+          break;
 
-        *dest++ = '\\';
-        *dest++ = '\"';
-        break;
+        case '\\':
+          backslashes++;
+          *dest++ = '\\';
+          break;
 
-      case '\\':
-        backslashes++;
-        *dest++ = '\\';
-        break;
-
-      default:
-        backslashes = 0;
-        *dest++ = *src;
-        break;
+        default:
+          backslashes = 0;
+          *dest++ = *src;
+          break;
       }
 
       src++;
     }
-done:
+  done:
     for (; backslashes; backslashes--) {
       *dest++ = '\\';
     }
@@ -149,8 +146,7 @@ done:
   return buf;
 }
 
-void pipeline(const char *const *argv, struct pipeline *pl)
-{
+void pipeline(const char *const *argv, struct pipeline *pl) {
   HANDLE in_read_handle, in_write_handle;
   SECURITY_ATTRIBUTES sec_attr;
   PROCESS_INFORMATION proc_info;
@@ -176,17 +172,17 @@ void pipeline(const char *const *argv, struct pipeline *pl)
   start_info.cb = sizeof start_info;
   start_info.dwFlags |= STARTF_USESTDHANDLES;
 
-  if ((start_info.hStdError = GetStdHandle(STD_ERROR_HANDLE))
-      == INVALID_HANDLE_VALUE
-      || (start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE))
-      == INVALID_HANDLE_VALUE) {
+  if ((start_info.hStdError = GetStdHandle(STD_ERROR_HANDLE)) ==
+          INVALID_HANDLE_VALUE ||
+      (start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE)) ==
+          INVALID_HANDLE_VALUE) {
     die_windows_error("GetStdHandle");
   }
 
   start_info.hStdInput = in_read_handle;
 
-  if (!CreateProcess(NULL, cmdline, NULL, NULL, TRUE, 0,
-                     NULL, NULL, &start_info, &proc_info)) {
+  if (!CreateProcess(NULL, cmdline, NULL, NULL, TRUE, 0, NULL, NULL,
+                     &start_info, &proc_info)) {
     die_windows_error("CreateProcess");
   }
 
@@ -203,8 +199,7 @@ void pipeline(const char *const *argv, struct pipeline *pl)
   pl->infd = _open_osfhandle((intptr_t)in_write_handle, 0);
 }
 
-int finish_pipeline(struct pipeline *pl)
-{
+int finish_pipeline(struct pipeline *pl) {
   DWORD code;
 
   if (close(pl->infd)) {
@@ -219,8 +214,7 @@ int finish_pipeline(struct pipeline *pl)
       break;
     }
 
-    if (WaitForSingleObject(pl->proc_handle, INFINITE)
-        == WAIT_FAILED) {
+    if (WaitForSingleObject(pl->proc_handle, INFINITE) == WAIT_FAILED) {
       die_windows_error("WaitForSingleObject");
     }
   }

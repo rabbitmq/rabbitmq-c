@@ -45,18 +45,11 @@
 #include <string.h>
 #include <sys/types.h>
 
-char const *amqp_version(void)
-{
-  return AMQP_VERSION_STRING;
-}
+char const *amqp_version(void) { return AMQP_VERSION_STRING; }
 
-uint32_t amqp_version_number(void)
-{
-  return AMQP_VERSION;
-}
+uint32_t amqp_version_number(void) { return AMQP_VERSION; }
 
-void init_amqp_pool(amqp_pool_t *pool, size_t pagesize)
-{
+void init_amqp_pool(amqp_pool_t *pool, size_t pagesize) {
   pool->pagesize = pagesize ? pagesize : 4096;
 
   pool->pages.num_blocks = 0;
@@ -70,8 +63,7 @@ void init_amqp_pool(amqp_pool_t *pool, size_t pagesize)
   pool->alloc_used = 0;
 }
 
-static void empty_blocklist(amqp_pool_blocklist_t *x)
-{
+static void empty_blocklist(amqp_pool_blocklist_t *x) {
   int i;
 
   if (x->blocklist != NULL) {
@@ -84,23 +76,20 @@ static void empty_blocklist(amqp_pool_blocklist_t *x)
   x->blocklist = NULL;
 }
 
-void recycle_amqp_pool(amqp_pool_t *pool)
-{
+void recycle_amqp_pool(amqp_pool_t *pool) {
   empty_blocklist(&pool->large_blocks);
   pool->next_page = 0;
   pool->alloc_block = NULL;
   pool->alloc_used = 0;
 }
 
-void empty_amqp_pool(amqp_pool_t *pool)
-{
+void empty_amqp_pool(amqp_pool_t *pool) {
   recycle_amqp_pool(pool);
   empty_blocklist(&pool->pages);
 }
 
 /* Returns 1 on success, 0 on failure */
-static int record_pool_block(amqp_pool_blocklist_t *x, void *block)
-{
+static int record_pool_block(amqp_pool_blocklist_t *x, void *block) {
   size_t blocklistlength = sizeof(void *) * (x->num_blocks + 1);
 
   if (x->blocklist == NULL) {
@@ -121,8 +110,7 @@ static int record_pool_block(amqp_pool_blocklist_t *x, void *block)
   return 1;
 }
 
-void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount)
-{
+void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
   if (amount == 0) {
     return NULL;
   }
@@ -170,22 +158,20 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount)
   return pool->alloc_block;
 }
 
-void amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount, amqp_bytes_t *output)
-{
+void amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount,
+                           amqp_bytes_t *output) {
   output->len = amount;
   output->bytes = amqp_pool_alloc(pool, amount);
 }
 
-amqp_bytes_t amqp_cstring_bytes(char const *cstr)
-{
+amqp_bytes_t amqp_cstring_bytes(char const *cstr) {
   amqp_bytes_t result;
   result.len = strlen(cstr);
-  result.bytes = (void *) cstr;
+  result.bytes = (void *)cstr;
   return result;
 }
 
-amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src)
-{
+amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src) {
   amqp_bytes_t result;
   result.len = src.len;
   result.bytes = malloc(src.len);
@@ -195,27 +181,23 @@ amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src)
   return result;
 }
 
-amqp_bytes_t amqp_bytes_malloc(size_t amount)
-{
+amqp_bytes_t amqp_bytes_malloc(size_t amount) {
   amqp_bytes_t result;
   result.len = amount;
   result.bytes = malloc(amount); /* will return NULL if it fails */
   return result;
 }
 
-void amqp_bytes_free(amqp_bytes_t bytes)
-{
-  free(bytes.bytes);
-}
+void amqp_bytes_free(amqp_bytes_t bytes) { free(bytes.bytes); }
 
-amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t state, amqp_channel_t channel)
-{
+amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t state,
+                                             amqp_channel_t channel) {
   amqp_pool_table_entry_t *entry;
   size_t index = channel % POOL_TABLE_SIZE;
 
   entry = state->pool_table[index];
 
-  for ( ; NULL != entry; entry = entry->next) {
+  for (; NULL != entry; entry = entry->next) {
     if (channel == entry->channel) {
       return &entry->pool;
     }
@@ -235,14 +217,14 @@ amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t state, amqp
   return &entry->pool;
 }
 
-amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state, amqp_channel_t channel)
-{
+amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state,
+                                   amqp_channel_t channel) {
   amqp_pool_table_entry_t *entry;
   size_t index = channel % POOL_TABLE_SIZE;
 
   entry = state->pool_table[index];
 
-  for ( ; NULL != entry; entry = entry->next) {
+  for (; NULL != entry; entry = entry->next) {
     if (channel == entry->channel) {
       return &entry->pool;
     }

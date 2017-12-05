@@ -44,30 +44,21 @@
 
 #include "common.h"
 
-int main(int argc, const char **argv)
-{
+int main(int argc, const char **argv) {
   amqp_connection_state_t conn;
   static char *queue = NULL;
   static int if_unused = 0;
   static int if_empty = 0;
 
   struct poptOption options[] = {
-    INCLUDE_OPTIONS(connect_options),
-    {
-      "queue", 'q', POPT_ARG_STRING, &queue, 0,
-      "the queue name to delete", "queue"
-    },
-    {
-      "if-unused", 'u', POPT_ARG_VAL, &if_unused, 1,
-      "do not delete unless queue is unused", NULL
-    },
-    {
-      "if-empty", 'e', POPT_ARG_VAL, &if_empty, 1,
-      "do not delete unless queue is empty", NULL
-    },
-    POPT_AUTOHELP
-    { NULL, '\0', 0, NULL, 0, NULL, NULL }
-  };
+      INCLUDE_OPTIONS(connect_options),
+      {"queue", 'q', POPT_ARG_STRING, &queue, 0, "the queue name to delete",
+       "queue"},
+      {"if-unused", 'u', POPT_ARG_VAL, &if_unused, 1,
+       "do not delete unless queue is unused", NULL},
+      {"if-empty", 'e', POPT_ARG_VAL, &if_empty, 1,
+       "do not delete unless queue is empty", NULL},
+      POPT_AUTOHELP{NULL, '\0', 0, NULL, 0, NULL, NULL}};
 
   process_all_options(argc, argv, options);
 
@@ -78,10 +69,8 @@ int main(int argc, const char **argv)
 
   conn = make_connection();
   {
-    amqp_queue_delete_ok_t *reply = amqp_queue_delete(conn, 1,
-                                    cstring_bytes(queue),
-                                    if_unused,
-                                    if_empty);
+    amqp_queue_delete_ok_t *reply =
+        amqp_queue_delete(conn, 1, cstring_bytes(queue), if_unused, if_empty);
     if (reply == NULL) {
       die_rpc(amqp_get_rpc_reply(conn), "queue.delete");
     }

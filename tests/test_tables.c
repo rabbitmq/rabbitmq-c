@@ -34,15 +34,15 @@
  */
 
 #ifdef _MSC_VER
-# define _USE_MATH_DEFINES
-# define _CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
 #include <errno.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <inttypes.h>
 
@@ -50,8 +50,7 @@
 
 #include <math.h>
 
-void die(const char *fmt, ...)
-{
+void die(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
@@ -60,8 +59,7 @@ void die(const char *fmt, ...)
   abort();
 }
 
-static void dump_indent(int indent, FILE *out)
-{
+static void dump_indent(int indent, FILE *out) {
   int i;
 
   for (i = 0; i < indent; i++) {
@@ -69,109 +67,106 @@ static void dump_indent(int indent, FILE *out)
   }
 }
 
-static void dump_value(int indent, amqp_field_value_t v, FILE *out)
-{
+static void dump_value(int indent, amqp_field_value_t v, FILE *out) {
   int i;
 
   dump_indent(indent, out);
   fputc(v.kind, out);
 
   switch (v.kind) {
-  case AMQP_FIELD_KIND_BOOLEAN:
-    fputs(v.value.boolean ? " true\n" : " false\n", out);
-    break;
+    case AMQP_FIELD_KIND_BOOLEAN:
+      fputs(v.value.boolean ? " true\n" : " false\n", out);
+      break;
 
-  case AMQP_FIELD_KIND_I8:
-    fprintf(out, " %"PRId8"\n", v.value.i8);
-    break;
+    case AMQP_FIELD_KIND_I8:
+      fprintf(out, " %" PRId8 "\n", v.value.i8);
+      break;
 
-  case AMQP_FIELD_KIND_U8:
-    fprintf(out, " %"PRIu8"\n", v.value.u8);
-    break;
+    case AMQP_FIELD_KIND_U8:
+      fprintf(out, " %" PRIu8 "\n", v.value.u8);
+      break;
 
-  case AMQP_FIELD_KIND_I16:
-    fprintf(out, " %"PRId16"\n", v.value.i16);
-    break;
+    case AMQP_FIELD_KIND_I16:
+      fprintf(out, " %" PRId16 "\n", v.value.i16);
+      break;
 
-  case AMQP_FIELD_KIND_U16:
-    fprintf(out, " %"PRIu16"\n", v.value.u16);
-    break;
+    case AMQP_FIELD_KIND_U16:
+      fprintf(out, " %" PRIu16 "\n", v.value.u16);
+      break;
 
-  case AMQP_FIELD_KIND_I32:
-    fprintf(out, " %"PRId32"\n", v.value.i32);
-    break;
+    case AMQP_FIELD_KIND_I32:
+      fprintf(out, " %" PRId32 "\n", v.value.i32);
+      break;
 
-  case AMQP_FIELD_KIND_U32:
-    fprintf(out, " %"PRIu32"\n", v.value.u32);
-    break;
+    case AMQP_FIELD_KIND_U32:
+      fprintf(out, " %" PRIu32 "\n", v.value.u32);
+      break;
 
-  case AMQP_FIELD_KIND_I64:
-    fprintf(out, " %"PRId64"\n", v.value.i64);
-    break;
+    case AMQP_FIELD_KIND_I64:
+      fprintf(out, " %" PRId64 "\n", v.value.i64);
+      break;
 
-  case AMQP_FIELD_KIND_F32:
-    fprintf(out, " %g\n", (double) v.value.f32);
-    break;
+    case AMQP_FIELD_KIND_F32:
+      fprintf(out, " %g\n", (double)v.value.f32);
+      break;
 
-  case AMQP_FIELD_KIND_F64:
-    fprintf(out, " %g\n", v.value.f64);
-    break;
+    case AMQP_FIELD_KIND_F64:
+      fprintf(out, " %g\n", v.value.f64);
+      break;
 
-  case AMQP_FIELD_KIND_DECIMAL:
-    fprintf(out, " %u:::%u\n", v.value.decimal.decimals,
-            v.value.decimal.value);
-    break;
+    case AMQP_FIELD_KIND_DECIMAL:
+      fprintf(out, " %u:::%u\n", v.value.decimal.decimals,
+              v.value.decimal.value);
+      break;
 
-  case AMQP_FIELD_KIND_UTF8:
-    fprintf(out, " %.*s\n", (int)v.value.bytes.len,
-            (char *)v.value.bytes.bytes);
-    break;
+    case AMQP_FIELD_KIND_UTF8:
+      fprintf(out, " %.*s\n", (int)v.value.bytes.len,
+              (char *)v.value.bytes.bytes);
+      break;
 
-  case AMQP_FIELD_KIND_BYTES:
-    fputc(' ', out);
-    for (i = 0; i < (int)v.value.bytes.len; i++) {
-      fprintf(out, "%02x", ((char *) v.value.bytes.bytes)[i]);
-    }
+    case AMQP_FIELD_KIND_BYTES:
+      fputc(' ', out);
+      for (i = 0; i < (int)v.value.bytes.len; i++) {
+        fprintf(out, "%02x", ((char *)v.value.bytes.bytes)[i]);
+      }
 
-    fputc('\n', out);
-    break;
+      fputc('\n', out);
+      break;
 
-  case AMQP_FIELD_KIND_ARRAY:
-    fputc('\n', out);
-    for (i = 0; i < v.value.array.num_entries; i++) {
-      dump_value(indent + 2, v.value.array.entries[i], out);
-    }
+    case AMQP_FIELD_KIND_ARRAY:
+      fputc('\n', out);
+      for (i = 0; i < v.value.array.num_entries; i++) {
+        dump_value(indent + 2, v.value.array.entries[i], out);
+      }
 
-    break;
+      break;
 
-  case AMQP_FIELD_KIND_TIMESTAMP:
-    fprintf(out, " %"PRIu64"\n", v.value.u64);
-    break;
+    case AMQP_FIELD_KIND_TIMESTAMP:
+      fprintf(out, " %" PRIu64 "\n", v.value.u64);
+      break;
 
-  case AMQP_FIELD_KIND_TABLE:
-    fputc('\n', out);
-    for (i = 0; i < v.value.table.num_entries; i++) {
-      dump_indent(indent + 2, out);
-      fprintf(out, "%.*s ->\n",
-              (int)v.value.table.entries[i].key.len,
-              (char *)v.value.table.entries[i].key.bytes);
-      dump_value(indent + 4, v.value.table.entries[i].value, out);
-    }
+    case AMQP_FIELD_KIND_TABLE:
+      fputc('\n', out);
+      for (i = 0; i < v.value.table.num_entries; i++) {
+        dump_indent(indent + 2, out);
+        fprintf(out, "%.*s ->\n", (int)v.value.table.entries[i].key.len,
+                (char *)v.value.table.entries[i].key.bytes);
+        dump_value(indent + 4, v.value.table.entries[i].value, out);
+      }
 
-    break;
+      break;
 
-  case AMQP_FIELD_KIND_VOID:
-    fputc('\n', out);
-    break;
+    case AMQP_FIELD_KIND_VOID:
+      fputc('\n', out);
+      break;
 
-  default:
-    fprintf(out, "???\n");
-    break;
+    default:
+      fprintf(out, "???\n");
+      break;
   }
 }
 
-static void test_dump_value(FILE *out)
-{
+static void test_dump_value(FILE *out) {
   amqp_table_entry_t entries[8];
   amqp_table_t table;
   amqp_field_value_t val;
@@ -212,7 +207,8 @@ static void test_dump_value(FILE *out)
   table.num_entries = 8;
   table.entries = entries;
 
-  qsort(table.entries, table.num_entries, sizeof(amqp_table_entry_t), &amqp_table_entry_cmp);
+  qsort(table.entries, table.num_entries, sizeof(amqp_table_entry_t),
+        &amqp_table_entry_cmp);
 
   val.kind = AMQP_FIELD_KIND_TABLE;
   val.value.table = table;
@@ -221,43 +217,30 @@ static void test_dump_value(FILE *out)
 }
 
 static uint8_t pre_encoded_table[] = {
-  0x00, 0x00, 0x00, 0xff, 0x07, 0x6c, 0x6f, 0x6e,
-  0x67, 0x73, 0x74, 0x72, 0x53, 0x00, 0x00, 0x00,
-  0x15, 0x48, 0x65, 0x72, 0x65, 0x20, 0x69, 0x73,
-  0x20, 0x61, 0x20, 0x6c, 0x6f, 0x6e, 0x67, 0x20,
-  0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x09, 0x73,
-  0x69, 0x67, 0x6e, 0x65, 0x64, 0x69, 0x6e, 0x74,
-  0x49, 0x00, 0x00, 0x30, 0x39, 0x07, 0x64, 0x65,
-  0x63, 0x69, 0x6d, 0x61, 0x6c, 0x44, 0x03, 0x00,
-  0x01, 0xe2, 0x40, 0x09, 0x74, 0x69, 0x6d, 0x65,
-  0x73, 0x74, 0x61, 0x6d, 0x70, 0x54, 0x00, 0x00,
-  0x63, 0xee, 0xa0, 0x53, 0xc1, 0x94, 0x05, 0x74,
-  0x61, 0x62, 0x6c, 0x65, 0x46, 0x00, 0x00, 0x00,
-  0x1f, 0x03, 0x6f, 0x6e, 0x65, 0x49, 0x00, 0x00,
-  0xd4, 0x31, 0x03, 0x74, 0x77, 0x6f, 0x53, 0x00,
-  0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e,
-  0x67, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
-  0x04, 0x62, 0x79, 0x74, 0x65, 0x62, 0xff, 0x04,
-  0x6c, 0x6f, 0x6e, 0x67, 0x6c, 0x00, 0x00, 0x00,
-  0x00, 0x49, 0x96, 0x02, 0xd2, 0x05, 0x73, 0x68,
-  0x6f, 0x72, 0x74, 0x73, 0x02, 0x8f, 0x04, 0x62,
-  0x6f, 0x6f, 0x6c, 0x74, 0x01, 0x06, 0x62, 0x69,
-  0x6e, 0x61, 0x72, 0x79, 0x78, 0x00, 0x00, 0x00,
-  0x0f, 0x61, 0x20, 0x62, 0x69, 0x6e, 0x61, 0x72,
-  0x79, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
-  0x04, 0x76, 0x6f, 0x69, 0x64, 0x56, 0x05, 0x61,
-  0x72, 0x72, 0x61, 0x79, 0x41, 0x00, 0x00, 0x00,
-  0x17, 0x49, 0x00, 0x00, 0xd4, 0x31, 0x53, 0x00,
-  0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e,
-  0x67, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
-  0x05, 0x66, 0x6c, 0x6f, 0x61, 0x74, 0x66, 0x40,
-  0x49, 0x0f, 0xdb, 0x06, 0x64, 0x6f, 0x75, 0x62,
-  0x6c, 0x65, 0x64, 0x40, 0x09, 0x21, 0xfb, 0x54,
-  0x44, 0x2d, 0x18
-};
+    0x00, 0x00, 0x00, 0xff, 0x07, 0x6c, 0x6f, 0x6e, 0x67, 0x73, 0x74, 0x72,
+    0x53, 0x00, 0x00, 0x00, 0x15, 0x48, 0x65, 0x72, 0x65, 0x20, 0x69, 0x73,
+    0x20, 0x61, 0x20, 0x6c, 0x6f, 0x6e, 0x67, 0x20, 0x73, 0x74, 0x72, 0x69,
+    0x6e, 0x67, 0x09, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x64, 0x69, 0x6e, 0x74,
+    0x49, 0x00, 0x00, 0x30, 0x39, 0x07, 0x64, 0x65, 0x63, 0x69, 0x6d, 0x61,
+    0x6c, 0x44, 0x03, 0x00, 0x01, 0xe2, 0x40, 0x09, 0x74, 0x69, 0x6d, 0x65,
+    0x73, 0x74, 0x61, 0x6d, 0x70, 0x54, 0x00, 0x00, 0x63, 0xee, 0xa0, 0x53,
+    0xc1, 0x94, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x46, 0x00, 0x00, 0x00,
+    0x1f, 0x03, 0x6f, 0x6e, 0x65, 0x49, 0x00, 0x00, 0xd4, 0x31, 0x03, 0x74,
+    0x77, 0x6f, 0x53, 0x00, 0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e,
+    0x67, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x04, 0x62, 0x79, 0x74,
+    0x65, 0x62, 0xff, 0x04, 0x6c, 0x6f, 0x6e, 0x67, 0x6c, 0x00, 0x00, 0x00,
+    0x00, 0x49, 0x96, 0x02, 0xd2, 0x05, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x73,
+    0x02, 0x8f, 0x04, 0x62, 0x6f, 0x6f, 0x6c, 0x74, 0x01, 0x06, 0x62, 0x69,
+    0x6e, 0x61, 0x72, 0x79, 0x78, 0x00, 0x00, 0x00, 0x0f, 0x61, 0x20, 0x62,
+    0x69, 0x6e, 0x61, 0x72, 0x79, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
+    0x04, 0x76, 0x6f, 0x69, 0x64, 0x56, 0x05, 0x61, 0x72, 0x72, 0x61, 0x79,
+    0x41, 0x00, 0x00, 0x00, 0x17, 0x49, 0x00, 0x00, 0xd4, 0x31, 0x53, 0x00,
+    0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e, 0x67, 0x20, 0x73, 0x74,
+    0x72, 0x69, 0x6e, 0x67, 0x05, 0x66, 0x6c, 0x6f, 0x61, 0x74, 0x66, 0x40,
+    0x49, 0x0f, 0xdb, 0x06, 0x64, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x64, 0x40,
+    0x09, 0x21, 0xfb, 0x54, 0x44, 0x2d, 0x18};
 
-static void test_table_codec(FILE *out)
-{
+static void test_table_codec(FILE *out) {
   amqp_pool_t pool;
   int result;
 
@@ -367,8 +350,8 @@ static void test_table_codec(FILE *out)
     decoding_bytes.len = sizeof(pre_encoded_table);
     decoding_bytes.bytes = pre_encoded_table;
 
-    result = amqp_decode_table(decoding_bytes, &pool, &decoded,
-                               &decoding_offset);
+    result =
+        amqp_decode_table(decoding_bytes, &pool, &decoded, &decoding_offset);
     if (result < 0) {
       die("Table decoding failed: %s", amqp_error_string2(result));
     }
@@ -413,8 +396,7 @@ static void test_table_codec(FILE *out)
 
 #define CHUNK_SIZE 4096
 
-static int compare_files(FILE *f1_in, FILE *f2_in)
-{
+static int compare_files(FILE *f1_in, FILE *f2_in) {
   char f1_buf[CHUNK_SIZE];
   char f2_buf[CHUNK_SIZE];
   int res;
@@ -444,8 +426,7 @@ static int compare_files(FILE *f1_in, FILE *f2_in)
 
 const char *expected_file_name = "tests/test_tables.expected";
 
-int main(void)
-{
+int main(void) {
   char *srcdir = getenv("srcdir");
   FILE *out, *expected = NULL;
   char *expected_path;

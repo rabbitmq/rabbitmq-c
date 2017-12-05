@@ -37,18 +37,17 @@
 #include "config.h"
 #endif
 
-#include <unistd.h>
 #include <errno.h>
 #include <spawn.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "process.h"
 
 extern char **environ;
 
-void pipeline(const char *const *argv, struct pipeline *pl)
-{
+void pipeline(const char *const *argv, struct pipeline *pl) {
   posix_spawn_file_actions_t file_acts;
 
   int pipefds[2];
@@ -66,7 +65,7 @@ void pipeline(const char *const *argv, struct pipeline *pl)
             "posix_spawn_file_actions_addclose");
 
   die_errno(posix_spawnp(&pl->pid, argv[0], &file_acts, NULL,
-                         (char * const *)argv, environ),
+                         (char *const *)argv, environ),
             "posix_spawnp: %s", argv[0]);
 
   die_errno(posix_spawn_file_actions_destroy(&file_acts),
@@ -79,8 +78,7 @@ void pipeline(const char *const *argv, struct pipeline *pl)
   pl->infd = pipefds[1];
 }
 
-int finish_pipeline(struct pipeline *pl)
-{
+int finish_pipeline(struct pipeline *pl) {
   int status;
 
   if (close(pl->infd)) {

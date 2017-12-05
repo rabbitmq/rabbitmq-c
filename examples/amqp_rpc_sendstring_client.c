@@ -34,8 +34,8 @@
  */
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <amqp.h>
@@ -45,8 +45,7 @@
 
 #include "utils.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   char const *hostname;
   int port, status;
   char const *exchange;
@@ -57,7 +56,9 @@ int main(int argc, char *argv[])
   amqp_bytes_t reply_to_queue;
 
   if (argc < 6) { /* minimum number of mandatory arguments */
-    fprintf(stderr, "usage:\namqp_rpc_sendstring_client host port exchange routingkey messagebody\n");
+    fprintf(stderr,
+            "usage:\namqp_rpc_sendstring_client host port exchange routingkey "
+            "messagebody\n");
     return 1;
   }
 
@@ -83,7 +84,8 @@ int main(int argc, char *argv[])
     die("opening TCP socket");
   }
 
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN,
+                               "guest", "guest"),
                     "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
@@ -93,7 +95,8 @@ int main(int argc, char *argv[])
   */
 
   {
-    amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, amqp_empty_bytes, 0, 0, 0, 1, amqp_empty_table);
+    amqp_queue_declare_ok_t *r = amqp_queue_declare(
+        conn, 1, amqp_empty_bytes, 0, 0, 0, 1, amqp_empty_table);
     die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue");
     reply_to_queue = amqp_bytes_malloc_dup(r->queue);
     if (reply_to_queue.bytes == NULL) {
@@ -112,8 +115,7 @@ int main(int argc, char *argv[])
     */
     amqp_basic_properties_t props;
     props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG |
-                   AMQP_BASIC_DELIVERY_MODE_FLAG |
-                   AMQP_BASIC_REPLY_TO_FLAG |
+                   AMQP_BASIC_DELIVERY_MODE_FLAG | AMQP_BASIC_REPLY_TO_FLAG |
                    AMQP_BASIC_CORRELATION_ID_FLAG;
     props.content_type = amqp_cstring_bytes("text/plain");
     props.delivery_mode = 2; /* persistent delivery mode */
@@ -127,14 +129,9 @@ int main(int argc, char *argv[])
     /*
       publish
     */
-    die_on_error(amqp_basic_publish(conn,
-                                    1,
-                                    amqp_cstring_bytes(exchange),
-                                    amqp_cstring_bytes(routingkey),
-                                    0,
-                                    0,
-                                    &props,
-                                    amqp_cstring_bytes(messagebody)),
+    die_on_error(amqp_basic_publish(conn, 1, amqp_cstring_bytes(exchange),
+                                    amqp_cstring_bytes(routingkey), 0, 0,
+                                    &props, amqp_cstring_bytes(messagebody)),
                  "Publishing");
 
     amqp_bytes_free(props.reply_to);
@@ -145,7 +142,8 @@ int main(int argc, char *argv[])
   */
 
   {
-    amqp_basic_consume(conn, 1, reply_to_queue, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
+    amqp_basic_consume(conn, 1, reply_to_queue, amqp_empty_bytes, 0, 1, 0,
+                       amqp_empty_table);
     die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
     amqp_bytes_free(reply_to_queue);
 
@@ -176,11 +174,11 @@ int main(int argc, char *argv[])
           continue;
         }
 
-        d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
+        d = (amqp_basic_deliver_t *)frame.payload.method.decoded;
         printf("Delivery: %u exchange: %.*s routingkey: %.*s\n",
-               (unsigned) d->delivery_tag,
-               (int) d->exchange.len, (char *) d->exchange.bytes,
-               (int) d->routing_key.len, (char *) d->routing_key.bytes);
+               (unsigned)d->delivery_tag, (int)d->exchange.len,
+               (char *)d->exchange.bytes, (int)d->routing_key.len,
+               (char *)d->routing_key.bytes);
 
         result = amqp_simple_wait_frame(conn, &frame);
         if (result < 0) {
@@ -191,10 +189,10 @@ int main(int argc, char *argv[])
           fprintf(stderr, "Expected header!");
           abort();
         }
-        p = (amqp_basic_properties_t *) frame.payload.properties.decoded;
+        p = (amqp_basic_properties_t *)frame.payload.properties.decoded;
         if (p->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
-          printf("Content-type: %.*s\n",
-                 (int) p->content_type.len, (char *) p->content_type.bytes);
+          printf("Content-type: %.*s\n", (int)p->content_type.len,
+                 (char *)p->content_type.bytes);
         }
         printf("----\n");
 
@@ -228,7 +226,6 @@ int main(int argc, char *argv[])
         /* everything was fine, we can quit now because we received the reply */
         break;
       }
-
     }
   }
 
@@ -236,8 +233,10 @@ int main(int argc, char *argv[])
      closing
   */
 
-  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
-  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
+  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
+                    "Closing channel");
+  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
+                    "Closing connection");
   die_on_error(amqp_destroy_connection(conn), "Ending connection");
 
   return 0;

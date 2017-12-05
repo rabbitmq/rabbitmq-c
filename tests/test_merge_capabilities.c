@@ -86,23 +86,21 @@ static int compare_field_value(amqp_field_value_t result,
     case AMQP_FIELD_KIND_UTF8:
     case AMQP_FIELD_KIND_BYTES:
       return compare_bytes(result.value.bytes, expect.value.bytes);
-    case AMQP_FIELD_KIND_ARRAY:
-      {
-        int i;
-        if (result.value.array.num_entries != expect.value.array.num_entries) {
+    case AMQP_FIELD_KIND_ARRAY: {
+      int i;
+      if (result.value.array.num_entries != expect.value.array.num_entries) {
+        return 0;
+      }
+      for (i = 0; i < result.value.array.num_entries; ++i) {
+        if (!compare_field_value(result.value.array.entries[i],
+                                 expect.value.array.entries[i])) {
           return 0;
         }
-        for (i = 0; i < result.value.array.num_entries; ++i) {
-          if (!compare_field_value(result.value.array.entries[i],
-                                   expect.value.array.entries[i])) {
-            return 0;
-          }
-        }
-        return 1;
       }
+      return 1;
+    }
     case AMQP_FIELD_KIND_TABLE:
-      return compare_amqp_table(&result.value.table,
-                                &expect.value.table);
+      return compare_amqp_table(&result.value.table, &expect.value.table);
     case AMQP_FIELD_KIND_VOID:
       return 1;
   }
@@ -163,7 +161,8 @@ int main(void) {
     amqp_table_entry_t expect_entries[4];
 
     sub_base_entries[0] = amqp_table_construct_utf8_entry("foo", "bar");
-    sub_base.num_entries = sizeof(sub_base_entries) / sizeof(amqp_table_entry_t);
+    sub_base.num_entries =
+        sizeof(sub_base_entries) / sizeof(amqp_table_entry_t);
     sub_base.entries = sub_base_entries;
 
     sub_add_entries[0] = amqp_table_construct_utf8_entry("something", "else");
@@ -172,8 +171,10 @@ int main(void) {
     sub_add.entries = sub_add_entries;
 
     sub_expect_entries[0] = amqp_table_construct_utf8_entry("foo", "baz");
-    sub_expect_entries[1] = amqp_table_construct_utf8_entry("something", "else");
-    sub_expect.num_entries = sizeof(sub_expect_entries) / sizeof(amqp_table_entry_t);
+    sub_expect_entries[1] =
+        amqp_table_construct_utf8_entry("something", "else");
+    sub_expect.num_entries =
+        sizeof(sub_expect_entries) / sizeof(amqp_table_entry_t);
     sub_expect.entries = sub_expect_entries;
 
     base_entries[0] = amqp_table_construct_utf8_entry("product", "1.0");
@@ -200,4 +201,3 @@ int main(void) {
   fprintf(stderr, "ok\n");
   return 0;
 }
-

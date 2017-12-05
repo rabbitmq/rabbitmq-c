@@ -34,8 +34,8 @@
  */
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <amqp.h>
@@ -43,8 +43,7 @@
 
 #include "utils.h"
 
-int main(int argc, char const *const *argv)
-{
+int main(int argc, char const *const *argv) {
   char const *hostname;
   int port, status;
   char const *exchange;
@@ -54,7 +53,9 @@ int main(int argc, char const *const *argv)
   amqp_connection_state_t conn;
 
   if (argc < 6) {
-    fprintf(stderr, "Usage: amqp_sendstring host port exchange routingkey messagebody\n");
+    fprintf(
+        stderr,
+        "Usage: amqp_sendstring host port exchange routingkey messagebody\n");
     return 1;
   }
 
@@ -76,7 +77,8 @@ int main(int argc, char const *const *argv)
     die("opening TCP socket");
   }
 
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN,
+                               "guest", "guest"),
                     "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
@@ -86,19 +88,16 @@ int main(int argc, char const *const *argv)
     props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
     props.content_type = amqp_cstring_bytes("text/plain");
     props.delivery_mode = 2; /* persistent delivery mode */
-    die_on_error(amqp_basic_publish(conn,
-                                    1,
-                                    amqp_cstring_bytes(exchange),
-                                    amqp_cstring_bytes(routingkey),
-                                    0,
-                                    0,
-                                    &props,
-                                    amqp_cstring_bytes(messagebody)),
+    die_on_error(amqp_basic_publish(conn, 1, amqp_cstring_bytes(exchange),
+                                    amqp_cstring_bytes(routingkey), 0, 0,
+                                    &props, amqp_cstring_bytes(messagebody)),
                  "Publishing");
   }
 
-  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
-  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
+  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
+                    "Closing channel");
+  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
+                    "Closing connection");
   die_on_error(amqp_destroy_connection(conn), "Ending connection");
   return 0;
 }

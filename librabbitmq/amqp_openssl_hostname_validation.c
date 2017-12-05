@@ -22,17 +22,16 @@
  * copyright holder.
  */
 
-
 /* Originally from:
  * https://github.com/iSECPartners/ssl-conservatory
  * https://wiki.openssl.org/index.php/Hostname_validation
  */
 
-#include <openssl/x509v3.h>
 #include <openssl/ssl.h>
+#include <openssl/x509v3.h>
 
-#include "amqp_openssl_hostname_validation.h"
 #include "amqp_hostcheck.h"
+#include "amqp_openssl_hostname_validation.h"
 
 #define HOSTNAME_MAX_SIZE 255
 
@@ -41,7 +40,8 @@
 *
 * Returns AMQP_HVR_MATCH_FOUND if a match was found.
 * Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
-* Returns AMQP_HVR_MALFORMED_CERTIFICATE if the Common Name had a NUL character embedded in it.
+* Returns AMQP_HVR_MALFORMED_CERTIFICATE if the Common Name had a NUL character
+* embedded in it.
 * Returns AMQP_HVR_ERROR if the Common Name could not be extracted.
 */
 static amqp_hostname_validation_result amqp_matches_common_name(

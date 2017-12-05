@@ -37,7 +37,7 @@
 #endif
 
 #ifdef NDEBUG
-# undef NDEBUG
+#undef NDEBUG
 #endif
 #include <assert.h>
 
@@ -54,8 +54,8 @@ amqp_connection_state_t setup_connection_and_channel(void) {
   assert(rc == AMQP_STATUS_OK);
 
   amqp_rpc_reply_t rpc_reply = amqp_login(
-      connection_state_, "/", 1, AMQP_DEFAULT_FRAME_SIZE, AMQP_DEFAULT_HEARTBEAT,
-      AMQP_SASL_METHOD_PLAIN, "guest", "guest");
+      connection_state_, "/", 1, AMQP_DEFAULT_FRAME_SIZE,
+      AMQP_DEFAULT_HEARTBEAT, AMQP_SASL_METHOD_PLAIN, "guest", "guest");
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
 
   amqp_channel_open_ok_t *res =
@@ -66,7 +66,8 @@ amqp_connection_state_t setup_connection_and_channel(void) {
 }
 
 void close_and_destroy_connection(amqp_connection_state_t connection_state_) {
-  amqp_rpc_reply_t rpc_reply = amqp_connection_close(connection_state_, AMQP_REPLY_SUCCESS);
+  amqp_rpc_reply_t rpc_reply =
+      amqp_connection_close(connection_state_, AMQP_REPLY_SUCCESS);
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
 
   int rc = amqp_destroy_connection(connection_state_);
@@ -87,9 +88,9 @@ void basic_publish(amqp_connection_state_t connectionState_,
       connectionState_, fixed_channel_id, amqp_cstring_bytes(""),
       amqp_cstring_bytes(test_queue_name),
       /* mandatory=*/1,
-      /* immediate=*/0,  /* RabbitMQ 3.x does not support the "immediate" flag
-                           according to
-                           https://www.rabbitmq.com/specification.html */
+      /* immediate=*/0, /* RabbitMQ 3.x does not support the "immediate" flag
+                          according to
+                          https://www.rabbitmq.com/specification.html */
       &properties, message_bytes);
 
   assert(retval == 0);
@@ -110,7 +111,7 @@ char *basic_get(amqp_connection_state_t connection_state_,
                 const char *queue_name_, uint64_t *out_body_size_) {
   amqp_rpc_reply_t rpc_reply;
   amqp_time_t deadline;
-  struct timeval timeout = { 5, 0 };
+  struct timeval timeout = {5, 0};
   int time_rc = amqp_time_from_now(&deadline, &timeout);
   assert(time_rc == AMQP_STATUS_OK);
 
@@ -125,9 +126,10 @@ char *basic_get(amqp_connection_state_t connection_state_,
   assert(rpc_reply.reply.id == AMQP_BASIC_GET_OK_METHOD);
 
   amqp_message_t message;
-  rpc_reply = amqp_read_message(connection_state_, fixed_channel_id, &message, 0);
+  rpc_reply =
+      amqp_read_message(connection_state_, fixed_channel_id, &message, 0);
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
-  
+
   char *body = malloc(message.body.len);
   memcpy(body, message.body.bytes, message.body.len);
   *out_body_size_ = message.body.len;
@@ -163,7 +165,7 @@ char *consume_message(amqp_connection_state_t connection_state_,
   assert(result != NULL);
 
   amqp_envelope_t envelope;
-  struct timeval timeout = { 5, 0 };
+  struct timeval timeout = {5, 0};
   amqp_rpc_reply_t rpc_reply =
       amqp_consume_message(connection_state_, &envelope, &timeout, 0);
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);

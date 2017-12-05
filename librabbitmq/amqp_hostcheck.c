@@ -30,62 +30,60 @@
  * because its behavior is altered by the current locale.
  */
 
-static char
-amqp_raw_toupper(char in)
-{
+static char amqp_raw_toupper(char in) {
   switch (in) {
-  case 'a':
-    return 'A';
-  case 'b':
-    return 'B';
-  case 'c':
-    return 'C';
-  case 'd':
-    return 'D';
-  case 'e':
-    return 'E';
-  case 'f':
-    return 'F';
-  case 'g':
-    return 'G';
-  case 'h':
-    return 'H';
-  case 'i':
-    return 'I';
-  case 'j':
-    return 'J';
-  case 'k':
-    return 'K';
-  case 'l':
-    return 'L';
-  case 'm':
-    return 'M';
-  case 'n':
-    return 'N';
-  case 'o':
-    return 'O';
-  case 'p':
-    return 'P';
-  case 'q':
-    return 'Q';
-  case 'r':
-    return 'R';
-  case 's':
-    return 'S';
-  case 't':
-    return 'T';
-  case 'u':
-    return 'U';
-  case 'v':
-    return 'V';
-  case 'w':
-    return 'W';
-  case 'x':
-    return 'X';
-  case 'y':
-    return 'Y';
-  case 'z':
-    return 'Z';
+    case 'a':
+      return 'A';
+    case 'b':
+      return 'B';
+    case 'c':
+      return 'C';
+    case 'd':
+      return 'D';
+    case 'e':
+      return 'E';
+    case 'f':
+      return 'F';
+    case 'g':
+      return 'G';
+    case 'h':
+      return 'H';
+    case 'i':
+      return 'I';
+    case 'j':
+      return 'J';
+    case 'k':
+      return 'K';
+    case 'l':
+      return 'L';
+    case 'm':
+      return 'M';
+    case 'n':
+      return 'N';
+    case 'o':
+      return 'O';
+    case 'p':
+      return 'P';
+    case 'q':
+      return 'Q';
+    case 'r':
+      return 'R';
+    case 's':
+      return 'S';
+    case 't':
+      return 'T';
+    case 'u':
+      return 'U';
+    case 'v':
+      return 'V';
+    case 'w':
+      return 'W';
+    case 'x':
+      return 'X';
+    case 'y':
+      return 'Y';
+    case 'z':
+      return 'Z';
   }
   return in;
 }
@@ -100,9 +98,7 @@ amqp_raw_toupper(char in)
  * non-ascii.
  */
 
-static int
-amqp_raw_equal(const char *first, const char *second)
-{
+static int amqp_raw_equal(const char *first, const char *second) {
   while (*first && *second) {
     if (amqp_raw_toupper(*first) != amqp_raw_toupper(*second)) {
       /* get out of the loop as soon as they don't match */
@@ -118,9 +114,7 @@ amqp_raw_equal(const char *first, const char *second)
   return (amqp_raw_toupper(*first) == amqp_raw_toupper(*second));
 }
 
-static int
-amqp_raw_nequal(const char *first, const char *second, size_t max)
-{
+static int amqp_raw_nequal(const char *first, const char *second, size_t max) {
   while (*first && *second && max) {
     if (amqp_raw_toupper(*first) != amqp_raw_toupper(*second)) {
       break;
@@ -157,8 +151,7 @@ static amqp_hostcheck_result amqp_hostmatch(const char *hostname,
   /* We require at least 2 dots in pattern to avoid too wide wildcard match. */
   wildcard_enabled = 1;
   pattern_label_end = strchr(pattern, '.');
-  if (pattern_label_end == NULL ||
-      strchr(pattern_label_end + 1, '.') == NULL ||
+  if (pattern_label_end == NULL || strchr(pattern_label_end + 1, '.') == NULL ||
       pattern_wildcard > pattern_label_end ||
       amqp_raw_nequal(pattern, "xn--", 4)) {
     wildcard_enabled = 0;
@@ -182,8 +175,10 @@ static amqp_hostcheck_result amqp_hostmatch(const char *hostname,
   prefixlen = pattern_wildcard - pattern;
   suffixlen = pattern_label_end - (pattern_wildcard + 1);
   return amqp_raw_nequal(pattern, hostname, prefixlen) &&
-    amqp_raw_nequal(pattern_wildcard + 1, hostname_label_end - suffixlen,
-                    suffixlen) ? AMQP_HCR_MATCH : AMQP_HCR_NO_MATCH;
+                 amqp_raw_nequal(pattern_wildcard + 1,
+                                 hostname_label_end - suffixlen, suffixlen)
+             ? AMQP_HCR_MATCH
+             : AMQP_HCR_NO_MATCH;
 }
 
 amqp_hostcheck_result amqp_hostcheck(const char *match_pattern,

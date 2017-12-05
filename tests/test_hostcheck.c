@@ -31,13 +31,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void
-hostcheck_success(const char *match_pattern, const char *url)
-{
+static void hostcheck_success(const char *match_pattern, const char *url) {
   int ok;
 
   ok = amqp_hostcheck(match_pattern, url);
-  if (! ok) {
+  if (!ok) {
     fprintf(stderr, "Expected hostname check to pass, but didn't: %s (%s)\n",
             url, match_pattern);
     abort();
@@ -46,9 +44,7 @@ hostcheck_success(const char *match_pattern, const char *url)
   fprintf(stdout, "ok: [success] %s, %s\n", url, match_pattern);
 }
 
-static void
-hostcheck_fail(const char *match_pattern, const char *url)
-{
+static void hostcheck_fail(const char *match_pattern, const char *url) {
   int ok;
 
   ok = amqp_hostcheck(match_pattern, url);
@@ -61,9 +57,7 @@ hostcheck_fail(const char *match_pattern, const char *url)
   fprintf(stdout, "ok: [fail] %s, %s\n", url, match_pattern);
 }
 
-int
-main(void)
-{
+int main(void) {
   hostcheck_success("www.rabbitmq.com", "www.rabbitmq.com");
   hostcheck_success("www.rabbitmq.com", "wWw.RaBbItMq.CoM");
   hostcheck_success("*.rabbitmq.com", "wWw.RaBbItMq.CoM");

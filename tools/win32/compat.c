@@ -37,14 +37,13 @@
 #include "config.h"
 #endif
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "compat.h"
 
-int asprintf(char **strp, const char *fmt, ...)
-{
+int asprintf(char **strp, const char *fmt, ...) {
   va_list ap;
   int len;
 
@@ -52,13 +51,13 @@ int asprintf(char **strp, const char *fmt, ...)
   len = _vscprintf(fmt, ap);
   va_end(ap);
 
-  *strp = malloc(len+1);
+  *strp = malloc(len + 1);
   if (!*strp) {
     return -1;
   }
 
   va_start(ap, fmt);
-  _vsnprintf(*strp, len+1, fmt, ap);
+  _vsnprintf(*strp, len + 1, fmt, ap);
   va_end(ap);
 
   (*strp)[len] = 0;

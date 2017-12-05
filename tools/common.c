@@ -54,8 +54,7 @@
 #include "compat.h"
 #endif
 
-void die(const char *fmt, ...)
-{
+void die(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
@@ -64,8 +63,7 @@ void die(const char *fmt, ...)
   exit(1);
 }
 
-void die_errno(int err, const char *fmt, ...)
-{
+void die_errno(int err, const char *fmt, ...) {
   va_list ap;
 
   if (err == 0) {
@@ -79,8 +77,7 @@ void die_errno(int err, const char *fmt, ...)
   exit(1);
 }
 
-void die_amqp_error(int err, const char *fmt, ...)
-{
+void die_amqp_error(int err, const char *fmt, ...) {
   va_list ap;
 
   if (err >= 0) {
@@ -94,63 +91,56 @@ void die_amqp_error(int err, const char *fmt, ...)
   exit(1);
 }
 
-const char *amqp_server_exception_string(amqp_rpc_reply_t r)
-{
+const char *amqp_server_exception_string(amqp_rpc_reply_t r) {
   int res;
   static char s[512];
 
   switch (r.reply.id) {
-  case AMQP_CONNECTION_CLOSE_METHOD: {
-    amqp_connection_close_t *m
-      = (amqp_connection_close_t *)r.reply.decoded;
-    res = snprintf(s, sizeof(s), "server connection error %d, message: %.*s",
-                   m->reply_code,
-                   (int)m->reply_text.len,
-                   (char *)m->reply_text.bytes);
-    break;
-  }
+    case AMQP_CONNECTION_CLOSE_METHOD: {
+      amqp_connection_close_t *m = (amqp_connection_close_t *)r.reply.decoded;
+      res = snprintf(s, sizeof(s), "server connection error %d, message: %.*s",
+                     m->reply_code, (int)m->reply_text.len,
+                     (char *)m->reply_text.bytes);
+      break;
+    }
 
-  case AMQP_CHANNEL_CLOSE_METHOD: {
-    amqp_channel_close_t *m
-      = (amqp_channel_close_t *)r.reply.decoded;
-    res = snprintf(s, sizeof(s), "server channel error %d, message: %.*s",
-                   m->reply_code,
-                   (int)m->reply_text.len,
-                   (char *)m->reply_text.bytes);
-    break;
-  }
+    case AMQP_CHANNEL_CLOSE_METHOD: {
+      amqp_channel_close_t *m = (amqp_channel_close_t *)r.reply.decoded;
+      res = snprintf(s, sizeof(s), "server channel error %d, message: %.*s",
+                     m->reply_code, (int)m->reply_text.len,
+                     (char *)m->reply_text.bytes);
+      break;
+    }
 
-  default:
-    res = snprintf(s, sizeof(s), "unknown server error, method id 0x%08X",
-                   r.reply.id);
-    break;
+    default:
+      res = snprintf(s, sizeof(s), "unknown server error, method id 0x%08X",
+                     r.reply.id);
+      break;
   }
 
   return res >= 0 ? s : NULL;
 }
 
-const char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
-{
+const char *amqp_rpc_reply_string(amqp_rpc_reply_t r) {
   switch (r.reply_type) {
-  case AMQP_RESPONSE_NORMAL:
-    return "normal response";
+    case AMQP_RESPONSE_NORMAL:
+      return "normal response";
 
-  case AMQP_RESPONSE_NONE:
-    return "missing RPC reply type";
+    case AMQP_RESPONSE_NONE:
+      return "missing RPC reply type";
 
-  case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-    return amqp_error_string2(r.library_error);
+    case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+      return amqp_error_string2(r.library_error);
 
-  case AMQP_RESPONSE_SERVER_EXCEPTION:
-    return amqp_server_exception_string(r);
+    case AMQP_RESPONSE_SERVER_EXCEPTION:
+      return amqp_server_exception_string(r);
 
-  default:
-    abort();
+    default:
+      abort();
   }
 }
 
-void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
-{
+void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...) {
   va_list ap;
 
   if (r.reply_type == AMQP_RESPONSE_NORMAL) {
@@ -180,57 +170,31 @@ static char *amqp_cert = NULL;
 
 const char *connect_options_title = "Connection options";
 struct poptOption connect_options[] = {
-  {
-    "url", 'u', POPT_ARG_STRING, &amqp_url, 0,
-    "the AMQP URL to connect to", "amqp://..."
-  },
-  {
-    "server", 's', POPT_ARG_STRING, &amqp_server, 0,
-    "the AMQP server to connect to", "hostname"
-  },
-  {
-    "port", 0, POPT_ARG_INT, &amqp_port, 0,
-    "the port to connect on", "port"
-  },
-  {
-    "vhost", 0, POPT_ARG_STRING, &amqp_vhost, 0,
-    "the vhost to use when connecting", "vhost"
-  },
-  {
-    "username", 0, POPT_ARG_STRING, &amqp_username, 0,
-    "the username to login with", "username"
-  },
-  {
-    "password", 0, POPT_ARG_STRING, &amqp_password, 0,
-    "the password to login with", "password"
-  },
-  {
-    "heartbeat", 0, POPT_ARG_INT, &amqp_heartbeat, 0,
-    "heartbeat interval, set to 0 to disable", "heartbeat"
-  },
+    {"url", 'u', POPT_ARG_STRING, &amqp_url, 0, "the AMQP URL to connect to",
+     "amqp://..."},
+    {"server", 's', POPT_ARG_STRING, &amqp_server, 0,
+     "the AMQP server to connect to", "hostname"},
+    {"port", 0, POPT_ARG_INT, &amqp_port, 0, "the port to connect on", "port"},
+    {"vhost", 0, POPT_ARG_STRING, &amqp_vhost, 0,
+     "the vhost to use when connecting", "vhost"},
+    {"username", 0, POPT_ARG_STRING, &amqp_username, 0,
+     "the username to login with", "username"},
+    {"password", 0, POPT_ARG_STRING, &amqp_password, 0,
+     "the password to login with", "password"},
+    {"heartbeat", 0, POPT_ARG_INT, &amqp_heartbeat, 0,
+     "heartbeat interval, set to 0 to disable", "heartbeat"},
 #ifdef WITH_SSL
-  {
-    "ssl", 0, POPT_ARG_NONE, &amqp_ssl, 0,
-    "connect over SSL/TLS", NULL
-  },
-  {
-    "cacert", 0, POPT_ARG_STRING, &amqp_cacert, 0,
-    "path to the CA certificate file", "cacert.pem"
-  },
-  {
-    "key", 0, POPT_ARG_STRING, &amqp_key, 0,
-    "path to the client private key file", "key.pem"
-  },
-  {
-    "cert", 0, POPT_ARG_STRING, &amqp_cert, 0,
-    "path to the client certificate file", "cert.pem"
-  },
+    {"ssl", 0, POPT_ARG_NONE, &amqp_ssl, 0, "connect over SSL/TLS", NULL},
+    {"cacert", 0, POPT_ARG_STRING, &amqp_cacert, 0,
+     "path to the CA certificate file", "cacert.pem"},
+    {"key", 0, POPT_ARG_STRING, &amqp_key, 0,
+     "path to the client private key file", "key.pem"},
+    {"cert", 0, POPT_ARG_STRING, &amqp_cert, 0,
+     "path to the client certificate file", "cert.pem"},
 #endif /* WITH_SSL */
-  { NULL, '\0', 0, NULL, 0, NULL, NULL }
-};
+    {NULL, '\0', 0, NULL, 0, NULL, NULL}};
 
-static void init_connection_info(struct amqp_connection_info *ci)
-{
+static void init_connection_info(struct amqp_connection_info *ci) {
   ci->user = NULL;
   ci->password = NULL;
   ci->host = NULL;
@@ -241,8 +205,8 @@ static void init_connection_info(struct amqp_connection_info *ci)
   amqp_default_connection_info(ci);
 
   if (amqp_url)
-    die_amqp_error(amqp_parse_url(strdup(amqp_url), ci),
-                   "Parsing URL '%s'", amqp_url);
+    die_amqp_error(amqp_parse_url(strdup(amqp_url), ci), "Parsing URL '%s'",
+                   amqp_url);
 
   if (amqp_server) {
     char *colon;
@@ -260,8 +224,8 @@ static void init_connection_info(struct amqp_connection_info *ci)
          --server option, because it is not ipv6 friendly.
          --url now allows connection options to be
          specified concisely. */
-      fprintf(stderr, "Specifying the port number with"
-              " --server is deprecated\n");
+      fprintf(stderr,
+              "Specifying the port number with --server is deprecated\n");
 
       host_len = colon - amqp_server;
       ci->host = malloc(host_len + 1);
@@ -272,13 +236,10 @@ static void init_connection_info(struct amqp_connection_info *ci)
         die("both --server and --port options specify server port");
       }
 
-      ci->port = strtol(colon+1, &port_end, 10);
-      if (ci->port < 0
-          || ci->port > 65535
-          || port_end == colon+1
-          || *port_end != 0)
-        die("bad server port number in '%s'",
-            amqp_server);
+      ci->port = strtol(colon + 1, &port_end, 10);
+      if (ci->port < 0 || ci->port > 65535 || port_end == colon + 1 ||
+          *port_end != 0)
+        die("bad server port number in '%s'", amqp_server);
     }
 
 #if WITH_SSL
@@ -326,8 +287,7 @@ static void init_connection_info(struct amqp_connection_info *ci)
   }
 }
 
-amqp_connection_state_t make_connection(void)
-{
+amqp_connection_state_t make_connection(void) {
   int status;
   amqp_socket_t *socket = NULL;
   struct amqp_connection_info ci;
@@ -361,8 +321,7 @@ amqp_connection_state_t make_connection(void)
     die("opening socket to %s:%d", ci.host, ci.port);
   }
   die_rpc(amqp_login(conn, ci.vhost, 0, 131072, amqp_heartbeat,
-                     AMQP_SASL_METHOD_PLAIN,
-                     ci.user, ci.password),
+                     AMQP_SASL_METHOD_PLAIN, ci.user, ci.password),
           "logging in to AMQP server");
   if (!amqp_channel_open(conn, 1)) {
     die_rpc(amqp_get_rpc_reply(conn), "opening channel");
@@ -370,11 +329,9 @@ amqp_connection_state_t make_connection(void)
   return conn;
 }
 
-void close_connection(amqp_connection_state_t conn)
-{
+void close_connection(amqp_connection_state_t conn) {
   int res;
-  die_rpc(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
-          "closing channel");
+  die_rpc(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "closing channel");
   die_rpc(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
           "closing connection");
 
@@ -382,8 +339,7 @@ void close_connection(amqp_connection_state_t conn)
   die_amqp_error(res, "closing connection");
 }
 
-amqp_bytes_t read_all(int fd)
-{
+amqp_bytes_t read_all(int fd) {
   size_t space = 4096;
   amqp_bytes_t bytes;
 
@@ -391,8 +347,7 @@ amqp_bytes_t read_all(int fd)
   bytes.len = 0;
 
   for (;;) {
-    ssize_t res = read(fd, (char *)bytes.bytes + bytes.len,
-                       space-bytes.len);
+    ssize_t res = read(fd, (char *)bytes.bytes + bytes.len, space - bytes.len);
     if (res == 0) {
       break;
     }
@@ -415,8 +370,7 @@ amqp_bytes_t read_all(int fd)
   return bytes;
 }
 
-void write_all(int fd, amqp_bytes_t data)
-{
+void write_all(int fd, amqp_bytes_t data) {
   while (data.len > 0) {
     ssize_t res = write(fd, data.bytes, data.len);
     if (res < 0) {
@@ -428,16 +382,14 @@ void write_all(int fd, amqp_bytes_t data)
   }
 }
 
-void copy_body(amqp_connection_state_t conn, int fd)
-{
+void copy_body(amqp_connection_state_t conn, int fd) {
   size_t body_remaining;
   amqp_frame_t frame;
 
   int res = amqp_simple_wait_frame(conn, &frame);
   die_amqp_error(res, "waiting for header frame");
   if (frame.frame_type != AMQP_FRAME_HEADER) {
-    die("expected header, got frame type 0x%X",
-        frame.frame_type);
+    die("expected header, got frame type 0x%X", frame.frame_type);
   }
 
   body_remaining = frame.payload.properties.body_size;
@@ -445,8 +397,7 @@ void copy_body(amqp_connection_state_t conn, int fd)
     res = amqp_simple_wait_frame(conn, &frame);
     die_amqp_error(res, "waiting for body frame");
     if (frame.frame_type != AMQP_FRAME_BODY) {
-      die("expected body, got frame type 0x%X",
-          frame.frame_type);
+      die("expected body, got frame type 0x%X", frame.frame_type);
     }
 
     write_all(fd, frame.payload.body_fragment);
@@ -455,9 +406,7 @@ void copy_body(amqp_connection_state_t conn, int fd)
 }
 
 poptContext process_options(int argc, const char **argv,
-                            struct poptOption *options,
-                            const char *help)
-{
+                            struct poptOption *options, const char *help) {
   int c;
   poptContext opts = poptGetContext(NULL, argc, argv, options, 0);
   poptSetOtherOptionHelp(opts, help);
@@ -467,8 +416,7 @@ poptContext process_options(int argc, const char **argv,
   }
 
   if (c < -1) {
-    fprintf(stderr, "%s: %s\n",
-            poptBadOption(opts, POPT_BADOPTION_NOALIAS),
+    fprintf(stderr, "%s: %s\n", poptBadOption(opts, POPT_BADOPTION_NOALIAS),
             poptStrerror(c));
     poptPrintUsage(opts, stderr, 0);
     exit(1);
@@ -478,10 +426,8 @@ poptContext process_options(int argc, const char **argv,
 }
 
 void process_all_options(int argc, const char **argv,
-                         struct poptOption *options)
-{
-  poptContext opts = process_options(argc, argv, options,
-                                     "[OPTIONS]...");
+                         struct poptOption *options) {
+  poptContext opts = process_options(argc, argv, options, "[OPTIONS]...");
   const char *opt = poptPeekArg(opts);
 
   if (opt) {
@@ -493,7 +439,6 @@ void process_all_options(int argc, const char **argv,
   poptFreeContext(opts);
 }
 
-amqp_bytes_t cstring_bytes(const char *str)
-{
+amqp_bytes_t cstring_bytes(const char *str) {
   return str ? amqp_cstring_bytes(str) : amqp_empty_bytes;
 }

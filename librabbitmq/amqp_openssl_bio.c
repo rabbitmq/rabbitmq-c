@@ -21,24 +21,23 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
 #include "amqp_openssl_bio.h"
 #include "amqp_socket.h"
 #include "threads.h"
 
 #include <errno.h>
 #if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
-# ifndef WIN32_LEAN_AND_MEAN
-#  define WIN32_LEAN_AND_MEAN
-# endif
-# include <winsock2.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
 #else
-# include <sys/types.h>
-# include <sys/socket.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #endif
 
 #ifdef MSG_NOSIGNAL
-# define AMQP_USE_AMQP_BIO
+#define AMQP_USE_AMQP_BIO
 #endif
 
 #ifdef AMQP_USE_AMQP_BIO
@@ -85,7 +84,7 @@ static int amqp_openssl_bio_should_retry(int res) {
   return 0;
 }
 
-static int amqp_openssl_bio_write(BIO* b, const char *in, int inl) {
+static int amqp_openssl_bio_write(BIO *b, const char *in, int inl) {
   int flags = 0;
   int fd;
   int res;
@@ -105,7 +104,7 @@ static int amqp_openssl_bio_write(BIO* b, const char *in, int inl) {
   return res;
 }
 
-static int amqp_openssl_bio_read(BIO* b, char* out, int outl) {
+static int amqp_openssl_bio_read(BIO *b, char *out, int outl) {
   int flags = 0;
   int fd;
   int res;
@@ -132,8 +131,7 @@ static int BIO_meth_set_write(BIO_METHOD *biom,
   return 0;
 }
 
-static int BIO_meth_set_read(BIO_METHOD *biom,
-                              int (*rfn)(BIO *, char *, int)) {
+static int BIO_meth_set_read(BIO_METHOD *biom, int (*rfn)(BIO *, char *, int)) {
   biom->bread = rfn;
   return 0;
 }
@@ -147,9 +145,9 @@ static void amqp_openssl_bio_init(void) {
   bio_initialized = 1;
 }
 
-#endif  /* AMQP_USE_AMQP_BIO */
+#endif /* AMQP_USE_AMQP_BIO */
 
-BIO_METHOD* amqp_openssl_bio(void) {
+BIO_METHOD *amqp_openssl_bio(void) {
 #ifdef AMQP_USE_AMQP_BIO
   if (!bio_initialized) {
 #ifdef ENABLE_THREAD_SAFETY

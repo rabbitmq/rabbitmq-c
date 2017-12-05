@@ -40,8 +40,8 @@
  */
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <amqp.h>
@@ -50,19 +50,17 @@
 #include <assert.h>
 
 #ifdef _WIN32
-# ifndef WIN32_LEAN_AND_MEAN
-#  define WIN32_LEAN_AND_MEAN
-# endif
-# include <Winsock2.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Winsock2.h>
 #else
-# include <sys/time.h>
+#include <sys/time.h>
 #endif
 
 #include "utils.h"
 
-
-int main(int argc, char const *const *argv)
-{
+int main(int argc, char const *const *argv) {
   char const *hostname;
   int port;
   int timeout;
@@ -72,10 +70,9 @@ int main(int argc, char const *const *argv)
   struct timeval *tv;
 
   if (argc < 3) {
-    fprintf(
-        stderr,
-        "Usage: amqps_connect_timeout host port timeout_sec "
-        "[cacert.pem [verifypeer] [verifyhostname] [key.pem cert.pem]]\n");
+    fprintf(stderr,
+            "Usage: amqps_connect_timeout host port timeout_sec "
+            "[cacert.pem [verifypeer] [verifyhostname] [key.pem cert.pem]]\n");
     return 1;
   }
 
@@ -121,14 +118,17 @@ int main(int argc, char const *const *argv)
     }
   }
 
-  die_on_error(amqp_socket_open_noblock(socket, hostname, port, tv), "opening SSL/TLS connection");
+  die_on_error(amqp_socket_open_noblock(socket, hostname, port, tv),
+               "opening SSL/TLS connection");
 
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN,
+                               "guest", "guest"),
                     "Logging in");
 
-  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
+  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
+                    "Closing connection");
   die_on_error(amqp_destroy_connection(conn), "Ending connection");
 
-  printf ("Done\n");
+  printf("Done\n");
   return 0;
 }

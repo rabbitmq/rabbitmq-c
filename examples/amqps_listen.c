@@ -37,8 +37,8 @@
  */
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <amqp.h>
@@ -48,8 +48,7 @@
 
 #include "utils.h"
 
-int main(int argc, char const *const *argv)
-{
+int main(int argc, char const *const *argv) {
   char const *hostname;
   int port, status;
   char const *exchange;
@@ -60,7 +59,8 @@ int main(int argc, char const *const *argv)
   amqp_bytes_t queuename;
 
   if (argc < 5) {
-    fprintf(stderr, "Usage: amqps_listen host port exchange bindingkey "
+    fprintf(stderr,
+            "Usage: amqps_listen host port exchange bindingkey "
             "[cacert.pem [verifypeer] [verifyhostname] [key.pem cert.pem]]\n");
     return 1;
   }
@@ -103,20 +103,20 @@ int main(int argc, char const *const *argv)
     }
   }
 
-
   status = amqp_socket_open(socket, hostname, port);
   if (status) {
     die("opening SSL/TLS connection");
   }
 
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN,
+                               "guest", "guest"),
                     "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
   {
-    amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, amqp_empty_bytes, 0, 0, 0, 1,
-                                 amqp_empty_table);
+    amqp_queue_declare_ok_t *r = amqp_queue_declare(
+        conn, 1, amqp_empty_bytes, 0, 0, 0, 1, amqp_empty_table);
     die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue");
     queuename = amqp_bytes_malloc_dup(r->queue);
     if (queuename.bytes == NULL) {
@@ -125,11 +125,12 @@ int main(int argc, char const *const *argv)
     }
   }
 
-  amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange), amqp_cstring_bytes(bindingkey),
-                  amqp_empty_table);
+  amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange),
+                  amqp_cstring_bytes(bindingkey), amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
 
-  amqp_basic_consume(conn, 1, queuename, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
+  amqp_basic_consume(conn, 1, queuename, amqp_empty_bytes, 0, 1, 0,
+                     amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
 
   {
@@ -146,14 +147,14 @@ int main(int argc, char const *const *argv)
       }
 
       printf("Delivery %u, exchange %.*s routingkey %.*s\n",
-             (unsigned) envelope.delivery_tag,
-             (int) envelope.exchange.len, (char *) envelope.exchange.bytes,
-             (int) envelope.routing_key.len, (char *) envelope.routing_key.bytes);
+             (unsigned)envelope.delivery_tag, (int)envelope.exchange.len,
+             (char *)envelope.exchange.bytes, (int)envelope.routing_key.len,
+             (char *)envelope.routing_key.bytes);
 
       if (envelope.message.properties._flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
         printf("Content-type: %.*s\n",
-               (int) envelope.message.properties.content_type.len,
-               (char *) envelope.message.properties.content_type.bytes);
+               (int)envelope.message.properties.content_type.len,
+               (char *)envelope.message.properties.content_type.bytes);
       }
       printf("----\n");
 
@@ -163,8 +164,10 @@ int main(int argc, char const *const *argv)
     }
   }
 
-  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
-  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
+  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
+                    "Closing channel");
+  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
+                    "Closing connection");
   die_on_error(amqp_destroy_connection(conn), "Ending connection");
 
   return 0;
