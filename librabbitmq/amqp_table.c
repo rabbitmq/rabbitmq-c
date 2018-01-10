@@ -135,6 +135,10 @@ int amqp_decode_table(amqp_bytes_t encoded, amqp_pool_t *pool,
     return AMQP_STATUS_BAD_AMQP_DATA;
   }
 
+  if (tablesize + *offset > encoded.len) {
+    return AMQP_STATUS_BAD_AMQP_DATA;
+  }
+
   entries = malloc(allocated_entries * sizeof(amqp_table_entry_t));
   if (entries == NULL) {
     return AMQP_STATUS_NO_MEMORY;
