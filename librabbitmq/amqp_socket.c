@@ -498,7 +498,7 @@ int amqp_open_socket_inner(char const *hostname, int portnumber,
   for (addr = address_list; addr; addr = addr->ai_next) {
     sockfd = connect_socket(addr, deadline);
 
-    if (sockfd > 0) {
+    if (sockfd >= 0) {
       last_error = AMQP_STATUS_OK;
       break;
     } else if (sockfd == AMQP_STATUS_TIMEOUT) {
