@@ -69,6 +69,10 @@ static int amqp_decode_array(amqp_bytes_t encoded, amqp_pool_t *pool,
     return AMQP_STATUS_BAD_AMQP_DATA;
   }
 
+  if (arraysize + *offset > encoded.len) {
+    return AMQP_STATUS_BAD_AMQP_DATA;
+  }
+
   entries = malloc(allocated_entries * sizeof(amqp_field_value_t));
   if (entries == NULL) {
     return AMQP_STATUS_NO_MEMORY;
