@@ -57,6 +57,7 @@ static pthread_mutex_t *amqp_openssl_lockarray = NULL;
 static pthread_mutex_t openssl_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 static amqp_boolean_t do_initialize_openssl = 1;
 static amqp_boolean_t openssl_initialized = 0;
+static amqp_boolean_t openssl_bio_initialized = 0;
 static int openssl_connections = 0;
 
 #define CHECK_SUCCESS(condition)                                            \
@@ -619,6 +620,11 @@ static int initialize_ssl_and_increment_connections() {
       goto exit;
     }
     openssl_initialized = 1;
+  }
+
+  if (!openssl_bio_initialized) {
+    amqp_openssl_bio_init();
+    openssl_bio_initialized = 1;
   }
 
   openssl_connections += 1;
