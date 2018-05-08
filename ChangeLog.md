@@ -1,4 +1,38 @@
 # Change Log
+## v0.9.0 - 2018-05-08
+### Added:
+- amqp-publish: added support for specifying headers via the -H flag
+- Add support for specifying timeout for amqp_login calls via
+  amqp_set_handshake_timeout
+- Add support for specifying timeouts in RPC-style AMQP methods via
+  amqp_set_rpc_timeout
+- Add define for `AMQP_DEFAULT_VHOST`
+- Support for SSL SNI
+- Support for OpenSSL v1.1.0
+
+### Changed:
+- rabbitmq-c now requires Windows Vista or better
+- rabbitmq-c enables TCP keep-alive by default on platforms that support it
+- dropped support for compiling rabbitmq-c without threading support
+- OpenSSL is no longer un-intialized automatically by default. OpenSSL can be
+  explicitly initialized by calling amqp_initialize_ssl_library and
+  uninitialized by calling amqp_uninitialize_ssl_library.
+
+### Fixed:
+- Correct bugs in processing of --url flag in tools (#364).
+- Improve documentation on AMQP_SASL_METHOD_EXTERNAL (#349)
+- Improve support for compiling under mingw-w64
+- Better support for handing SIGPIPE on Linux over SSL (#401)
+- Improve publish performance on Linux by not specifying MSG_MORE on last part
+  of message.
+- Fix connection logic where multiple hostnames won't be tried if connection to
+  doesn't fail immediately (#430)
+
+### Removed:
+- autotools build system has been removed
+- many duplicate amqps_* examples, they did not add a lot of value
+
+
 ## v0.8.0 - 2016-04-09
 ### Added:
 - SSL: peer certificate and hostname validation can now be controlled separately
