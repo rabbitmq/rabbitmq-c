@@ -10,6 +10,9 @@ environment:
       BITS: 64
     - GENERATOR: Visual Studio 12
       BITS: 32
+configuration:
+  - Debug
+  - Release
 
 cache:
   - c:\deps -> appveyor.yml
@@ -32,3 +35,8 @@ before_build:
 build:
   project: ALL_BUILD.vcxproj
   verbosity: normal
+
+artifacts:
+  - path: librabbitmq\%CONFIGURATION%
+    name: LibRabbit-%BITS%-%OPENSSL_VER%-%CONFIGURATION%.zip
+    type: zip
