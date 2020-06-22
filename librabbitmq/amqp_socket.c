@@ -760,7 +760,10 @@ int amqp_try_recv(amqp_connection_state_t state) {
       state->last_queued_frame = link;
     }
   }
-  timeout = amqp_time_immediate();
+  int res = amqp_time_s_from_now(&timeout, 0);
+  if (AMQP_STATUS_OK != res) {
+    return res;
+  }
 
   return recv_with_timeout(state, timeout);
 }

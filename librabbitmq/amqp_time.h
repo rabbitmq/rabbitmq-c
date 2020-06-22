@@ -62,7 +62,6 @@ uint64_t amqp_get_monotonic_timestamp(void);
 
 /* Get a amqp_time_t that is timeout from now.
  * If timeout is NULL, an amqp_time_infinite() is created.
- * If timeout = {0, 0}, an amqp_time_immediate() is created.
  *
  * Returns AMQP_STATUS_OK on success.
  * AMQP_STATUS_INVALID_PARAMETER if timeout is invalid
@@ -79,9 +78,6 @@ int amqp_time_from_now(amqp_time_t *time, const struct timeval *timeout);
  * fails.
  */
 int amqp_time_s_from_now(amqp_time_t *time, int seconds);
-
-/* Create an immediate amqp_time_t */
-amqp_time_t amqp_time_immediate(void);
 
 /* Create an infinite amqp_time_t */
 amqp_time_t amqp_time_infinite(void);

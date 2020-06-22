@@ -111,10 +111,6 @@ int amqp_time_from_now(amqp_time_t *time, const struct timeval *timeout) {
     *time = amqp_time_infinite();
     return AMQP_STATUS_OK;
   }
-  if (0 == timeout->tv_sec && 0 == timeout->tv_usec) {
-    *time = amqp_time_immediate();
-    return AMQP_STATUS_OK;
-  }
 
   if (timeout->tv_sec < 0 || timeout->tv_usec < 0) {
     return AMQP_STATUS_INVALID_PARAMETER;
@@ -158,12 +154,6 @@ int amqp_time_s_from_now(amqp_time_t *time, int seconds) {
   }
 
   return AMQP_STATUS_OK;
-}
-
-amqp_time_t amqp_time_immediate(void) {
-  amqp_time_t time;
-  time.time_point_ns = 0;
-  return time;
 }
 
 amqp_time_t amqp_time_infinite(void) {
