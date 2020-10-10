@@ -1045,7 +1045,7 @@ amqp_connection_state_t AMQP_CALL amqp_new_connection(void);
  * of the socket outside of the library will lead to undefined behavior.
  * Additionally rabbitmq-c may use the socket differently version-to-version,
  * what may work in one version, may break in the next version. Be sure to
- * throughly test any applications that use the socket returned by this
+ * thoroughly test any applications that use the socket returned by this
  * function especially when using a newer version of rabbitmq-c
  *
  * \param [in] state the connection object
