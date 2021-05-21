@@ -119,8 +119,6 @@ if (ENABLE_SSL_SUPPORT)
   cmake_pop_check_state()
 endif()
 
-find_package(Doxygen)
-
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
 endif()
@@ -133,7 +131,7 @@ option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
 option(BUILD_EXAMPLES "Build Examples" OFF)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" OFF)
 cmake_dependent_option(BUILD_TOOLS_DOCS "Build man pages for tools (requires xmlto)" OFF "BUILD_TOOLS" OFF)
-option(BUILD_API_DOCS "Build Doxygen API docs" ${DOXYGEN_FOUND})
+option(BUILD_API_DOCS "Build Doxygen API docs" OFF)
 option(RUN_SYSTEM_TESTS "Run system tests (i.e. tests requiring an accessible RabbitMQ server instance on localhost)" OFF)
 
 if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
@@ -169,9 +167,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
 endif ()
 
 if (BUILD_API_DOCS)
-  if (NOT DOXYGEN_FOUND)
-    message(FATAL_ERROR "Doxygen is required to build the API documentation")
-  endif ()
+  find_package(Doxygen REQUIRED)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile @ONLY)
 
   add_custom_target(docs
