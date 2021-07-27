@@ -5,7 +5,7 @@
 
 set -e
 
-RMQ_VERSION=3.8.14
+RMQ_VERSION=3.8.19
 DATA=${PWD}/codegen/rabbitmq-server-${RMQ_VERSION}/deps/rabbitmq_codegen/amqp-rabbitmq-0.9.1.json
 export PYTHONPATH=${PWD}/codegen/rabbitmq-server-${RMQ_VERSION}/deps/rabbitmq_codegen
 
