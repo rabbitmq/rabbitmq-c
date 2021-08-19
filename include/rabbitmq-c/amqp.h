@@ -40,7 +40,7 @@
 #endif
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || (defined(__BORLANDC__) && (__BORLANDC__ <= 0x0564))
 #ifdef _WIN64
 typedef __int64 ssize_t;
 #else

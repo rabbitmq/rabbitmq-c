@@ -689,10 +689,11 @@ start_recv:
 
 int amqp_try_recv(amqp_connection_state_t state) {
   amqp_time_t timeout;
+  int res;
 
   while (amqp_data_in_buffer(state)) {
     amqp_frame_t frame;
-    int res = consume_one_frame(state, &frame);
+    res = consume_one_frame(state, &frame);
 
     if (AMQP_STATUS_OK != res) {
       return res;
@@ -728,7 +729,7 @@ int amqp_try_recv(amqp_connection_state_t state) {
       state->last_queued_frame = link;
     }
   }
-  int res = amqp_time_s_from_now(&timeout, 0);
+  res = amqp_time_s_from_now(&timeout, 0);
   if (AMQP_STATUS_OK != res) {
     return res;
   }
@@ -963,7 +964,9 @@ static int simple_wait_method_inner(amqp_connection_state_t state,
                                     amqp_method_number_t expected_method,
                                     amqp_time_t deadline,
                                     amqp_method_t *output) {
-  amqp_method_number_t expected_methods[] = {expected_method, 0};
+  amqp_method_number_t expected_methods[2];
+  expected_methods[0] = expected_method;
+  expected_methods[1] = 0;
   return amqp_simple_wait_method_list(state, expected_channel, expected_methods,
                                       deadline, output);
 }
@@ -1432,7 +1435,8 @@ error_res:
 
 amqp_rpc_reply_t amqp_login(amqp_connection_state_t state, char const *vhost,
                             int channel_max, int frame_max, int heartbeat,
-                            int sasl_method, ...) {
+                            amqp_sasl_method_enum sasl_method, ...) {
+
   va_list vl;
   amqp_rpc_reply_t ret;
 
@@ -1450,7 +1454,7 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state, char const *vhost,
 amqp_rpc_reply_t amqp_login_with_properties(
     amqp_connection_state_t state, char const *vhost, int channel_max,
     int frame_max, int heartbeat, const amqp_table_t *client_properties,
-    int sasl_method, ...) {
+    amqp_sasl_method_enum sasl_method, ...) {
   va_list vl;
   amqp_rpc_reply_t ret;
 
