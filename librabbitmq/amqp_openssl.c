@@ -584,7 +584,11 @@ void amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize) {
 }
 
 static unsigned long ssl_threadid_callback(void) {
+#ifdef _WIN32
+  return (unsigned long)pthread_self().p;
+#else
   return (unsigned long)pthread_self();
+#endif
 }
 
 static void ssl_locking_callback(int mode, int n, AMQP_UNUSED const char *file,
