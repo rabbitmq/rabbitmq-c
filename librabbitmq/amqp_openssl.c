@@ -30,7 +30,7 @@
 static int initialize_ssl_and_increment_connections(void);
 static int decrement_ssl_connections(void);
 
-static unsigned long ssl_threadid_callback(void);
+static pthread_t ssl_threadid_callback(void);
 static void ssl_locking_callback(int mode, int n, const char *file, int line);
 static pthread_mutex_t *amqp_openssl_lockarray = NULL;
 
@@ -583,12 +583,8 @@ void amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize) {
   CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
 }
 
-static unsigned long ssl_threadid_callback(void) {
-#ifdef _WIN32
-  return (unsigned long)pthread_self().p;
-#else
-  return (unsigned long)pthread_self();
-#endif
+static pthread_t ssl_threadid_callback(void) {
+  return pthread_self();
 }
 
 static void ssl_locking_callback(int mode, int n, AMQP_UNUSED const char *file,
