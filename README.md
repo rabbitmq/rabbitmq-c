@@ -1,6 +1,6 @@
 Update your bookmarks!
 ======================
 
-The official rabbitmq-c source has been moved to:
+The official rabbitmq-c sources have been moved to:
 
 https://github.com/alanxz/rabbitmq-c
